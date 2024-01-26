@@ -1,42 +1,65 @@
 return {
-	{
-		"nvim-telescope/telescope.nvim",
-		tag = "0.1.5",
-		dependencies = { "nvim-lua/plenary.nvim" },
-		config = function()
-			local builtin = require("telescope.builtin")
-		end,
-	},
-	{
-		"nvim-telescope/telescope-ui-select.nvim",
-		config = function()
-			-- This is your opts table
-			require("telescope").setup({
-				extensions = {
-					["ui-select"] = {
-						require("telescope.themes").get_dropdown({
-							-- even more opts
-						}),
+    {
+        "nvim-telescope/telescope.nvim",
+        tag = "0.1.5",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            {
+                "nvim-telescope/telescope-fzf-native.nvim",
+                -- NOTE: If you are having trouble with this installation,
+                --       refer to the README for telescope-fzf-native for more instructions.
+                build = "make",
+                cond = function()
+                    return vim.fn.executable("make") == 1
+                end,
+            },
+        },
+        config = function()
+            local builtin = require("telescope.builtin")
+            require("telescope").setup({
+                defaults = {
+                    mappings = {
+                        i = {
+                            ["<C-u>"] = false,
+                            ["<C-d>"] = false,
+                        },
+                    },
+                },
+            })
 
-						-- pseudo code / specification for writing custom displays, like the one
-						-- for "codeactions"
-						-- specific_opts = {
-						--   [kind] = {
-						--     make_indexed = function(items) -> indexed_items, width,
-						--     make_displayer = function(widths) -> displayer
-						--     make_display = function(displayer) -> function(e)
-						--     make_ordinal = function(e) -> string
-						--   },
-						--   -- for example to disable the custom builtin "codeactions" display
-						--      do the following
-						--   codeactions = false,
-						-- }
-					},
-				},
-			})
-			-- To get ui-select loaded and working with telescope, you need to call
-			-- load_extension, somewhere after setup function:
-			require("telescope").load_extension("ui-select")
-		end,
-	},
+            pcall(require("telescope").load_extension, "fzf")
+        end,
+    },
+    {
+        "nvim-telescope/telescope-ui-select.nvim",
+        config = function()
+            -- This is your opts table
+            require("telescope").setup({
+                extensions = {
+                    ["ui-select"] = {
+                        require("telescope.themes").get_dropdown({
+                            -- even more opts
+                        }),
+
+                        -- pseudo code / specification for writing custom displays, like the one
+                        -- for "codeactions"
+                        -- specific_opts = {
+                        --   [kind] = {
+                        --     make_indexed = function(items) -> indexed_items, width,
+                        --     make_displayer = function(widths) -> displayer
+                        --     make_display = function(displayer) -> function(e)
+                        --     make_ordinal = function(e) -> string
+                        --   },
+                        --   -- for example to disable the custom builtin "codeactions" display
+                        --      do the following
+                        --   codeactions = false,
+                        -- }
+                    },
+                },
+            })
+            -- To get ui-select loaded and working with telescope, you need to call
+            -- load_extension, somewhere after setup function:
+            require("telescope").load_extension("ui-select")
+        end,
+    },
 }
