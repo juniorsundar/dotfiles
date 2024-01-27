@@ -8,7 +8,7 @@ local config = {}
 -- In newer versions of wezterm, use the config_builder which will
 -- help provide clearer error messages
 if wezterm.config_builder then
-    config = wezterm.config_builder()
+	config = wezterm.config_builder()
 end
 
 -- This is where you actually apply your config choices
@@ -16,86 +16,57 @@ end
 -- For example, changing the color scheme:
 
 config.colors = {
-    foreground = "#c0caf5",
-    background = "#1a1b26",
-    cursor_bg = "#c0caf5",
-    cursor_border = "#c0caf5",
-    cursor_fg = "#1a1b26",
-    selection_bg = "#283457",
-    selection_fg = "#c0caf5",
-    split = "#7aa2f7",
-    compose_cursor = "#ff9e64",
-    scrollbar_thumb = "#292e42",
+	foreground = "#dcd7ba",
+	background = "#1f1f28",
 
-    ansi = { "#15161e", "#f7768e", "#9ece6a", "#e0af68", "#7aa2f7", "#bb9af7", "#7dcfff", "#a9b1d6" },
-    brights = { "#414868", "#f7768e", "#9ece6a", "#e0af68", "#7aa2f7", "#bb9af7", "#7dcfff", "#c0caf5" },
-}
+	cursor_bg = "#c8c093",
+	cursor_fg = "#c8c093",
+	cursor_border = "#c8c093",
 
-config.colors.tab_bar = {
-    inactive_tab_edge = "#16161e",
-    background = "#1a1b26",
-}
+	selection_fg = "#c8c093",
+	selection_bg = "#2d4f67",
 
-config.colors.tab_bar.active_tab = {
-    fg_color = "#16161e",
-    bg_color = "#7aa2f7",
-}
+	scrollbar_thumb = "#16161d",
+	split = "#16161d",
 
-config.colors.tab_bar.inactive_tab = {
-    fg_color = "#545c7e",
-    bg_color = "#292e42",
-}
-
-config.colors.tab_bar.inactive_tab_hover = {
-    fg_color = "#7aa2f7",
-    bg_color = "#292e42",
-    -- # intensity = "Bold"
-}
-
-config.colors.tab_bar.new_tab_hover = {
-    fg_color = "#7aa2f7",
-    bg_color = "#1a1b26",
-    intensity = "Bold",
-}
-
-config.colors.tab_bar.new_tab = {
-    fg_color = "#7aa2f7",
-    bg_color = "#1a1b26",
+	ansi = { "#090618", "#c34043", "#76946a", "#c0a36e", "#7e9cd8", "#957fb8", "#6a9589", "#c8c093" },
+	brights = { "#727169", "#e82424", "#98bb6c", "#e6c384", "#7fb4ca", "#938aa9", "#7aa89f", "#dcd7ba" },
+	indexed = { [16] = "#ffa066", [17] = "#ff5d62" },
 }
 
 config.force_reverse_video_cursor = true
 
-config.font_size = 10
+config.font_size = 11
 config.hide_tab_bar_if_only_one_tab = true
 -- Disable font ligatures
 config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 
 config.keys = {
-    {
-        key = "t",
-        mods = "SUPER|SHIFT",
-        action = act.SpawnTab("CurrentPaneDomain"),
-    },
-    {
-        key = "|",
-        mods = "SUPER|SHIFT",
-        action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }),
-    },
-    {
-        key = "_",
-        mods = "SUPER|SHIFT",
-        action = act.SplitVertical({ domain = "CurrentPaneDomain" }),
-    },
-    {
-        key = "d",
-        mods = "SUPER|SHIFT",
-        action = wezterm.action.CloseCurrentPane({ confirm = true }),
-    },
-    {
-        key = "w",
-        mods = "SUPER|SHIFT",
-        action = wezterm.action.CloseCurrentTab({ confirm = true }),
-    },
+	{
+		key = "t",
+		mods = "SUPER|SHIFT",
+		action = act.SpawnTab("CurrentPaneDomain"),
+	},
+	{
+		key = "|",
+		mods = "SUPER|SHIFT",
+		action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }),
+	},
+	{
+		key = "_",
+		mods = "SUPER|SHIFT",
+		action = act.SplitVertical({ domain = "CurrentPaneDomain" }),
+	},
+	{
+		key = "d",
+		mods = "SUPER|SHIFT",
+		action = wezterm.action.CloseCurrentPane({ confirm = true }),
+	},
+	{
+		key = "w",
+		mods = "SUPER|SHIFT",
+		action = wezterm.action.CloseCurrentTab({ confirm = true }),
+	},
 }
 
 -- and finally, return the configuration to wezterm

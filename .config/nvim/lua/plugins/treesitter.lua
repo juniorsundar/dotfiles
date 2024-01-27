@@ -24,13 +24,14 @@ return {
 					"cpp",
 					"python",
 					"yaml",
-					"markdown",
-					"markdown_inline",
+					-- "markdown",
+					-- "markdown_inline",
 					"bash",
 					"lua",
 					"vim",
 					"rust",
 					"vimdoc",
+                    "norg"
 				},
 				-- auto install above language parsers
 				auto_install = false,

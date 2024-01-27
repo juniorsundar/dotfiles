@@ -9,7 +9,6 @@ return {
 				return
 			end
 
-			-- local mocha = require("catppuccin.palettes").get_palette("mocha")
 			bufferline.setup({
 				options = {
 					hover = {
@@ -19,20 +18,6 @@ return {
 					},
 					separator_style = "thick",
 				},
-				-- highlights = require("catppuccin.groups.integrations.bufferline").get({
-				-- 	styles = { "italic", "bold" },
-				-- 	custom = {
-				-- 		all = {
-				-- 			fill = { bg = "#000000" },
-				-- 		},
-				-- 		mocha = {
-				-- 			background = { fg = mocha.text },
-				-- 		},
-				-- 		latte = {
-				-- 			background = { fg = "#000000" },
-				-- 		},
-				-- 	},
-				-- }),
 			})
 		end,
 	},
@@ -54,7 +39,7 @@ return {
 				options = {
 					icons_enabled = true,
 					-- theme = "catppuccin",
-					theme = "tokyonight",
+					theme = "kanagawa",
 					component_separators = { left = "|", right = "|" },
 					section_separators = { left = "", right = "" },
 					-- component_separators = { left = "", right = "" },
