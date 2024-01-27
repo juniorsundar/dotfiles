@@ -107,6 +107,13 @@ source /opt/ros/humble/setup.zsh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+
 export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
+
+export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
+export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
+
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
