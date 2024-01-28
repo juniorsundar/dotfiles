@@ -16,9 +16,10 @@ return {
 				["core.dirman"] = { -- Manages Neorg workspaces
 					config = {
 						workspaces = {
-							notes = "~/Documents/casual/neorg/notes",
-							journal = "~/Documents/casual/neorg/journal",
-						},
+							notes = "~/neorg/notes",
+							journal = "~/neorg/journal",
+						    books = "~/neorg/books"
+                        },
 					},
 				},
 				["core.export"] = {},
