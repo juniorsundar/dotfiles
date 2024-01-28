@@ -15,8 +15,8 @@ end
 
 -- For example, changing the color scheme:
 config.font =
-  -- wezterm.font('JetBrainsMono NF', { weight = 'Regular' })
-  wezterm.font('Fira Code', { weight = 'Regular' })
+   wezterm.font('JetBrainsMono NF', { weight = 'Regular' })
+--  wezterm.font('Fira Code', { weight = 'Regular' })
 config.font_size = 11
 
 config.colors = {
