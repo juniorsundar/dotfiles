@@ -14,6 +14,10 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
+config.font =
+  -- wezterm.font('JetBrainsMono NF', { weight = 'Regular' })
+  wezterm.font('Fira Code', { weight = 'Regular' })
+config.font_size = 11
 
 config.colors = {
 	foreground = "#dcd7ba",
@@ -36,7 +40,6 @@ config.colors = {
 
 config.force_reverse_video_cursor = true
 
-config.font_size = 11
 config.hide_tab_bar_if_only_one_tab = true
 -- Disable font ligatures
 config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
