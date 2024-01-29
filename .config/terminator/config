@@ -1,17 +1,22 @@
 [global_config]
+  suppress_multiple_term_dialog = True
 [keybindings]
 [profiles]
   [[default]]
     background_color = "#1F1F28"
     cursor_color = "#C8C093"
-    font = Fira Code 12
+    font = FiraCode Nerd Font 10
     foreground_color = "#DCD7BA"
+    show_titlebar = False
+    scrollbar_position = hidden
+    scrollback_lines = 10000
+    scrollback_infinite = True
     palette = "#16161d:#c34043:#76946a:#c0a36e:#7e9cd8:#957fb8:#6a9589:#c8c093:#727169:#e82424:#98bb6c:#e6c384:#7fb4ca:#938aa9:#7aa89f:#dcd7ba"
     use_system_font = False
   [[kanagawa]]
     background_color = "#282828"
     cursor_color = "#aaaaaa"
-    font = Fira Code 12
+    font = Fira Code 10
     foreground_color = "#ebdbb2"
     use_system_font = False
 [layouts]

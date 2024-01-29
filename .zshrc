@@ -77,24 +77,24 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux)
 
 source $ZSH/oh-my-zsh.sh
+
+# Sourcing ROS 2
 source /opt/ros/humble/setup.zsh
-
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
+eval "$(register-python-argcomplete3 ros2)"
+eval "$(register-python-argcomplete3 colcon)"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='nvim'
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -112,8 +112,8 @@ export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
 
 export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
+export MANPATH="/usr/local/man:$MANPATH"
 export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
-
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

@@ -17,9 +17,10 @@ return {
                     ["core.dirman"] = { -- Manages Neorg workspaces
                         config = {
                             workspaces = {
+                                default = "~/neorg",
                                 notes = "~/neorg/notes",
-                                journal = "~/neorg/journal",
                                 books = "~/neorg/books",
+                                journal = "~/neorg/journal"
                             },
                         },
                     },
@@ -30,12 +31,12 @@ return {
             })
         end,
     },
-    {
-        "lukas-reineke/headlines.nvim",
-        dependencies = "nvim-treesitter/nvim-treesitter",
-        opts = {},
-        config = function()
-            require("headlines").setup {}
-        end
-    },
+    -- {
+    --     "lukas-reineke/headlines.nvim",
+    --     dependencies = "nvim-treesitter/nvim-treesitter",
+    --     opts = {},
+    --     config = function()
+    --         require("headlines").setup {}
+    --     end
+    -- },
 }
