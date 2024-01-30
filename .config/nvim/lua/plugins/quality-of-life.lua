@@ -1,35 +1,5 @@
 return {
 	{
-		"echasnovski/mini.indentscope",
-		version = false, -- wait till new 0.7.0 release to put it back on semver
-		opts = {
-			symbol = "▏",
-			-- symbol = "│",
-			options = { try_as_border = true },
-		},
-		init = function()
-			vim.api.nvim_create_autocmd("FileType", {
-				pattern = {
-					"help",
-					"alpha",
-					"dashboard",
-					"neo-tree",
-					"Trouble",
-					"trouble",
-					"lazy",
-					"mason",
-					"notify",
-					"toggleterm",
-					"lazyterm",
-				},
-				callback = function()
-					vim.b.miniindentscope_disable = true
-				end,
-			})
-		end,
-	},
-	{
-		{
 			"echasnovski/mini.comment",
 			version = false,
 			config = function()
@@ -53,16 +23,16 @@ return {
 					mappings = {
 						-- Toggle comment (like `gcip` - comment inner paragraph) for both
 						-- Normal and Visual modes
-						comment = "<C-/>",
+						comment = "<C-c>",
 
 						-- Toggle comment on current line
-						comment_line = "<C-/>/",
+						comment_line = "<C-c>c",
 
 						-- Toggle comment on visual selection
-						comment_visual = "<C-/>",
+						comment_visual = "<C-c>",
 
 						-- Define 'comment' textobject (like `dgc` - delete whole comment block)
-						textobject = "<C-/>",
+						textobject = "<C-c>",
 					},
 
 					-- Hook functions to be executed at certain stage of commenting
@@ -74,7 +44,6 @@ return {
 					},
 				})
 			end,
-		},
 	},
 	{
 		"lukas-reineke/indent-blankline.nvim",

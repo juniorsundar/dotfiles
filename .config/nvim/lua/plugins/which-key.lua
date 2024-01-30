@@ -192,6 +192,7 @@ return {
 			N = {
 				name = "Neorg",
 				w = { ":Neorg workspace ", "Workspaces" },
+				i = { "<cmd>Neorg index", "Index" },
 				M = {
 					name = "Metadata",
 					i = { "<cmd>Neorg inject-metadata<cr>", "Inject" },

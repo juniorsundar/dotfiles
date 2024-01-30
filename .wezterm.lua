@@ -14,7 +14,7 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-config.font = wezterm.font('FiraCode Nerd Font', { weight = 'Regular' })
+config.font = wezterm.font('MesloLGS Nerd Font Mono', { weight = 'Regular' })
 config.font_size = 10
 
 config.colors = {
@@ -45,27 +45,27 @@ config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 config.keys = {
 	{
 		key = "t",
-		mods = "SUPER|SHIFT",
+		mods = "CTRL|SHIFT",
 		action = act.SpawnTab("CurrentPaneDomain"),
 	},
 	{
 		key = "|",
-		mods = "SUPER|SHIFT",
+		mods = "CTRL|SHIFT",
 		action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }),
 	},
 	{
 		key = "_",
-		mods = "SUPER|SHIFT",
+		mods = "CTRL|SHIFT",
 		action = act.SplitVertical({ domain = "CurrentPaneDomain" }),
 	},
 	{
 		key = "d",
-		mods = "SUPER|SHIFT",
+		mods = "CTRL|SHIFT",
 		action = wezterm.action.CloseCurrentPane({ confirm = true }),
 	},
 	{
 		key = "w",
-		mods = "SUPER|SHIFT",
+		mods = "CTRL|SHIFT",
 		action = wezterm.action.CloseCurrentTab({ confirm = true }),
 	},
 }
