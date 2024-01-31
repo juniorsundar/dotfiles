@@ -19,8 +19,9 @@ return {
                             workspaces = {
                                 default = "~/neorg",
                                 notes = "~/neorg/notes",
-                                books = "~/neorg/books",
-                                journal = "~/neorg/journal"
+                                the_good_teacher = "~/neorg/the-good-teacher",
+                                god_of_war = "~/neorg/god-of-war",
+                                journal = "~/neorg/journal",
                             },
                         },
                     },
