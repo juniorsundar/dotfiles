@@ -24,13 +24,13 @@ return {
 	{
 		"nvim-lualine/lualine.nvim",
 		config = function()
-			local status, lualine = pcall(require, "lualine")
-			if not status then
+			local lualine_status, lualine = pcall(require, "lualine")
+			if not lualine_status then
 				return
 			end
 
-			local status, prose = pcall(require, "nvim-prose")
-			if not status then
+			local prose_status, prose = pcall(require, "nvim-prose")
+			if not prose_status then
 				return
 			end
 
@@ -61,7 +61,8 @@ return {
 					lualine_a = { "mode" },
 					lualine_b = { "branch", "diff", "diagnostics" },
 					lualine_c = { { "filename", path = 2 } },
-					lualine_x = { "encoding", "fileformat", "filetype" },
+					-- lualine_x = { "encoding", "fileformat", "filetype" },
+					lualine_x = { "filetype" },
 					lualine_y = { "progress", "location" },
 					lualine_z = { "filesize" },
 				},

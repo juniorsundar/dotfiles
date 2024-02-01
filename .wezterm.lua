@@ -37,7 +37,7 @@ config.colors = {
 }
 
 config.force_reverse_video_cursor = true
-
+config.warn_about_missing_glyphs = false
 config.hide_tab_bar_if_only_one_tab = true
 -- Disable font ligatures
 config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
