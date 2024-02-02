@@ -16,7 +16,7 @@ config push
 
 
 ```bash
-git clone --bare <git-repo-url> $HOME/.dotfiles
+git clone --bare https://github.com/juniorsundar/.dotfiles.git $HOME/.dotfiles
 alias config='/usr/bin/git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME"'
 config checkout
 config config --local status.showUntrackedFiles no
