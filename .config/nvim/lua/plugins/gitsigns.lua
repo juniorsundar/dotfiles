@@ -43,5 +43,15 @@ return {
 				enable = false,
 			},
 		})
+
+        vim.keymap.set("n", "g]", "<cmd>lua require 'gitsigns'.next_hunk()<cr>", {noremap = true, silent = false, desc = "Next Hunk"})
+        vim.keymap.set("n", "g[", "<cmd>lua require 'gitsigns'.prev_hunk()<cr>", {noremap = true, silent = false, desc = "Previous Hunk"})
+        vim.keymap.set("n", "gp", "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", {noremap = true, silent = false, desc = "Preview Hunk"})
+        vim.keymap.set("n", "gr", "<cmd>lua require 'gitsigns'.reset_hunk()<cr>", {noremap = true, silent = false, desc = "Reset Hunk"})
+        vim.keymap.set("n", "gS", "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", {noremap = true, silent = false, desc = "Stage Hunk"})
+        vim.keymap.set("n", "gU", "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>", {noremap = true, silent = false, desc = "Undo Stage Hunk"})
+        vim.keymap.set("n", "gR", "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", {noremap = true, silent = false, desc = "Reset Buffer"})
+        vim.keymap.set("n", "gb", "<cmd>lua require 'gitsigns'.blame_line()<cr>", {noremap = true, silent = false, desc = "Blame"})
+
 	end,
 }
