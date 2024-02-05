@@ -9,16 +9,18 @@ return {
         "williamboman/mason-lspconfig.nvim",
         config = function()
             require("mason-lspconfig").setup({
-                ensure_installed = { "lua_ls", "pylsp", "clangd", "rust_analyzer" , "gopls", "marksman"},
+                ensure_installed = { "lua_ls", "pylsp", "clangd", "rust_analyzer", "gopls", "marksman" },
             })
         end,
     },
     {
         "neovim/nvim-lspconfig",
+
         config = function()
             local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
             local lspconfig = require("lspconfig")
+
             lspconfig.lua_ls.setup({
                 capabilities = capabilities,
             })
@@ -51,10 +53,10 @@ return {
             lspconfig.gopls.setup({
                 capabilities = capabilities,
             })
-             lspconfig.marksman.setup({
+            lspconfig.marksman.setup({
                 capabilities = capabilities,
             })
-           -- Use LspAttach autocommand to only map the following keys
+            -- Use LspAttach autocommand to only map the following keys
             -- after the language server attaches to the current buffer
             vim.api.nvim_create_autocmd("LspAttach", {
                 group = vim.api.nvim_create_augroup("UserLspConfig", {}),
