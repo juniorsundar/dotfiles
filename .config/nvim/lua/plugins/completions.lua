@@ -81,8 +81,6 @@ return {
 	{
 		"hrsh7th/nvim-cmp",
 
-		dependencies = { "jmbuhr/otter.nvim" },
-
 		config = function()
 			local has_words_before = function()
 				unpack = unpack or table.unpack
