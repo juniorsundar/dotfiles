@@ -20,20 +20,22 @@ return {
 								unordered_list1 = 0,
 								unordered_list2 = 3,
 								unordered_list3 = 6,
-								unordered_list4 = 12,
-								unordered_list5 = 15,
+								unordered_list4 = 9,
+								unordered_list5 = 12,
+								unordered_list6 = 15,
 								ordered_list1 = 0,
 								ordered_list2 = 3,
 								ordered_list3 = 6,
-								ordered_list4 = 12,
-								ordered_list5 = 15,
+								ordered_list4 = 9,
+								ordered_list5 = 12,
+								ordered_list6 = 15,
 							},
 						},
 					},
 					["core.concealer"] = {
 						config = {
 							icon_preset = "diamond",
-							icons = { list = { icons = { "󰧞", "", "", "󰝤", "", "" } } },
+							icons = { list = { icons = { "󰧞", "", "", "", "", "" } } },
 						},
 					}, -- Adds pretty icons to your documents
 					["core.dirman"] = { -- Manages Neorg workspaces

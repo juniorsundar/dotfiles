@@ -14,8 +14,8 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-config.font = wezterm.font('MesloLGS Nerd Font Mono', { weight = 'Regular' })
-config.font_size = 11
+config.font = wezterm.font('MesloLGS Nerd Font', { weight = 'Regular' })
+config.font_size = 10
 
 config.colors = {
 	foreground = "#dcd7ba",

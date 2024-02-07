@@ -107,6 +107,10 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+alias fd="fdfind"
+alias nv="fd --type f --hidden --exclude .git | fzf | xargs nvim"
+alias cat="bat"
+alias du="dust"
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
@@ -114,6 +118,8 @@ export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
 export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
 export MANPATH="/usr/local/man:$MANPATH"
 export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
+
+. "$HOME/.cargo/env"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
