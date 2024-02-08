@@ -1,6 +1,7 @@
 return {
 	{
 		"3rd/image.nvim",
+		ft = { "markdown", "norg" },
 		config = function()
 			require("image").setup({
 				backend = "kitty",

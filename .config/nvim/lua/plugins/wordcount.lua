@@ -1,5 +1,6 @@
 return {
 	"skwee357/nvim-prose",
+    ft = {"markdown", "txt", "norg"},
 	config = function()
 		require("nvim-prose").setup({
 			wpm = 200.0,
