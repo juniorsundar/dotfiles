@@ -73,13 +73,6 @@ return {
 			nowait = true, -- use `nowait` when creating keymaps
 		}
 
-		local function open_neotree_to_dir()
-			local input = vim.fn.input("Enter Directory Path: ", "", "file")
-			if input ~= "" then
-				vim.cmd("Neotree dir=" .. input)
-			end
-		end
-
 		local mappings = {
 			a = { "<cmd>Alpha<cr>", "Alpha" },
 			b = {
@@ -101,10 +94,8 @@ return {
 			-- Explorer
 			E = {
 				name = "Explorer",
-				e = { "<cmd>Neotree toggle<cr>", "Reveal Explorer" },
-				l = { "<cmd>Neotree left<cr>", "Left Explorer" },
-				f = { "<cmd>Neotree float<cr>", "Floating Explorer" },
-				d = { open_neotree_to_dir, "Open Neotree to Directory" },
+				e = { "<cmd>NvimTreeToggle<cr>", "Toggle Explorer" },
+				d = { ":NvimTreeOpen ", "Open to Directory" },
 			},
 			-- Find
 			F = {

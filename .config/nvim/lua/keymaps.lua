@@ -26,8 +26,6 @@ vim.keymap.set("n", "<C-Left>", "b", opts)
 vim.keymap.set("n", "<C-Up>", "gk", opts)
 vim.keymap.set("n", "<C-Down>", "gj", opts)
 
-vim.keymap.set("n", "gG", "G", { noremap = true, silent = false, desc = "Last line" })
-
 -----------------
 -- Visual mode --
 -----------------
@@ -35,6 +33,3 @@ vim.keymap.set("n", "gG", "G", { noremap = true, silent = false, desc = "Last li
 -- Hint: start visual mode with the same area as the previous area and the same mode
 vim.keymap.set("v", "<", "<gv", opts)
 vim.keymap.set("v", ">", ">gv", opts)
-
-vim.keymap.set("v", "gG", "G", { noremap = true, silent = false, desc = "Last line" })
-

@@ -47,6 +47,7 @@ return {
 					-- section_separators = { left = "", right = "" },
 					disabled_filetypes = {
 						"neo-tree",
+                        "NvimTree",
 					},
 					ignore_focus = {},
 					always_divide_middle = true,
