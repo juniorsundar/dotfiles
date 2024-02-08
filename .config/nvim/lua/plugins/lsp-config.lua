@@ -15,6 +15,7 @@ return {
     },
     {
         "neovim/nvim-lspconfig",
+        dependencies = { "hrsh7th/cmp-nvim-lsp" },
 
         config = function()
             local capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -69,6 +70,20 @@ return {
                     local opts = { buffer = ev.buf }
                     vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
                 end,
+            })
+        end,
+    },
+    {
+        "nvimtools/none-ls.nvim",
+        config = function()
+            local null_ls = require("null-ls")
+
+            null_ls.setup({
+                sources = {
+                    null_ls.builtins.formatting.stylua,
+                    null_ls.builtins.formatting.black,
+                    null_ls.builtins.formatting.gofumpt,
+                },
             })
         end,
     },
