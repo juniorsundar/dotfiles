@@ -1,6 +1,8 @@
 require("options")
 require("keymaps")
 
+vim.cmd("let g:coc_node_path = '/home/juniorsundar-unikie/.nvm/versions/node/v21.6.2/bin/node'")
+
 -- Package manager
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
