@@ -56,7 +56,7 @@ return {
 			vim.cmd.colorscheme("nordic")
 		end,
 	},
-	{ "bluz71/vim-moonfly-colors", name = "moonfly", lazy = false, priority = 1000 },
+{ "EdenEast/nightfox.nvim" }, -- lazy
 	{
 		"nvim-tree/nvim-web-devicons",
 	},
