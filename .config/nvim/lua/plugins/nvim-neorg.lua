@@ -103,28 +103,6 @@ return {
             -- 		})
             -- 		:find()
             -- end
-            vim.cmd("hi link @variable.parameter @parameter")
-            vim.cmd("hi link @variable.member @field")
-            vim.cmd("hi link @module @namespace")
-            vim.cmd("hi link @number.float @float")
-            vim.cmd("hi link @string.special.symbol @symbol")
-            vim.cmd("hi link @string.regexp @string.regex")
-            vim.cmd("hi link @markup.strong @text.strong")
-            vim.cmd("hi link @markup.italic @text.emphasis")
-            vim.cmd("hi link @markup.heading @text.title")
-            vim.cmd("hi link @markup.raw @text.literal")
-            vim.cmd("hi link @markup.quote @text.quote")
-            vim.cmd("hi link @markup.math @text.math")
-            vim.cmd("hi link @markup.environment @text.environment")
-            vim.cmd("hi link @markup.environment.name @text.environment.name")
-            vim.cmd("hi link @markup.link.url @text.uri")
-            vim.cmd("hi link @markup.link.label @string.special")
-            vim.cmd("hi link @markup.list @punctuation.special")
-            vim.cmd("hi link @comment.note @text.note")
-            vim.cmd("hi link @comment.warning @text.warning")
-            vim.cmd("hi link @comment.danger @text.danger")
-            vim.cmd("hi link @diff.plus @text.diff.add")
-            vim.cmd("hi link @diff.minus @text.diff.delete")
         end,
     },
 }

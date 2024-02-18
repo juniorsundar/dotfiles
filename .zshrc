@@ -16,7 +16,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="powerlevel10k/powerlevel10k"
-
+# ZSH_THEME="robbyrussell"
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
 # a theme from this variable instead of looking in $ZSH/themes/
@@ -109,8 +109,9 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias fd="fdfind"
 alias nv="fd --type f --hidden --exclude .git | fzf | xargs nvim"
-alias cat="bat"
+alias cat="batcat"
 alias du="dust"
+alias tls="~/.config/tmux/tmux-fzf-session.sh"
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
@@ -123,3 +124,7 @@ export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
