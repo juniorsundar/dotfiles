@@ -13,7 +13,7 @@ theme.wallpaper = themes_path .. "nord/nord-background2.png"
 -- }}}
 
 -- {{{ Styles
-theme.font      = "RobotoMono Nerd Font 10"
+theme.font      = "RobotoMono Nerd Font 9"
 
 -- NORD COLORS
 theme.nord0  = "#2E3440"
