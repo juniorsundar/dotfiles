@@ -62,47 +62,6 @@ return {
                 "<cmd>Telescope neorg switch_workspace<CR>",
                 { noremap = true, silent = true, desc = "Workspaces" }
             )
-            -- local actions = require("telescope.actions")
-            -- local action_state = require("telescope.actions.state")
-            -- local finders = require("telescope.finders")
-            -- local pickers = require("telescope.pickers")
-            -- local previewers = require("telescope.previewers")
-            -- local conf = require("telescope.config").values
-            --
-            -- local function neorg_workspace_selector()
-            -- 	pickers
-            -- 		.new({}, {
-            -- 			prompt_title = "Select an Neorg Workspace",
-            -- 			finder = finders.new_table({
-            -- 				results = {
-            -- 					{ "default", "~/neorg/README.norg" },
-            -- 					{ "notes", "~/neorg/notes/index.norg" },
-            -- 					{ "journal", "~/neorg/journal/index.norg" },
-            -- 					{ "the_good_teacher", "~/neorg/the-good-teacher/index.norg" },
-            -- 					{ "god_of_war", "~/neorg/god-of-war/index.norg" },
-            -- 				},
-            -- 				entry_maker = function(entry)
-            -- 					return {
-            -- 						value = entry[1],
-            -- 						display = entry[1],
-            -- 						ordinal = entry[1],
-            -- 						path = entry[2],
-            -- 					}
-            -- 				end,
-            -- 			}),
-            -- 			sorter = conf.generic_sorter({}),
-            -- 			previewer = previewers.vim_buffer_cat.new({}),
-            -- 			attach_mappings = function(prompt_bufnr, _)
-            -- 				actions.select_default:replace(function()
-            -- 					local selection = action_state.get_selected_entry(prompt_bufnr)
-            -- 					actions.close(prompt_bufnr)
-            -- 					vim.cmd("Neorg workspace " .. selection.value)
-            -- 				end)
-            -- 				return true
-            -- 			end,
-            -- 		})
-            -- 		:find()
-            -- end
         end,
     },
 }

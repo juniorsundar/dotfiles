@@ -56,7 +56,6 @@ return {
 			vim.cmd.colorscheme("nordic")
 		end,
 	},
-{ "EdenEast/nightfox.nvim" }, -- lazy
 	{
 		"nvim-tree/nvim-web-devicons",
 	},
