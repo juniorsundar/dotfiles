@@ -48,8 +48,8 @@ theme.bg_systray = theme.bg_normal
 theme.useless_gap   = dpi(0)
 theme.border_width  = dpi(2)
 theme.border_normal = theme.nord1
-theme.border_focus  = theme.nord3
-theme.border_marked = theme.nord12
+theme.border_focus  = theme.nord4
+theme.border_marked = theme.nord15
 -- }}}
 
 -- {{{ Titlebars
@@ -66,8 +66,9 @@ theme.titlebar_bg_normal = theme.nord0
 -- Example:
 --theme.taglist_bg_focus = "#CC9393"
 -- }}}
-theme.tasklist_bg_focus = theme.nord1
-theme.tasklist_icon_size = dpi(2)
+theme.tasklist_fg_focus = theme.nord0
+theme.tasklist_bg_focus = theme.nord4
+theme.tasklist_icon_size = dpi(1)
 theme.tasklist_plain_task_name = true
 
 theme.taglist_spacing = dpi(2)
@@ -98,7 +99,9 @@ theme.menu_width  = dpi(100)
 
 -- {{{ Icons
 -- {{{ Taglist
-theme.taglist_squares_sel   = themes_path .. "nord/taglist/squarefz.png"
+theme.taglist_fg_focus = theme.nord0
+theme.taglist_bg_focus = theme.nord4
+theme.taglist_squares_sel   = themes_path .. "nord/taglist/squarefz2.png"
 theme.taglist_squares_unsel = themes_path .. "nord/taglist/squarez.png"
 --theme.taglist_squares_resize = "false"
 -- }}}
