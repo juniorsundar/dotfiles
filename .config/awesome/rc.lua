@@ -17,10 +17,11 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
-
 -- Load Debian menu entries
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
+
+local vicious = require("vicious")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -145,15 +146,11 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 -- {{{ Wibar
 -- Create a textclock widget
 local calendar_widget = require("awesome-wm-widgets.calendar-widget.calendar")
--- ...
--- Create a textclock widget
 mytextclock = wibox.widget.textclock()
--- default
 local cw = calendar_widget({
 	theme = "nord",
 	placement = "center",
 	radius = 8,
-	-- with customized next/previous (see table above)
 	previous_month_button = 1,
 	next_month_button = 3,
 })
@@ -218,6 +215,14 @@ local function set_wallpaper(s)
 	end
 end
 
+local spacer = wibox.widget.textbox("│") --")
+local volume_widget = require("awesome-wm-widgets.pactl-widget.volume")
+local net_speed_widget = require("awesome-wm-widgets.net-speed-widget.net-speed")
+local logout_menu_widget = require("awesome-wm-widgets.logout-menu-widget.logout-menu")
+local battery_widget = require("awesome-wm-widgets.batteryarc-widget.batteryarc")
+local ram_widget = require("awesome-wm-widgets.ram-widget.ram-widget")
+local cpu_widget = require("awesome-wm-widgets.cpu-widget.cpu-widget")
+local brightness_widget = require("awesome-wm-widgets.brightness-widget.brightness")
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
 
@@ -265,25 +270,34 @@ awful.screen.connect_for_each_screen(function(s)
 	s.mywibox_top = awful.wibar({ position = "top", screen = s })
 	s.mywibox_bot = awful.wibar({ position = "bottom", screen = s })
 
-	local volume_widget = require("awesome-wm-widgets.pactl-widget.volume")
-	local net_speed_widget = require("awesome-wm-widgets.net-speed-widget.net-speed")
-	local logout_menu_widget = require("awesome-wm-widgets.logout-menu-widget.logout-menu")
-
 	-- Add widgets to the wibox
 	s.mywibox_top:setup({
 		layout = wibox.layout.align.horizontal,
 		{ -- Left widgets
 			layout = wibox.layout.fixed.horizontal,
 			s.mylayoutbox,
+			spacer,
+			volume_widget({ widget_type = "arc" }),
+			spacer,
+			brightness_widget(),
+			spacer,
 			mykeyboardlayout,
+			spacer,
 			wibox.widget.systray(),
 			-- s.mypromptbox,
 		},
 		wibox.container.place(mytextclock), -- Centering magic!
 		{ -- Right widgets
 			layout = wibox.layout.fixed.horizontal,
-			volume_widget({ widget_type = "arc" }),
+			spacer,
 			net_speed_widget({}),
+			spacer,
+			ram_widget({}),
+			spacer,
+			cpu_widget({}),
+			spacer,
+			battery_widget(),
+			spacer,
 			logout_menu_widget(),
 		},
 	})

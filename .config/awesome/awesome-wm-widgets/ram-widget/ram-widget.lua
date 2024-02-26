@@ -72,9 +72,9 @@ local function worker(user_args)
 
             if popup.visible then
                popup:get_widget().data_list = {
-                  {'used ' .. getPercentage(used + used_swap), used + used_swap},
-                  {'free ' .. getPercentage(free + free_swap), free + free_swap},
-                  {'buff_cache ' .. getPercentage(buff_cache), buff_cache}
+                  {'Used ' .. getPercentage(used + used_swap), used + used_swap},
+                  {'Free ' .. getPercentage(free + free_swap), free + free_swap},
+                  {'Buff Cache ' .. getPercentage(buff_cache), buff_cache}
                 }
             end
         end,
@@ -85,9 +85,9 @@ local function worker(user_args)
         awful.util.table.join(
            awful.button({}, 1, function()
                  popup:get_widget().data_list = {
-                    {'used ' .. getPercentage(used + used_swap), used + used_swap},
-                    {'free ' .. getPercentage(free + free_swap), free + free_swap},
-                    {'buff_cache ' .. getPercentage(buff_cache), buff_cache}
+                    {'Used ' .. getPercentage(used + used_swap), used + used_swap},
+                    {'Free ' .. getPercentage(free + free_swap), free + free_swap},
+                    {'Buff Cache ' .. getPercentage(buff_cache), buff_cache}
                 }
 
                 if popup.visible then
