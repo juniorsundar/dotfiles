@@ -279,7 +279,11 @@ awful.screen.connect_for_each_screen(function(s)
 			spacer,
 			volume_widget({ widget_type = "arc" }),
 			spacer,
-			brightness_widget(),
+			brightness_widget({
+                type="arc",
+                program="brightnessctl",
+                step=2,
+            }),
 			spacer,
 			mykeyboardlayout,
 			spacer,
