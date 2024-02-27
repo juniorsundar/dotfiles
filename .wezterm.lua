@@ -14,44 +14,55 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-config.font = wezterm.font('MesloLGS Nerd Font', { weight = 'Regular' })
+config.font = wezterm.font("MesloLGS Nerd Font", { weight = "Regular" })
 config.font_size = 11
 
 -- Nordic Theme
 config.colors = {
-  foreground = "#D8DEE9",
-  background = "#242933",
+	foreground = "#D8DEE9",
+	background = "#242933",
 
-  cursor_bg = "#D8DEE9",
-  cursor_border = "#D8DEE9",
-  cursor_fg = "#242933",
+	cursor_bg = "#D8DEE9",
+	cursor_border = "#D8DEE9",
+	cursor_fg = "#242933",
 
-  selection_fg = "#D8DEE9",
-  selection_bg = "#2E3440",
+	selection_fg = "#D8DEE9",
+	selection_bg = "#2E3440",
 
-  ansi = { "#191D24", "#BF616A", "#A3BE8C", "#EBCB8B", "#81A1C1", "#B48EAD", "#8FBCBB", "#D8DEE9" },
-  brights = { "#3B4252", "#D06F79", "#B1D196", "#F0D399", "#88C0D0", "#C895BF", "#93CCDC", "#E5E9F0" },
+	split = "#81A1C1",
+
+	compose_cursor = "#ff9e64",
+	scrollbar_thumb = "#292e42",
+
+	ansi = { "#191D24", "#BF616A", "#A3BE8C", "#EBCB8B", "#81A1C1", "#B48EAD", "#8FBCBB", "#D8DEE9" },
+	brights = { "#3B4252", "#D06F79", "#B1D196", "#F0D399", "#88C0D0", "#C895BF", "#93CCDC", "#E5E9F0" },
 }
 
--- Kanagawa Theme
--- config.colors = {
--- 	foreground = "#dcd7ba",
--- 	background = "#1f1f28",
---
--- 	cursor_bg = "#c8c093",
--- 	cursor_fg = "#c8c093",
--- 	cursor_border = "#c8c093",
---
--- 	selection_fg = "#c8c093",
--- 	selection_bg = "#2d4f67",
---
--- 	scrollbar_thumb = "#16161d",
--- 	split = "#16161d",
---
--- 	ansi = { "#090618", "#c34043", "#76946a", "#c0a36e", "#7e9cd8", "#957fb8", "#6a9589", "#c8c093" },
--- 	brights = { "#727169", "#e82424", "#98bb6c", "#e6c384", "#7fb4ca", "#938aa9", "#7aa89f", "#dcd7ba" },
--- 	indexed = { [16] = "#ffa066", [17] = "#ff5d62" },
--- }
+config.colors.tab_bar = {
+	inactive_tab_edge = "#1f2335",
+	background = "#242933",
+}
+config.colors.tab_bar.active_tab = {
+	fg_color = "#1f2335",
+	bg_color = "#81A1C1",
+}
+config.colors.tab_bar.inactive_tab = {
+	fg_color = "#D8DEE9",
+	bg_color = "#242933",
+}
+config.colors.tab_bar.inactive_tab_hover = {
+    fg_color = "#81A1C1",
+    bg_color = "#292e42",
+}
+config.colors.tab_bar.new_tab = {
+    fg_color = "#81A1C1",
+    bg_color = "#242933",
+}
+config.colors.tab_bar.new_tab_hover = {
+    fg_color = "#81A1C1",
+    bg_color = "#242933",
+    intensity = "Bold",
+}
 
 config.force_reverse_video_cursor = true
 config.warn_about_missing_glyphs = false
