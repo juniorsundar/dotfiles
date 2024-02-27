@@ -26,15 +26,15 @@ return {
 	--         -- vim.cmd.colorscheme("catppuccin")
 	--     end,
 	-- },
-	-- {
-	-- 	"folke/tokyonight.nvim",
-	-- 	lazy = false,
-	-- 	priority = 1000,
-	-- 	opts = {},
-	-- 	config = function()
-	-- 		require("tokyonight").setup({})
-	-- 	end,
-	-- },
+	{
+		"folke/tokyonight.nvim",
+		lazy = false,
+		priority = 1000,
+		opts = {},
+		config = function()
+			require("tokyonight").setup({})
+		end,
+	},
 	{
 		"AlexvZyl/nordic.nvim",
 		lazy = false,

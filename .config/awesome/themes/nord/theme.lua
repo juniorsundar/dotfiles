@@ -13,7 +13,8 @@ theme.wallpaper = themes_path .. "nord/nord-background2.png"
 -- }}}
 
 -- {{{ Styles
-theme.font      = "RobotoMono Nerd Font 9"
+theme.font      = "MesloLGS Nerd Font 9"
+-- theme.font      = "RobotoMono Nerd Font 9"
 
 -- NORD COLORS
 theme.nord0  = "#2E3440"
@@ -47,7 +48,7 @@ theme.bg_systray = theme.bg_normal
 -- {{{ Borders
 theme.useless_gap   = dpi(0)
 theme.border_width  = dpi(2)
-theme.border_normal = theme.nord1
+theme.border_normal = theme.nord0
 theme.border_focus  = theme.nord4
 theme.border_marked = theme.nord15
 -- }}}
