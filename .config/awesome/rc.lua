@@ -282,7 +282,7 @@ awful.screen.connect_for_each_screen(function(s)
             brightness_widget({
                 type = "arc",
                 program = "brightnessctl",
-                step = 2,
+                step = 5,
             }),
             spacer,
             mykeyboardlayout,
@@ -711,3 +711,6 @@ client.connect_signal("unfocus", function(c)
     c.border_color = beautiful.border_normal
 end)
 -- }}}
+
+awful.spawn.with_shell("picom -i 0.9 --backend glx --vsync -f --daemon -I 0.05 -O 0.05")
+awful.spawn.with_shell("nitrogen --restore")
