@@ -338,7 +338,6 @@ globalkeys = gears.table.join(
     end, { description = "increase brightness", group = "custom" }),
     awful.key({ modkey, "Shift" }, ";", function()
         brightness_widget:dec()
-
     end, { description = "decrease brightness", group = "custom" }),
     awful.key({ modkey }, "s", hotkeys_popup.show_help, { description = "show help", group = "awesome" }),
     awful.key({ modkey, "Control" }, "Left", awful.tag.viewprev, { description = "view previous", group = "tag" }),
