@@ -9,7 +9,8 @@ local dpi = require("beautiful.xresources").apply_dpi
 -- {{{ Main
 local theme = {}
 -- theme.wallpaper = themes_path .. "nord/nord-background.png"
-theme.wallpaper = themes_path .. "nord/nord-background2.png"
+-- theme.wallpaper = themes_path .. "nord/nord-background2.png"
+theme.wallpaper = themes_path .. "nord/nord-background3.png"
 -- }}}
 
 -- {{{ Styles
