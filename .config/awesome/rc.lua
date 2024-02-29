@@ -231,7 +231,7 @@ awful.screen.connect_for_each_screen(function(s)
     set_wallpaper(s)
 
     -- Each screen has its own tag table.
-    awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+    awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[2])
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
@@ -258,6 +258,7 @@ awful.screen.connect_for_each_screen(function(s)
         filter = awful.widget.taglist.filter.all,
         buttons = taglist_buttons,
     })
+    s.container = wibox.container.place(s.mytaglist)
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist({
@@ -305,16 +306,19 @@ awful.screen.connect_for_each_screen(function(s)
             logout_menu_widget(),
         },
     })
-    -- Add widgets to the wibox
     s.mywibox_bot:setup({
         layout = wibox.layout.align.horizontal,
-        { -- Left widgets
+        { -- Left widets
             layout = wibox.layout.fixed.horizontal,
-            mylauncher,
-            s.mytaglist,
+            -- mylauncher,
+            -- s.mytaglist,
         },
-        s.mytasklist, -- Middle widget
-        {       -- Right widgets
+
+        -- wibox.container.place(s.mytaglist),
+        -- wibox.container.place(s.mytaglist),
+        s.container,
+        -- s.mytasklist,
+        { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
         },
     })
@@ -637,7 +641,7 @@ awful.rules.rules = {
     },
 
     -- Add titlebars to normal clients and dialogs
-    { rule_any = { type = { "normal", "dialog" } }, properties = { titlebars_enabled = false } },
+    { rule_any = { type = { "normal", "dialog" } }, properties = { titlebars_enabled = true } },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.
     -- { rule = { class = "Firefox" },
