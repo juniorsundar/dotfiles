@@ -55,8 +55,10 @@ theme.border_marked = theme.nord15
 -- }}}
 
 -- {{{ Titlebars
-theme.titlebar_bg_focus = theme.nord1
+theme.titlebar_bg_focus = theme.nord4
 theme.titlebar_bg_normal = theme.nord0
+theme.titlebar_fg_normal = theme.nord4
+theme.titlebar_fg_focus = theme.nord0
 -- }}}
 
 -- There are other variable sets
