@@ -41,11 +41,9 @@ return {
                     ["core.dirman"] = { -- Manages Neorg workspaces
                         config = {
                             workspaces = {
-                                default = "~/neorg",
-                                notes = "~/neorg/notes",
-                                the_good_teacher = "~/neorg/the-good-teacher",
-                                god_of_war = "~/neorg/god-of-war",
-                                journal = "~/neorg/journal",
+                                default = "~/neorg/notes",
+                                the_good_teacher = "~/neorg/tgt",
+                                god_of_war = "~/neorg/gow",
                             },
                         },
                     },
