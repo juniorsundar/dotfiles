@@ -16,7 +16,8 @@ theme.wallpaper = themes_path .. "nord/nord-background3.png"
 -- }}}
 
 -- {{{ Styles
-theme.font      = "MesloLGS Nerd Font 9"
+-- theme.font      = "MesloLGS Nerd Font 9"
+theme.font      = "JetBrainsMono Nerd Font 9"
 theme.border_radius = dpi(5)
 -- theme.font      = "RobotoMono Nerd Font 9"
 
