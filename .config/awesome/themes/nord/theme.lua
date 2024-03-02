@@ -3,8 +3,10 @@
 --    By Adrian C. (anrxc)   --
 -------------------------------
 
+local theme_assets = require("beautiful.theme_assets")
 local themes_path = "~/.config/awesome/themes/"
 local dpi = require("beautiful.xresources").apply_dpi
+local gears = require("gears")
 
 -- {{{ Main
 local theme = {}
@@ -75,8 +77,6 @@ theme.tasklist_bg_focus = theme.nord4
 theme.tasklist_icon_size = dpi(1)
 theme.tasklist_plain_task_name = true
 
-theme.taglist_spacing = dpi(2)
-
 -- {{{ Widgets
 -- You can add as many variables as
 -- you wish and access them by using
@@ -103,10 +103,20 @@ theme.menu_width  = dpi(100)
 
 -- {{{ Icons
 -- {{{ Taglist
+theme.taglist_spacing = dpi(2)
 theme.taglist_fg_focus = theme.nord0
 theme.taglist_bg_focus = theme.nord4
-theme.taglist_squares_sel   = themes_path .. "nord/taglist/squarefz2.png"
-theme.taglist_squares_unsel = themes_path .. "nord/taglist/squarez.png"
+local taglist_square_size = dpi(4)
+theme.taglist_squares_sel = theme_assets.taglist_squares_sel(
+    taglist_square_size, theme.nord0
+)
+theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
+    taglist_square_size, theme.nord4
+)
+theme.taglist_shape = function(cr, w, h)
+    return gears.shape.rounded_rect(cr, w, h, theme.border_radius)
+end
+
 --theme.taglist_squares_resize = "false"
 -- }}}
 
@@ -135,33 +145,33 @@ theme.layout_cornerse   = themes_path .. "nord/layouts/cornerse.png"
 -- }}}
 
 -- {{{ Titlebar
-theme.titlebar_close_button_focus  = themes_path .. "nord/titlebar/close_focus.png"
-theme.titlebar_close_button_normal = themes_path .. "nord/titlebar/close_normal.png"
-
+theme.titlebar_close_button_focus  = themes_path .. "default/titlebar/close_focus.png"
+theme.titlebar_close_button_normal = themes_path .. "default/titlebar/close_normal.png"
 theme.titlebar_minimize_button_normal = themes_path .. "default/titlebar/minimize_normal.png"
 theme.titlebar_minimize_button_focus  = themes_path .. "default/titlebar/minimize_focus.png"
-
-theme.titlebar_ontop_button_focus_active  = themes_path .. "nord/titlebar/ontop_focus_active.png"
-theme.titlebar_ontop_button_normal_active = themes_path .. "nord/titlebar/ontop_normal_active.png"
-theme.titlebar_ontop_button_focus_inactive  = themes_path .. "nord/titlebar/ontop_focus_inactive.png"
-theme.titlebar_ontop_button_normal_inactive = themes_path .. "nord/titlebar/ontop_normal_inactive.png"
-
-theme.titlebar_sticky_button_focus_active  = themes_path .. "nord/titlebar/sticky_focus_active.png"
-theme.titlebar_sticky_button_normal_active = themes_path .. "nord/titlebar/sticky_normal_active.png"
-theme.titlebar_sticky_button_focus_inactive  = themes_path .. "nord/titlebar/sticky_focus_inactive.png"
-theme.titlebar_sticky_button_normal_inactive = themes_path .. "nord/titlebar/sticky_normal_inactive.png"
-
-theme.titlebar_floating_button_focus_active  = themes_path .. "nord/titlebar/floating_focus_active.png"
-theme.titlebar_floating_button_normal_active = themes_path .. "nord/titlebar/floating_normal_active.png"
-theme.titlebar_floating_button_focus_inactive  = themes_path .. "nord/titlebar/floating_focus_inactive.png"
-theme.titlebar_floating_button_normal_inactive = themes_path .. "nord/titlebar/floating_normal_inactive.png"
-
-theme.titlebar_maximized_button_focus_active  = themes_path .. "nord/titlebar/maximized_focus_active.png"
-theme.titlebar_maximized_button_normal_active = themes_path .. "nord/titlebar/maximized_normal_active.png"
-theme.titlebar_maximized_button_focus_inactive  = themes_path .. "nord/titlebar/maximized_focus_inactive.png"
-theme.titlebar_maximized_button_normal_inactive = themes_path .. "nord/titlebar/maximized_normal_inactive.png"
+theme.titlebar_ontop_button_focus_active  = themes_path .. "default/titlebar/ontop_focus_active.png"
+theme.titlebar_ontop_button_normal_active = themes_path .. "default/titlebar/ontop_normal_active.png"
+theme.titlebar_ontop_button_focus_inactive  = themes_path .. "default/titlebar/ontop_focus_inactive.png"
+theme.titlebar_ontop_button_normal_inactive = themes_path .. "default/titlebar/ontop_normal_inactive.png"
+theme.titlebar_sticky_button_focus_active  = themes_path .. "default/titlebar/sticky_focus_active.png"
+theme.titlebar_sticky_button_normal_active = themes_path .. "default/titlebar/sticky_normal_active.png"
+theme.titlebar_sticky_button_focus_inactive  = themes_path .. "default/titlebar/sticky_focus_inactive.png"
+theme.titlebar_sticky_button_normal_inactive = themes_path .. "default/titlebar/sticky_normal_inactive.png"
+theme.titlebar_floating_button_focus_active  = themes_path .. "default/titlebar/floating_focus_active.png"
+theme.titlebar_floating_button_normal_active = themes_path .. "default/titlebar/floating_normal_active.png"
+theme.titlebar_floating_button_focus_inactive  = themes_path .. "default/titlebar/floating_focus_inactive.png"
+theme.titlebar_floating_button_normal_inactive = themes_path .. "default/titlebar/floating_normal_inactive.png"
+theme.titlebar_maximized_button_focus_active  = themes_path .. "default/titlebar/maximized_focus_active.png"
+theme.titlebar_maximized_button_normal_active = themes_path .. "default/titlebar/maximized_normal_active.png"
+theme.titlebar_maximized_button_focus_inactive  = themes_path .. "default/titlebar/maximized_focus_inactive.png"
+theme.titlebar_maximized_button_normal_inactive = themes_path .. "default/titlebar/maximized_normal_inactive.png"
 -- }}}
 -- }}}
+
+-- Generate Awesome icon:
+theme.awesome_icon = theme_assets.awesome_icon(
+    theme.menu_height, theme.bg_focus, theme.fg_focus
+)
 
 return theme
 
