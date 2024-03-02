@@ -17,6 +17,7 @@ theme.wallpaper = themes_path .. "nord/nord-background3.png"
 
 -- {{{ Styles
 theme.font      = "MesloLGS Nerd Font 9"
+theme.border_radius = dpi(5)
 -- theme.font      = "RobotoMono Nerd Font 9"
 
 -- NORD COLORS
@@ -76,7 +77,10 @@ theme.tasklist_fg_focus = theme.nord0
 theme.tasklist_bg_focus = theme.nord4
 theme.tasklist_icon_size = dpi(1)
 theme.tasklist_plain_task_name = true
-
+theme.tasklist_shape = function(cr, w, h)
+    return gears.shape.rounded_rect(cr, w, h, theme.border_radius)
+end
+theme.tasklist_spacing = dpi(2)
 -- {{{ Widgets
 -- You can add as many variables as
 -- you wish and access them by using
@@ -104,15 +108,19 @@ theme.menu_width  = dpi(100)
 -- {{{ Icons
 -- {{{ Taglist
 theme.taglist_spacing = dpi(2)
+theme.taglist_fg_empty = theme.nord4
+theme.taglist_bg_empty = theme.nord1
+theme.taglist_fg_occupied = theme.nord4
+theme.taglist_bg_occupied = theme.nord3
 theme.taglist_fg_focus = theme.nord0
 theme.taglist_bg_focus = theme.nord4
-local taglist_square_size = dpi(4)
-theme.taglist_squares_sel = theme_assets.taglist_squares_sel(
-    taglist_square_size, theme.nord0
-)
-theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
-    taglist_square_size, theme.nord4
-)
+-- local taglist_square_size = dpi(4)
+-- theme.taglist_squares_sel = theme_assets.taglist_squares_sel(
+--     taglist_square_size, theme.nord0
+-- )
+-- theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
+--     taglist_square_size, theme.nord4
+-- )
 theme.taglist_shape = function(cr, w, h)
     return gears.shape.rounded_rect(cr, w, h, theme.border_radius)
 end

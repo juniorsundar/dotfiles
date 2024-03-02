@@ -304,11 +304,11 @@ awful.screen.connect_for_each_screen(function(s)
         { -- Left widets
             layout = wibox.layout.fixed.horizontal,
             s.mytaglist,
+            spacer,
         },
         s.mytasklist,
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            wibox.container.place(mylauncher),
         },
     })
 end)
