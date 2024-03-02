@@ -21,8 +21,6 @@ require("awful.hotkeys_popup.keys")
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
 
-local vicious = require("vicious")
-
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
@@ -239,26 +237,22 @@ awful.screen.connect_for_each_screen(function(s)
     -- We need one layoutbox per screen.
     s.mylayoutbox = awful.widget.layoutbox(s)
     s.mylayoutbox:buttons(gears.table.join(
-        awful.button({}, 1, function()
-            awful.layout.inc(1)
-        end),
-        awful.button({}, 3, function()
-            awful.layout.inc(-1)
-        end),
-        awful.button({}, 4, function()
-            awful.layout.inc(1)
-        end),
-        awful.button({}, 5, function()
-            awful.layout.inc(-1)
-        end)
-    ))
+                            awful.button({}, 1, function() awful.layout.inc(1) end),
+                            awful.button({}, 3, function() awful.layout.inc(-1) end),
+                            awful.button({}, 4, function() awful.layout.inc(1) end),
+                            awful.button({}, 5, function() awful.layout.inc(-1) end)))
     -- Create a taglist widget
-    s.mytaglist = awful.widget.taglist({
+    -- s.mytaglist = awful.widget.taglist({
+    --     screen = s,
+    --     filter = awful.widget.taglist.filter.all,
+    --     buttons = taglist_buttons,
+    -- })
+    local fancy_taglist = require("fancy_taglist")
+    s.mytaglist = fancy_taglist.new({
         screen = s,
-        filter = awful.widget.taglist.filter.all,
-        buttons = taglist_buttons,
+        taglist = { buttons = taglist_buttons },
+        tasklist = { buttons = tasklist_buttons }
     })
-
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist({
         screen = s,
@@ -314,6 +308,7 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytasklist,
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
+            wibox.container.place(mylauncher),
         },
     })
 end)
