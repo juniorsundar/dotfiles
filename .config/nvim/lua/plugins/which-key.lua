@@ -183,6 +183,11 @@ return {
 			N = {
 				name = "Neorg",
 				i = { "<cmd>Neorg index<cr>", "Index" },
+                J = { name = "Journal",
+                    t = {"<cmd>Neorg journal today<cr>", "Today's Journal" },
+                    m = {"<cmd>Neorg journal tomorrow<cr>", "Tomorrow's Journal" },
+                    y = {"<cmd>Neorg journal year<cr>", "Yesterday's Journal" },
+                },
 				M = {
 					name = "Metadata",
 					i = { "<cmd>Neorg inject-metadata<cr>", "Inject" },
