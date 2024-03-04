@@ -1,4 +1,5 @@
 return {
+	{ "shortcuts/no-neck-pain.nvim", version = "*" },
 	{
 		"numToStr/Comment.nvim",
 		opts = {
