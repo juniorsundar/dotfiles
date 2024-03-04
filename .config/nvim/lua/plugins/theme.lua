@@ -36,7 +36,7 @@ return {
         end,
     },
     {
-        "AlexvZyl/nordic.nvim",
+        "juniorsundar/nordic.nvim",
         lazy = false,
         priority = 1000,
         config = function()
