@@ -43,6 +43,7 @@ return {
 			{ type = "text", val = "Quick links", opts = { hl = "SpecialComment", position = "center" } },
 			{ type = "padding", val = 1 },
 			dashboard.button("e", "  New file", "<cmd>ene<CR>"),
+            dashboard.button("<C-j>", "󰃶  Open Daily Journal", "<cmd>Neorg journal today<CR>"),
 			dashboard.button("SPC F f", "󰈞  Find file"),
 			dashboard.button("SPC F t", "󰊄  Live grep"),
 			dashboard.button("c", "  Configuration", "<cmd>cd ~/.config/nvim/ <CR>"),

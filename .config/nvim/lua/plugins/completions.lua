@@ -1,6 +1,6 @@
 return {
 	{
-		"windwp/nvim-autopairs",
+        "windwp/nvim-autopairs",
 		event = "InsertEnter",
 		config = function()
 			-- Import nvim-autopairs safely
@@ -49,6 +49,7 @@ return {
 	},
 	{
 		"hrsh7th/nvim-cmp",
+        event = "InsertEnter",
 		dependencies = {
 			"hrsh7th/cmp-nvim-lsp",
 			"hrsh7th/cmp-buffer",

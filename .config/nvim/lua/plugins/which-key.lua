@@ -85,6 +85,7 @@ return {
 			p = { "<cmd>lua require('telescope').extensions.projects.projects()<cr>", "Projects" },
 			l = { "<cmd>Lazy<cr>", "Lazy" },
 			m = { "<cmd>Mason<cr>", "Mason" },
+			o = { "<cmd>Oil<cr>", "Oil" },
 			-- Autocompletion
 			A = {
 				name = "Autocompletion",
