@@ -43,7 +43,9 @@ return {
 					section_separators = { left = "", right = "" },
 					disabled_filetypes = {
 						"neo-tree",
+                        "no-neck-pain",
                         "NvimTree",
+                        "oil"
 					},
 					ignore_focus = {},
 					always_divide_middle = true,
