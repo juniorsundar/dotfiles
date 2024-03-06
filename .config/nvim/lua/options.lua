@@ -28,3 +28,15 @@ vim.opt.hlsearch = false -- do not highlight matches
 vim.opt.ignorecase = true -- ignore case in searches by default
 vim.opt.smartcase = true -- but make it case sensitive if an uppercase is entered
 vim.opt.inccommand = "split" -- shows how certain commands apply in a separate window
+
+vim.opt.undofile = true
+vim.opt.signcolumn = "yes"
+vim.opt.scrolloff = 10
+
+vim.api.nvim_create_autocmd("TextYankPost", {
+	desc = "Highlight when yanking (copying) text",
+	group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
+	callback = function()
+		vim.highlight.on_yank()
+	end,
+})
