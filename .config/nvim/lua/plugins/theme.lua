@@ -18,6 +18,7 @@ return {
             -- vim.cmd.colorscheme("kanagawa-wave")
         end,
     },
+    { "rose-pine/neovim", name = "rose-pine" },
     {
         "folke/tokyonight.nvim",
         lazy = true,
