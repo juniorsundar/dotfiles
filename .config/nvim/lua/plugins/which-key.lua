@@ -93,11 +93,11 @@ return {
 				d = { "<cmd>lua require 'cmp'.setup{ enabled = false }<cr>", "Disabled" },
 			},
 			-- Explorer
-			E = {
-				name = "Explorer",
-				e = { "<cmd>NvimTreeToggle<cr>", "Toggle Explorer" },
-				d = { ":NvimTreeOpen ", "Open to Directory" },
-			},
+			-- E = {
+			-- 	name = "Explorer",
+			-- 	e = { "<cmd>NvimTreeToggle<cr>", "Toggle Explorer" },
+			-- 	d = { ":NvimTreeOpen ", "Open to Directory" },
+			-- },
 			-- Find
 			F = {
 				name = "Find",
