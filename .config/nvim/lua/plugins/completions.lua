@@ -1,6 +1,6 @@
 return {
 	{
-        "windwp/nvim-autopairs",
+		"windwp/nvim-autopairs",
 		event = "InsertEnter",
 		config = function()
 			-- Import nvim-autopairs safely
@@ -49,10 +49,9 @@ return {
 	},
 	{
 		"hrsh7th/nvim-cmp",
-        event = "InsertEnter",
+		event = "InsertEnter",
 		dependencies = {
 			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-buffer",
 			"hrsh7th/cmp-path",
 			"hrsh7th/cmp-cmdline",
 			{
@@ -61,6 +60,13 @@ return {
 					"saadparwaiz1/cmp_luasnip",
 					"rafamadriz/friendly-snippets",
 				},
+
+				build = (function()
+					if vim.fn.has("win32") == 1 or vim.fn.executable("make") == 0 then
+						return
+					end
+					return "make install_jsregexp"
+				end)(),
 			},
 		},
 
@@ -125,7 +131,6 @@ return {
 				sources = cmp.config.sources({
 					{ name = "nvim_lsp" },
 					{ name = "luasnip" }, -- For luasnip users.
-					{ name = "buffer" },
 					{ name = "path" },
 				}),
 			})
