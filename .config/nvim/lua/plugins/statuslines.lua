@@ -1,26 +1,4 @@
 return {
-    -- {
-    -- 	"akinsho/bufferline.nvim",
-    -- 	version = "*",
-    -- 	dependencies = { "nvim-tree/nvim-web-devicons" },
-    -- 	config = function()
-    -- 		local status, bufferline = pcall(require, "bufferline")
-    -- 		if not status then
-    -- 			return
-    -- 		end
-    --
-    -- 		bufferline.setup({
-    -- 			options = {
-    -- 				hover = {
-    -- 					enabled = true,
-    -- 					delay = 200,
-    -- 					reveal = { "close" },
-    -- 				},
-    -- 				separator_style = "thick",
-    -- 			},
-    -- 		})
-    -- 	end,
-    -- },
     {
         "romgrk/barbar.nvim",
         dependencies = {
@@ -36,7 +14,6 @@ return {
             -- insert_at_start = true,
             -- …etc.
         },
-        version = "^1.0.0", -- optional: only update when a new 1.x version is released
     },
     {
         "nvim-lualine/lualine.nvim",
