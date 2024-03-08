@@ -56,7 +56,7 @@ end
 -- Themes define colours, icons, font and wallpapers.
 -- beautiful.init(gears.filesystem.get_themes_dir() .. "zenburn/theme.lua")
 -- beautiful.init("~/.config/awesome/themes/tokyonight/theme.lua")
-beautiful.init("~/.config/awesome/themes/nord/theme.lua")
+beautiful.init("~/.config/awesome/themes/catppuccin/theme.lua")
 
 -- windows
 beautiful.useless_gap = 5
