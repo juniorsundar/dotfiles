@@ -95,27 +95,11 @@ return {
             )
         end,
     },
-    -- {
-    -- 	"kdheepak/lazygit.nvim",
-    -- 	dependencies = { "nvim-lua/plenary.nvim" },
-    -- 	config = function()
-    -- 		vim.keymap.set("n", "gG", "<cmd>LazyGit<CR>", { noremap = true, silent = false, desc = "Lazygit" })
-    -- 		vim.keymap.set("v", "gG", "<cmd>LazyGit<CR>", { noremap = true, silent = false, desc = "Lazygit" })
-    -- 	end,
-    -- },
-    -- {
-    -- 	"tpope/vim-fugitive",
-    -- 	config = function()
-    -- 		vim.keymap.set("n", "gG", ":G ", { noremap = true, silent = false, desc = "Lazygit" })
-    -- 		vim.keymap.set("v", "gG", ":G ", { noremap = true, silent = false, desc = "Lazygit" })
-    -- 	end,
-    -- },
     {
         "NeogitOrg/neogit",
         dependencies = {
             "nvim-lua/plenary.nvim", -- required
             "sindrets/diffview.nvim", -- optional - Diff integration
-            "nvim-telescope/telescope.nvim", -- optional
         },
         config = function()
             local neogit = require("neogit")

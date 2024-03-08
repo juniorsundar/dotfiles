@@ -1,18 +1,18 @@
-return
-{
-	"nvim-tree/nvim-tree.lua",
-
-    dependencies = {
-        "nvim-tree/nvim-web-devicons",
-    },
-	config = function()
-		require("nvim-tree").setup({
-			view = {
-				adaptive_size = true,
-			},
-		})
-	end,
-}
+return {}
+-- {
+-- 	"nvim-tree/nvim-tree.lua",
+--
+--     dependencies = {
+--         "nvim-tree/nvim-web-devicons",
+--     },
+-- 	config = function()
+-- 		require("nvim-tree").setup({
+-- 			view = {
+-- 				adaptive_size = true,
+-- 			},
+-- 		})
+-- 	end,
+-- }
 -- {
 --     "nvim-neo-tree/neo-tree.nvim",
 --     branch = "v3.x",

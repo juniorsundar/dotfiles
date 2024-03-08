@@ -93,11 +93,11 @@ return {
 				d = { "<cmd>lua require 'cmp'.setup{ enabled = false }<cr>", "Disabled" },
 			},
 			-- Explorer
-			E = {
-				name = "Explorer",
-				e = { "<cmd>NvimTreeToggle<cr>", "Toggle Explorer" },
-				d = { ":NvimTreeOpen ", "Open to Directory" },
-			},
+			-- E = {
+			-- 	name = "Explorer",
+			-- 	e = { "<cmd>NvimTreeToggle<cr>", "Toggle Explorer" },
+			-- 	d = { ":NvimTreeOpen ", "Open to Directory" },
+			-- },
 			-- Find
 			F = {
 				name = "Find",
@@ -194,6 +194,11 @@ return {
 					i = { "<cmd>Neorg inject-metadata<cr>", "Inject" },
 					u = { "<cmd>Neorg update-metadata<cr>", "Update" },
 				},
+                L = {
+                    name = "Link",
+                    h = { "<cmd>Telescope neorg insert_link<cr>", "Heading" },
+                    f = { "<cmd>Telescope neorg insert_file_link<cr>", "File" },
+                }
 			},
 		}
 

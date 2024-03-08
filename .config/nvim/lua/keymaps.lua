@@ -1,6 +1,6 @@
 -- define common options
 local opts = {
-	noremap = true, -- non-recursive
+	noremap = false, -- non-recursive
 	silent = true, -- do not show message
 }
 
@@ -26,6 +26,9 @@ vim.keymap.set("n", "<C-Left>", "b", opts)
 vim.keymap.set("n", "<C-Up>", "gk", opts)
 vim.keymap.set("n", "<C-Down>", "gj", opts)
 
+vim.keymap.set("n", "<S-A-Up>", "<cmd>m .-2<CR>==", opts)
+vim.keymap.set("n", "<S-A-Down>", "<cmd>m .+1<CR>==", opts)
+
 -----------------
 -- Visual mode --
 -----------------
@@ -33,3 +36,11 @@ vim.keymap.set("n", "<C-Down>", "gj", opts)
 -- Hint: start visual mode with the same area as the previous area and the same mode
 vim.keymap.set("v", "<", "<gv", opts)
 vim.keymap.set("v", ">", ">gv", opts)
+vim.keymap.set("v", "<S-A-Up>", "<cmd>m .-2<CR>==", opts)
+vim.keymap.set("v", "<S-A-Down>", "<cmd>m .+1<CR>==", opts)
+
+-----------------
+-- Terminal mode --
+-----------------
+
+vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
