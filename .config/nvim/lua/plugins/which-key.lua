@@ -194,6 +194,11 @@ return {
 					i = { "<cmd>Neorg inject-metadata<cr>", "Inject" },
 					u = { "<cmd>Neorg update-metadata<cr>", "Update" },
 				},
+                L = {
+                    name = "Link",
+                    h = { "<cmd>Telescope neorg insert_link<cr>", "Heading" },
+                    f = { "<cmd>Telescope neorg insert_file_link<cr>", "File" },
+                }
 			},
 		}
 

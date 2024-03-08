@@ -18,6 +18,8 @@ return {
 			-- vim.cmd.colorscheme("kanagawa-wave")
 		end,
 	},
+    { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+    { "rose-pine/neovim", name = "rose-pine" },
 	{
 		"juniorsundar/nightfox.nvim",
 		lazy = true,
