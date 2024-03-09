@@ -42,10 +42,10 @@ theme.transparent   = "#00000000"
 
 -- {{{ Colors
 theme.fg_normal  = theme.nord5
-theme.fg_focus   = theme.nord14
-theme.fg_urgent  = theme.nord8
-theme.bg_normal  = theme.nord0
+theme.bg_normal  = theme.nord4
+theme.fg_focus   = theme.nord8
 theme.bg_focus   = theme.nord1
+theme.fg_urgent  = theme.nord12
 theme.bg_urgent  = theme.nord0
 theme.bg_systray = theme.bg_normal
 -- }}}
@@ -53,16 +53,16 @@ theme.bg_systray = theme.bg_normal
 -- {{{ Borders
 theme.useless_gap   = dpi(0)
 theme.border_width  = dpi(2)
-theme.border_normal = theme.nord0
-theme.border_focus  = theme.nord6
+theme.border_normal = theme.nord7
+theme.border_focus  = theme.nord14
 theme.border_marked = theme.nord15
 -- }}}
 
 -- {{{ Titlebars
-theme.titlebar_bg_focus = theme.nord6
-theme.titlebar_bg_normal = theme.nord0
-theme.titlebar_fg_normal = theme.nord4
-theme.titlebar_fg_focus = theme.nord0
+theme.titlebar_fg_normal = theme.nord2
+theme.titlebar_bg_normal = theme.nord7
+theme.titlebar_fg_focus = theme.nord1
+theme.titlebar_bg_focus = theme.nord14
 -- }}}
 
 -- There are other variable sets
@@ -74,8 +74,10 @@ theme.titlebar_fg_focus = theme.nord0
 -- Example:
 --theme.taglist_bg_focus = "#CC9393"
 -- }}}
-theme.tasklist_fg_focus = theme.nord0
-theme.tasklist_bg_focus = theme.nord4
+theme.tasklist_fg_focus = theme.nord1
+theme.tasklist_bg_focus = theme.nord14
+theme.tasklist_fg_normal = theme.nord2
+theme.tasklist_bg_normal = theme.nord7
 theme.tasklist_icon_size = dpi(1)
 theme.tasklist_plain_task_name = true
 theme.tasklist_shape = function(cr, w, h)
@@ -109,12 +111,12 @@ theme.menu_width  = dpi(100)
 -- {{{ Icons
 -- {{{ Taglist
 theme.taglist_spacing = dpi(2)
-theme.taglist_fg_empty = theme.nord4
-theme.taglist_bg_empty = theme.nord1
-theme.taglist_fg_occupied = theme.nord4
-theme.taglist_bg_occupied = theme.nord3
+theme.taglist_fg_empty = theme.nord5
+theme.taglist_bg_empty = theme.nord4
+theme.taglist_fg_occupied = theme.nord1
+theme.taglist_bg_occupied = theme.nord7
 theme.taglist_fg_focus = theme.nord0
-theme.taglist_bg_focus = theme.nord4
+theme.taglist_bg_focus = theme.nord14
 -- local taglist_square_size = dpi(4)
 -- theme.taglist_squares_sel = theme_assets.taglist_squares_sel(
 --     taglist_square_size, theme.nord0
