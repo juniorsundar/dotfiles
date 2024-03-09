@@ -36,7 +36,6 @@ return {
 			if not cmp_autopairs_setup then
 				return
 			end
-
 			-- Import nvim-cmp plugin safely (completions plugin)
 			local cmp_setup, cmp = pcall(require, "cmp")
 			if not cmp_setup then
@@ -82,10 +81,50 @@ return {
 			local luasnip = require("luasnip")
 			local WIDE_HEIGHT = 40
 
+			local kind_icons = {
+				Text = "",
+				Method = "󰆧",
+				Function = "󰊕",
+				Constructor = "",
+				Field = "󰇽",
+				Variable = "󰂡",
+				Class = "󰠱",
+				Interface = "",
+				Module = "",
+				Property = "󰜢",
+				Unit = "",
+				Value = "󰎠",
+				Enum = "",
+				Keyword = "󰌋",
+				Snippet = "",
+				Color = "󰏘",
+				File = "󰈙",
+				Reference = "",
+				Folder = "󰉋",
+				EnumMember = "",
+				Constant = "󰏿",
+				Struct = "",
+				Event = "",
+				Operator = "",
+				TypeParameter = "󰅲",
+			}
+
 			require("luasnip.loaders.from_vscode").lazy_load()
 
 			cmp.setup({
+				formatting = {
+					fields = { "kind", "abbr", "menu" },
+					format = function(entry, vim_item)
+						vim_item.menu = true and  "    (" .. vim_item.kind .. ")" or ""
+						vim_item.kind = " " .. kind_icons[vim_item.kind] .. " "
+						return vim_item
+					end,req
+				},
 				snippet = {
+
+					completion = {
+						completeopt = "menu,menuone",
+					},
 					expand = function(args)
 						require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
 					end,
@@ -94,10 +133,10 @@ return {
 				window = {
 					completion = {
 						border = { "", "", "", "", "", "", "", "" },
-						winhighlight = "Normal:Pmenu,FloatBorder:Pmenu,CursorLine:PmenuSel,Search:None",
+						winhighlight = "Normal:Pmenu,FloatBorder:Pmenu,Search:None",
 						scrolloff = 0,
-						col_offset = 0,
-						side_padding = 1,
+						col_offset = -3,
+						side_padding = 0,
 						scrollbar = true,
 					},
 					documentation = {
