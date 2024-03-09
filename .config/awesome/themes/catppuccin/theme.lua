@@ -41,9 +41,9 @@ theme.nord15 = "#eebebe"
 theme.transparent   = "#00000000"
 
 -- {{{ Colors
-theme.fg_normal  = theme.nord6
-theme.fg_focus   = theme.nord8
-theme.fg_urgent  = theme.nord12
+theme.fg_normal  = theme.nord5
+theme.fg_focus   = theme.nord14
+theme.fg_urgent  = theme.nord8
 theme.bg_normal  = theme.nord0
 theme.bg_focus   = theme.nord1
 theme.bg_urgent  = theme.nord0
@@ -54,12 +54,12 @@ theme.bg_systray = theme.bg_normal
 theme.useless_gap   = dpi(0)
 theme.border_width  = dpi(2)
 theme.border_normal = theme.nord0
-theme.border_focus  = theme.nord4
+theme.border_focus  = theme.nord6
 theme.border_marked = theme.nord15
 -- }}}
 
 -- {{{ Titlebars
-theme.titlebar_bg_focus = theme.nord4
+theme.titlebar_bg_focus = theme.nord6
 theme.titlebar_bg_normal = theme.nord0
 theme.titlebar_fg_normal = theme.nord4
 theme.titlebar_fg_focus = theme.nord0
