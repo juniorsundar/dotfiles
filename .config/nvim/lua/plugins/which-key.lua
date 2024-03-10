@@ -187,7 +187,7 @@ return {
                 J = { name = "Journal",
                     t = {"<cmd>Neorg journal today<cr>", "Today's Journal" },
                     m = {"<cmd>Neorg journal tomorrow<cr>", "Tomorrow's Journal" },
-                    y = {"<cmd>Neorg journal year<cr>", "Yesterday's Journal" },
+                    y = {"<cmd>Neorg journal yesterday<cr>", "Yesterday's Journal" },
                 },
 				M = {
 					name = "Metadata",
