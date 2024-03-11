@@ -36,7 +36,6 @@ return {
 			if not cmp_autopairs_setup then
 				return
 			end
-
 			-- Import nvim-cmp plugin safely (completions plugin)
 			local cmp_setup, cmp = pcall(require, "cmp")
 			if not cmp_setup then
@@ -80,27 +79,72 @@ return {
 
 			local cmp = require("cmp")
 			local luasnip = require("luasnip")
+			local WIDE_HEIGHT = 40
+
+			local kind_icons = {
+				Text = "",
+				Method = "󰆧",
+				Function = "󰊕",
+				Constructor = "",
+				Field = "󰇽",
+				Variable = "󰂡",
+				Class = "󰠱",
+				Interface = "",
+				Module = "",
+				Property = "󰜢",
+				Unit = "",
+				Value = "󰎠",
+				Enum = "",
+				Keyword = "󰌋",
+				Snippet = "",
+				Color = "󰏘",
+				File = "󰈙",
+				Reference = "",
+				Folder = "󰉋",
+				EnumMember = "",
+				Constant = "󰏿",
+				Struct = "",
+				Event = "",
+				Operator = "",
+				TypeParameter = "󰅲",
+			}
+
 			require("luasnip.loaders.from_vscode").lazy_load()
 
 			cmp.setup({
+				formatting = {
+					fields = { "kind", "abbr", "menu" },
+					format = function(entry, vim_item)
+						vim_item.menu = true and  "    (" .. vim_item.kind .. ")" or ""
+						vim_item.kind = " " .. kind_icons[vim_item.kind] .. " "
+						return vim_item
+					end,req
+				},
 				snippet = {
+
+					completion = {
+						completeopt = "menu,menuone",
+					},
 					expand = function(args)
 						require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
 					end,
 				},
+
 				window = {
-					completion = cmp.config.window.bordered({
-						winhighlight = "Normal:Pmenu,FloatBorder:SpecialCmpBorder,Search:None",
-						scrollbar = true,
-						border = "rounded",
-						col_offset = -1,
+					completion = {
+						border = { "", "", "", "", "", "", "", "" },
+						winhighlight = "Normal:Pmenu,FloatBorder:Pmenu,Search:None",
+						scrolloff = 0,
+						col_offset = -3,
 						side_padding = 0,
-					}),
-					documentation = cmp.config.window.bordered({
-						winhighlight = "Normal:Pmenu,FloatBorder:SpecialCmpBorder,Search:None",
 						scrollbar = true,
-						border = "rounded",
-					}),
+					},
+					documentation = {
+						max_height = math.floor(WIDE_HEIGHT * (WIDE_HEIGHT / vim.o.lines)),
+						max_width = math.floor((WIDE_HEIGHT * 2) * (vim.o.columns / (WIDE_HEIGHT * 2 * 16 / 9))),
+						border = { "", "", "", " ", "", "", "", " " },
+						winhighlight = "FloatBorder:NormalFloat",
+					},
 				},
 				mapping = cmp.mapping.preset.insert({
 					["<C-b>"] = cmp.mapping.scroll_docs(-4),
