@@ -1,8 +1,8 @@
 * {
-    bg-col:  #303446;
-    bg-col-light: #303446;
-    border-col: #303446;
-    selected-col: #303446;
+    bg-col:  #292c3c;
+    bg-col-light: #292c3c;
+    border-col: #292c3c;
+    selected-col: #292c3c;
     blue: #8caaee;
     fg-col: #c6d0f5;
     fg-col2: #e78284;
