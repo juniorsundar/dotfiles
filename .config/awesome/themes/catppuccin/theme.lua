@@ -53,14 +53,14 @@ theme.bg_systray = theme.bg_normal
 -- {{{ Borders
 theme.useless_gap   = dpi(0)
 theme.border_width  = dpi(2)
-theme.border_normal = theme.nord7
+theme.border_normal = theme.nord4
 theme.border_focus  = theme.nord14
 theme.border_marked = theme.nord15
 -- }}}
 
 -- {{{ Titlebars
 theme.titlebar_fg_normal = theme.nord2
-theme.titlebar_bg_normal = theme.nord7
+theme.titlebar_bg_normal = theme.nord4
 theme.titlebar_fg_focus = theme.nord1
 theme.titlebar_bg_focus = theme.nord14
 -- }}}
