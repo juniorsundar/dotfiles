@@ -14,9 +14,9 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
--- config.font = wezterm.font("MesloLGS Nerd Font", { weight = "Regular" })
-config.font = wezterm.font("JetBrainsMono Nerd Font", { weight = "Regular" })
-config.font_size = 11
+config.font = wezterm.font("FiraCode Nerd Font", { weight = "Regular" })
+-- config.font = wezterm.font("JetBrainsMono Nerd Font", { weight = "Regular" })
+config.font_size = 12
 
 config.color_scheme = "Catppuccin Frappe"
 config.use_fancy_tab_bar = false
