@@ -134,6 +134,7 @@ return {
 							buffer = event.buf,
 							callback = vim.lsp.buf.clear_references,
 						})
+                        vim.keymap.del("n", "K", { buffer = event.buf })
 					end
 				end,
 			})
