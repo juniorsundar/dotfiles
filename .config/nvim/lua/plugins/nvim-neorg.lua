@@ -1,9 +1,14 @@
 return {
 	{
+		"vhyrro/luarocks.nvim",
+		priority = 1000,
+		config = true,
+	},
+	{
 		"nvim-neorg/neorg",
-		build = ":Neorg sync-parsers",
-		-- tag = "*",
-		dependencies = { "nvim-lua/plenary.nvim", "nvim-neorg/neorg-telescope" },
+		-- build = ":Neorg sync-parsers",
+		version = "*",
+		dependencies = { "luarocks.nvim", "nvim-lua/plenary.nvim", "nvim-neorg/neorg-telescope" },
 		config = function()
 			vim.api.nvim_create_autocmd("FileType", {
 				pattern = "norg",
