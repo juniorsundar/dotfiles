@@ -113,6 +113,7 @@ alias cat="batcat"
 alias du="dust"
 alias tls="~/.config/tmux/tmux-fzf-session.sh"
 alias zls="~/.config/zellij/zellij-fzf-session.sh"
+alias grep="rg"
 
 alias dronsole-sh='docker run --rm -it -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest'
 alias dronsole='docker run --rm -it -p 3000:3000 -p 8888:8888 -p 4280:4280 -p 4222:4222 -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest' 
