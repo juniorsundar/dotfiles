@@ -6,7 +6,6 @@ return {
 	},
 	{
 		"nvim-neorg/neorg",
-		build = ":Lazy build neorg",
 		version = "*",
 		dependencies = { "luarocks.nvim", "nvim-lua/plenary.nvim", "nvim-neorg/neorg-telescope" },
 		config = function()
