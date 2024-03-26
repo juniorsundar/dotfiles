@@ -174,12 +174,12 @@ return {
                 C = { "<cmd>Telescope commands<cr>", "Commands" },
             },
 
-            T = {
-                name = "Terminal",
-                f = { "<cmd>ToggleTerm direction=float<cr>", "Float" },
-                h = { "<cmd>ToggleTerm size=10 direction=horizontal<cr>", "Horizontal" },
-                v = { "<cmd>ToggleTerm size=80 direction=vertical<cr>", "Vertical" },
-            },
+            -- T = {
+            --     name = "Terminal",
+            --     f = { "<cmd>ToggleTerm direction=float<cr>", "Float" },
+            --     h = { "<cmd>ToggleTerm size=10 direction=horizontal<cr>", "Horizontal" },
+            --     v = { "<cmd>ToggleTerm size=80 direction=vertical<cr>", "Vertical" },
+            -- },
 
             N = {
                 name = "Neorg",
