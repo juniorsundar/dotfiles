@@ -1,5 +1,8 @@
 return {
     {
+        "tpope/vim-fugitive",
+    },
+    {
         "lewis6991/gitsigns.nvim",
         config = function()
             require("gitsigns").setup({
@@ -97,6 +100,7 @@ return {
     },
     {
         "NeogitOrg/neogit",
+        branch = "nightly",
         dependencies = {
             "nvim-lua/plenary.nvim", -- required
             "sindrets/diffview.nvim", -- optional - Diff integration
