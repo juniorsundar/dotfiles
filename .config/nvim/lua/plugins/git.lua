@@ -98,29 +98,29 @@ return {
             )
         end,
     },
-    {
-        "NeogitOrg/neogit",
-        branch = "nightly",
-        dependencies = {
-            "nvim-lua/plenary.nvim", -- required
-            "sindrets/diffview.nvim", -- optional - Diff integration
-        },
-        config = function()
-            local neogit = require("neogit")
-            neogit.setup({
-                signs = {
-                    hunk = { "", "" },
-                    item = { "", "" },
-                    section = { "", "" },
-                },
-                integrations = {
-                    telescope = true,
-                    diffview = true,
-                },
-            })
-
-            vim.keymap.set("n", "gG", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
-            vim.keymap.set("v", "gG", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
-        end,
-    },
+    -- {
+    --     "NeogitOrg/neogit",
+    --     branch = "*",
+    --     dependencies = {
+    --         "nvim-lua/plenary.nvim", -- required
+    --         "sindrets/diffview.nvim", -- optional - Diff integration
+    --     },
+    --     config = function()
+    --         local neogit = require("neogit")
+    --         neogit.setup({
+    --             signs = {
+    --                 hunk = { "", "" },
+    --                 item = { "", "" },
+    --                 section = { "", "" },
+    --             },
+    --             integrations = {
+    --                 telescope = true,
+    --                 diffview = true,
+    --             },
+    --         })
+    --
+    --         vim.keymap.set("n", "gG", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
+    --         vim.keymap.set("v", "gG", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
+    --     end,
+    -- },
 }
