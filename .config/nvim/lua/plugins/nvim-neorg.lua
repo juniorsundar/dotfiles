@@ -7,7 +7,7 @@ return {
 	{
 		"nvim-neorg/neorg",
 		version = "*",
-		dependencies = { "luarocks.nvim", "nvim-lua/plenary.nvim", "nvim-neorg/neorg-telescope" },
+		dependencies = { "luarocks.nvim", "nvim-neorg/neorg-telescope" },
 		config = function()
 			vim.api.nvim_create_autocmd("FileType", {
 				pattern = "norg",
@@ -52,6 +52,9 @@ return {
 						},
 					},
 					["core.export"] = {},
+                    ["core.latex.renderer"] = {},
+                    ["core.integrations.image"] = {},
+                    -- ["core.ui.calender"] = {},
 					["core.export.markdown"] = {},
 					["core.summary"] = {},
 					["core.integrations.telescope"] = {},
