@@ -13,6 +13,7 @@ return {
 				pattern = "norg",
 				callback = function()
 					vim.opt_local.conceallevel = 2
+					vim.opt_local.wrap = true
 				end,
 			})
 			require("neorg").setup({
@@ -38,7 +39,6 @@ return {
 					},
 					["core.concealer"] = {
 						config = {
-							-- icon_preset = "diamond",
 							icons = { list = { icons = { "󰧞", "", "", "", "", "" } } },
 						},
 					}, -- Adds pretty icons to your documents
@@ -52,12 +52,17 @@ return {
 						},
 					},
 					["core.export"] = {},
-                    ["core.latex.renderer"] = {},
-                    ["core.integrations.image"] = {},
-                    -- ["core.ui.calender"] = {},
 					["core.export.markdown"] = {},
+					["core.latex.renderer"] = {},
+					["core.integrations.image"] = {},
 					["core.summary"] = {},
 					["core.integrations.telescope"] = {},
+					["core.qol.toc"] = {},
+					["core.qol.todo_items"] = {},
+					["core.looking-glass"] = {},
+					["core.presenter"] = { config = { zen_mode = "zen-mode" } },
+					["core.tangle"] = { config = { report_on_empty = false } },
+					["core.ui.calendar"] = {},
 				},
 			})
 
