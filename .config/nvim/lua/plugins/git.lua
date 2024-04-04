@@ -1,9 +1,13 @@
 return {
-    -- {
-    --     "tpope/vim-fugitive",
-    -- },
+    {
+        "tpope/vim-fugitive",
+        config = function()
+            vim.keymap.set("n", "<space>Gs", "<cmd>Git<CR>", { noremap = true, silent = false, desc = "Git Status" })
+        end,
+    },
     {
         "lewis6991/gitsigns.nvim",
+        dependencies = { "sindrets/diffview.nvim" },
         config = function()
             require("gitsigns").setup({
                 signs = {
@@ -98,29 +102,29 @@ return {
             )
         end,
     },
-    {
-        "NeogitOrg/neogit",
-        branch = "nightly",
-        dependencies = {
-            "nvim-lua/plenary.nvim", -- required
-            "sindrets/diffview.nvim", -- optional - Diff integration
-        },
-        config = function()
-            local neogit = require("neogit")
-            neogit.setup({
-                signs = {
-                    hunk = { "", "" },
-                    item = { "", "" },
-                    section = { "", "" },
-                },
-                integrations = {
-                    telescope = true,
-                    diffview = true,
-                },
-            })
-
-            vim.keymap.set("n", "<space>Gg", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
-            vim.keymap.set("v", "gG", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
-        end,
-    },
+    -- {
+    --     "NeogitOrg/neogit",
+    --     branch = "nightly",
+    --     dependencies = {
+    --         "nvim-lua/plenary.nvim", -- required
+    --         "sindrets/diffview.nvim", -- optional - Diff integration
+    --     },
+    --     config = function()
+    --         local neogit = require("neogit")
+    --         neogit.setup({
+    --             signs = {
+    --                 hunk = { "", "" },
+    --                 item = { "", "" },
+    --                 section = { "", "" },
+    --             },
+    --             integrations = {
+    --                 telescope = true,
+    --                 diffview = true,
+    --             },
+    --         })
+    --
+    --         vim.keymap.set("n", "<space>Gg", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
+    --         vim.keymap.set("v", "gG", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
+    --     end,
+    -- },
 }
