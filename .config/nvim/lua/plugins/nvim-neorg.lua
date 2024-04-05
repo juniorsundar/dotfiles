@@ -7,7 +7,7 @@ return {
 	{
 		"nvim-neorg/neorg",
 		version = "*",
-		dependencies = { "luarocks.nvim", "nvim-neorg/neorg-telescope" },
+		dependencies = { "luarocks.nvim" },
 		config = function()
 			vim.api.nvim_create_autocmd("FileType", {
 				pattern = "norg",
@@ -56,7 +56,6 @@ return {
 					["core.latex.renderer"] = {},
 					["core.integrations.image"] = {},
 					["core.summary"] = {},
-					["core.integrations.telescope"] = {},
 					["core.qol.toc"] = {},
 					["core.qol.todo_items"] = {},
 					["core.looking-glass"] = {},
@@ -66,12 +65,52 @@ return {
 				},
 			})
 
-			vim.keymap.set(
-				"n",
-				"<leader>Nw",
-				"<cmd>Telescope neorg switch_workspace<CR>",
-				{ noremap = true, silent = true, desc = "Workspaces" }
-			)
+			local function neorg_workspace_selector()
+				local neorg_loaded, neorg = pcall(require, "neorg.core")
+				assert(neorg_loaded, "Neorg is not loaded - please make sure to load Neorg first")
+				local workspaces = neorg.modules.get_module("core.dirman").get_workspaces()
+				local results = {}
+
+				for name, path in pairs(workspaces) do
+					table.insert(results, { name, path .. "/index.norg" })
+				end
+
+				local pickers = require("telescope.pickers")
+				local finders = require("telescope.finders")
+				local conf = require("telescope.config").values
+				local previewers = require("telescope.previewers")
+				local actions = require("telescope.actions")
+				local action_state = require("telescope.actions.state")
+
+				pickers
+					.new({}, {
+						prompt_title = "Select an Neorg Workspace",
+						finder = finders.new_table({
+							results = results,
+							entry_maker = function(entry)
+								return {
+									value = entry[1],
+									display = entry[1],
+									ordinal = entry[1],
+									path = entry[2],
+								}
+							end,
+						}),
+						sorter = conf.generic_sorter({}),
+						previewer = previewers.vim_buffer_cat.new({}),
+						attach_mappings = function(prompt_bufnr, _)
+							actions.select_default:replace(function()
+								local selection = action_state.get_selected_entry(prompt_bufnr)
+								actions.close(prompt_bufnr)
+								vim.cmd("Neorg workspace " .. selection.value)
+							end)
+							return true
+						end,
+					})
+					:find()
+			end
+
+			vim.keymap.set("n", "<leader>Nw", neorg_workspace_selector, { noremap = true, silent = true, desc = "Workspaces" })
 		end,
 	},
 }
