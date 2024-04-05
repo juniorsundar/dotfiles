@@ -1,6 +1,6 @@
 require("options")
 require("keymaps")
-require("rocks-setup")
+-- require("rocks-setup")
 
 -- Package manager
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
