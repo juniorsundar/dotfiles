@@ -60,6 +60,7 @@ return {
 				Event = "",
 				Operator = "",
 				TypeParameter = "󰅲",
+                Codeium = "",
 			}
 
 			require("luasnip.loaders.from_vscode").lazy_load()
@@ -129,6 +130,7 @@ return {
 					{ name = "nvim_lsp" },
 					{ name = "luasnip" }, -- For luasnip users.
 					{ name = "path" },
+                    { name = "codeium" },
 				}),
 			})
 		end,
