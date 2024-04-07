@@ -100,7 +100,6 @@ return {
 				name = "Git",
 				o = { "<cmd>FzfLua git_status<cr>", "Open changed file" },
 				b = { "<cmd>FzfLua git_branches<cr>", "Checkout branch" },
-				c = { "<cmd>FzfLua git_commits<cr>", "Checkout commit" },
 				d = { "<cmd>Gitsigns diffthis HEAD<cr>", "Diff" },
 			},
 			-- Language Server Protocol (LSP)
