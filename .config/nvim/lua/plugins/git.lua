@@ -80,8 +80,8 @@ return {
 				disable_signs = false,
 				signs = {
 					hunk = { "", "" },
-					item = { "", "" },
-					section = { "", "" },
+					item = { " ", " " },
+					section = { " ", " " },
 				},
 				integrations = {
 					diffview = true,
