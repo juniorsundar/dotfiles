@@ -15,7 +15,6 @@ end
 
 -- For example, changing the color scheme:
 config.font = wezterm.font("FiraCode Nerd Font", { weight = "Regular" })
--- config.font = wezterm.font("JetBrainsMono Nerd Font", { weight = "Regular" })
 config.font_size = 12
 
 config.color_scheme = "Catppuccin Frappe"
