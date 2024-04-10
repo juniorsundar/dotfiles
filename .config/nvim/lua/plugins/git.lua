@@ -14,12 +14,12 @@ return {
 		config = function()
 			require("gitsigns").setup({
 				signs = {
-					add = { text = "│" },
-					change = { text = "│" },
-					delete = { text = "_" },
-					topdelete = { text = "‾" },
-					changedelete = { text = "~" },
-					untracked = { text = "┆" },
+                    add          = { text = '┃' },
+                    change       = { text = '┃' },
+                    delete       = { text = '-' }, -- '_'
+                    topdelete    = { text = '' }, -- '‾'
+                    changedelete = { text = '~' },
+                    untracked    = { text = '┆' },
 				},
 				signcolumn = true, -- Toggle with `:Gitsigns toggle_signs`
 				numhl = false, -- Toggle with `:Gitsigns toggle_numhl`
@@ -63,7 +63,6 @@ return {
 			vim.keymap.set( "n", "gU", "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>", { noremap = true, silent = false, desc = "Undo Stage Hunk" })
 			vim.keymap.set( "n", "gR", "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", { noremap = true, silent = false, desc = "Reset Buffer" })
 			vim.keymap.set( "n", "gb", "<cmd>lua require 'gitsigns'.blame_line()<cr>", { noremap = true, silent = false, desc = "Blame" })
-
 		end,
 	},
 	{
@@ -93,12 +92,7 @@ return {
 				},
 			})
 
-			vim.keymap.set(
-				"n",
-				"<space>Gg",
-				"<cmd>Neogit kind=split<cr>",
-				{ noremap = true, silent = false, desc = "Neogit" }
-			)
+			vim.keymap.set("n", "<space>Gg", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
 			vim.keymap.set("v", "gG", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
 		end,
 	},
