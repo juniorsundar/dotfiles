@@ -71,6 +71,88 @@ return {
             assert(fzf_lua_loaded, "fzf-lua is not loaded - please make sure to load fzf-lua first")
             local builtin = require("fzf-lua.previewer.builtin")
 
+            local function neorg_node_injector()
+                local current_workspace = neorg.modules.get_module("core.dirman").get_current_workspace()
+
+                local base_directory = current_workspace[2]
+                local norg_files_output = vim.fn.systemlist("fdfind -e norg --type f --base-directory " .. base_directory)
+                local norg_files = table.concat(norg_files_output, " ")
+                local rg_command = 'rg --multiline "(?s)@document\\.meta.*?title:\\s+(.*?)\\s+@end" ' .. norg_files
+                local rg_results = vim.fn.system(rg_command)
+
+                -- Extract lines containing "title:"
+                local titles = {}
+                for line in rg_results:gmatch("[^\r\n]+") do
+                    if line:find("title:") then
+                        table.insert(titles, line)
+                    end
+                end
+
+                -- Concatenate the filtered lines into a single string
+                local filtered_results = table.concat(titles, "\n")
+
+                local title_path_pairs = {}
+
+                -- Iterate over each line in the output
+                for line in filtered_results:gmatch("[^\r\n]+") do
+                    -- Split the line into two parts based on ":"
+                    local file_path, title = line:match("^(.-):(.*)$")
+                    _, title = title:match("^(.-): (.*)$")
+
+                    title_path_pairs[title] = file_path
+                end
+
+                local workspace_previewer = builtin.buffer_or_file:extend()
+
+                function workspace_previewer:new(o, opts, fzf_win)
+                    workspace_previewer.super.new(self, o, opts, fzf_win)
+                    setmetatable(self, workspace_previewer)
+                    return self
+                end
+
+                function workspace_previewer:parse_entry(entry_str)
+                    return {
+                        path = base_directory.."/" ..title_path_pairs[entry_str],
+                        line = 1,
+                        col = 1,
+                    }
+                end
+
+                local navigate_to = function (selected)
+                    print("Navigating to --> "..selected[1])
+                    vim.cmd("e "..base_directory..title_path_pairs[selected[1]]:sub(2))
+                end
+
+                local paste_address = function (selected)
+                    print("Pasting address of --> "..selected[1])
+                    local hyperlink = "{:$"..title_path_pairs[selected[1]]:sub(2,-6)..":}["..selected[1].."]"
+
+                    local cursor_pos = vim.api.nvim_win_get_cursor(0)
+                    vim.api.nvim_put({hyperlink}, "", true, true)
+
+                    vim.api.nvim_win_set_cursor(0, cursor_pos)
+                end
+
+                local function table_keys(tbl)
+                    local keys = {}
+                    for key, _ in pairs(tbl) do
+                        table.insert(keys, key)
+                    end
+                    return keys
+                end
+
+                local prompt = "Select Neorg Directory -> "
+                fzf_lua.fzf_exec(table_keys(title_path_pairs), {
+                    previewer = workspace_previewer,
+                    prompt = prompt,
+                    actions = {
+                        ["default"] = navigate_to,
+                        ["ctrl-i"] = paste_address,
+                    },
+                })
+
+            end
+
             local function neorg_workspace_selector()
                 local workspaces = neorg.modules.get_module("core.dirman").get_workspaces()
                 local workspace_names = {}
@@ -116,12 +198,8 @@ return {
                 })
             end
 
-            vim.keymap.set(
-                "n",
-                "<leader>Nw",
-                neorg_workspace_selector,
-                { noremap = true, silent = true, desc = "Workspaces" }
-            )
+            vim.keymap.set("n", "<leader>Nw", neorg_workspace_selector, { noremap = true, silent = true, desc = "Workspaces" })
+            vim.keymap.set("n", "<leader>Nf", neorg_node_injector, { noremap = true, silent = true, desc = "Node Injector" })
         end,
     },
 }
