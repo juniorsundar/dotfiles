@@ -23,7 +23,7 @@ return {
 					neogit = true,
 					treesitter_context = true,
 					which_key = true,
-                    mason = true,
+	                   mason = true,
 				},
 			})
 			vim.cmd.colorscheme("catppuccin-frappe")
