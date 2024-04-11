@@ -1,4 +1,4 @@
-vim.g.mapleader = vim.api.nvim_replace_termcodes("<M-Space>", true, true, true)
+vim.g.mapleader = vim.api.nvim_replace_termcodes("<A-Space>", true, true, true)
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 -- vim.g.loaded_netrw = 1

@@ -1,13 +1,4 @@
 return {
-	-- {
-	--     "tpope/vim-fugitive",
-	--     config = function()
-	--         vim.keymap.set("n", "<space>Gs", "<cmd>Git<CR>", { noremap = true, silent = false, desc = "Git Status" })
-	--         vim.keymap.set("n", "<space>GP", "<cmd>Git -p push<CR>", { noremap = true, silent = false, desc = "Git Push" })
-	--         vim.keymap.set("n", "<space>Gp", "<cmd>Git -p pull<CR>", { noremap = true, silent = false, desc = "Git Pull" })
-	--         vim.keymap.set("n", "<space>Gl", "<cmd>Git log<CR>", { noremap = true, silent = false, desc = "Git log" })
-	--     end,
-	-- },
 	{
 		"lewis6991/gitsigns.nvim",
 		dependencies = { "sindrets/diffview.nvim" },

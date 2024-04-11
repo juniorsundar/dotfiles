@@ -68,14 +68,14 @@ return {
 			cmp.setup({
 				formatting = {
 					fields = { "kind", "abbr", "menu" },
-					format = function(entry, vim_item)
-						vim_item.menu = true and  "    (" .. vim_item.kind .. ")" or ""
+					format = function(_, vim_item)
+						-- vim_item.menu = true and  "    (" .. vim_item.kind .. ")" or ""
+						vim_item.menu = true and  "    " or ""
 						vim_item.kind = " " .. kind_icons[vim_item.kind] .. " "
 						return vim_item
-					end,req
+					end,
 				},
 				snippet = {
-
 					completion = {
 						completeopt = "menu,menuone",
 					},
