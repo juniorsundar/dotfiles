@@ -70,21 +70,17 @@ return {
 				disable_signs = false,
 				signs = {
 					hunk = { "", "" },
-					item = { " ", " " },
-					section = { " ", " " },
+					item = { "", "" },
+					section = { "", "" },
 				},
 				integrations = {
 					diffview = true,
 					fzf_lua = true,
 				},
-				commit_view = {
-					kind = "split",
-					verify_commit = os.execute("which gpg") == 0,
-				},
 			})
 
-			vim.keymap.set("n", "<space>Gg", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
-			vim.keymap.set("v", "gG", "<cmd>Neogit kind=split<cr>", { noremap = true, silent = false, desc = "Neogit" })
+			vim.keymap.set("n", "<space>Gg", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
+			vim.keymap.set("v", "gG", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
 		end,
 	},
 }

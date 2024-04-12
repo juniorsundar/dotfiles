@@ -141,10 +141,11 @@ return {
 				name = "Search",
 				c = { "<cmd>FzfLua colorscheme<cr>", "Colorscheme" },
 				h = { "<cmd>FzfLua helptags<cr>", "Find Help" },
+                k = { "<cmd>FzfLua keymaps<cr>", "Keymaps" },
+                r = { "<cmd>FzfLua oldfiles<cr>", "Open Recent File" },
+                t = { "<cmd>FzfLua tabs<cr>", "Tabs" },
 				M = { "<cmd>FzfLua manpages<cr>", "Man Pages" },
-				r = { "<cmd>FzfLua oldfiles<cr>", "Open Recent File" },
 				R = { "<cmd>FzfLua registers<cr>", "Registers" },
-				k = { "<cmd>FzfLua keymaps<cr>", "Keymaps" },
 				C = { "<cmd>FzfLua commands<cr>", "Commands" },
 			},
 
