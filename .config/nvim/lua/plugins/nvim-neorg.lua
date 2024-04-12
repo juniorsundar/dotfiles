@@ -141,7 +141,7 @@ return {
                     return keys
                 end
 
-                local prompt = "Select Neorg Directory -> "
+                local prompt = "Navigate to -> "
                 fzf_lua.fzf_exec(table_keys(title_path_pairs), {
                     previewer = workspace_previewer,
                     prompt = prompt,
