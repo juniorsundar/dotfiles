@@ -33,8 +33,8 @@ vim.opt.undofile = true
 vim.opt.signcolumn = "yes"
 vim.opt.scrolloff = 10
 
-vim.cmd([[set grepprg=rg\ --vimgrep]])
-vim.cmd([[set grepformat=%f:%l:%c:%m]])
+vim.o.grepprg = "rg --vimgrep"
+vim.o.grepformat = "%f:%l:%c:%m"
 
 vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "Highlight when yanking (copying) text",
