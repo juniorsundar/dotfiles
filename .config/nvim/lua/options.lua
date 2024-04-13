@@ -1,8 +1,6 @@
 vim.g.mapleader = vim.api.nvim_replace_termcodes("<A-Space>", true, true, true)
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
--- vim.g.loaded_netrw = 1
--- vim.g.loaded_netrwPlugin = 1
 
 -- Hint: use `:h <option>` to figure out the meaning if needed
 vim.opt.clipboard = "unnamedplus" -- use system clipboard
@@ -34,6 +32,9 @@ vim.opt.inccommand = "split" -- shows how certain commands apply in a separate w
 vim.opt.undofile = true
 vim.opt.signcolumn = "yes"
 vim.opt.scrolloff = 10
+
+vim.cmd([[set grepprg=rg\ --vimgrep]])
+vim.cmd([[set grepformat=%f:%l:%c:%m]])
 
 vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "Highlight when yanking (copying) text",
