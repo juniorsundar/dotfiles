@@ -116,6 +116,7 @@ return {
 				i = { "<cmd>lua vim.lsp.buf.implementation()<cr>", "Implementation" },
 				k = { "<cmd>lua vim.lsp.buf.hover()<cr>", "Hover" },
 				t = { "<cmd>lua vim.lsp.buf.type_definition()<cr>", "Type Definition" },
+			    h = { "<cmd>lua vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled())<cr>", "Type Hint" },
 				I = { "<cmd>LspInfo<cr>", "LSP Info" },
 				D = {
 					name = "Document",
