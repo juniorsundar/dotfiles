@@ -77,7 +77,7 @@ return {
 			a = { "<cmd>Alpha<cr>", "Alpha" },
 			b = { "<cmd>FzfLua buffers<cr>", "Buffers" },
 			w = { "<cmd>w!<cr>", "Save" },
-			q = { "<cmd>q!<cr>", "Quit" },
+			q = { "<cmd>q<cr>", "Quit" },
 			c = { "<cmd>bdelete!<cr>", "Close Buffer" },
 			l = { "<cmd>Lazy<cr>", "Lazy" },
 			m = { "<cmd>Mason<cr>", "Mason" },
