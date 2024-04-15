@@ -1,19 +1,19 @@
 return {
-	{
-		"romgrk/barbar.nvim",
-		dependencies = {
-			"lewis6991/gitsigns.nvim", -- OPTIONAL: for git status
-			"nvim-tree/nvim-web-devicons", -- OPTIONAL: for file icons
-		},
-		init = function()
-			vim.g.barbar_auto_setup = false
-		end,
-		opts = {
-			tabpages = true,
-			icons = {
-			},
-		},
-	},
+	-- {
+	-- 	"romgrk/barbar.nvim",
+	-- 	dependencies = {
+	-- 		"lewis6991/gitsigns.nvim", -- OPTIONAL: for git status
+	-- 		"nvim-tree/nvim-web-devicons", -- OPTIONAL: for file icons
+	-- 	},
+	-- 	init = function()
+	-- 		vim.g.barbar_auto_setup = false
+	-- 	end,
+	-- 	opts = {
+	-- 		tabpages = true,
+	-- 		icons = {
+	-- 		},
+	-- 	},
+	-- },
 	{
 		"nvim-lualine/lualine.nvim",
 		config = function()
@@ -53,17 +53,12 @@ return {
 					lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
 					lualine_b = { "branch", "diagnostics" },
 					lualine_c = { { "filename" } },
-					-- lualine_x = { "encoding", "fileformat", "filetype" },
 					lualine_x = { require("NeoComposer.ui").status_recording },
 					lualine_y = { "filetype" },
 					lualine_z = { { "location", separator = { right = "" }, left_padding = 2 } },
 				},
 				inactive_sections = {
-					lualine_a = {},
-					lualine_b = {},
 					lualine_c = { { "filename", path = 2 } },
-					lualine_x = {},
-					lualine_y = {},
 					lualine_z = { "location" },
 				},
 				tabline = {},
