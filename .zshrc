@@ -108,7 +108,7 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias fd="fdfind"
-alias nv="fd --type f --hidden --exclude .git | fzf | xargs nvim"
+alias nv="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"
 alias cat="batcat"
 alias du="dust"
 alias tls="~/.config/tmux/tmux-fzf-session.sh"
@@ -124,6 +124,8 @@ export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
 export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
 export MANPATH="/usr/local/man:$MANPATH"
 export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
+
+export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
 
 . "$HOME/.cargo/env"
 
