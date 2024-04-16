@@ -9,7 +9,7 @@ return {
         "williamboman/mason-lspconfig.nvim",
         config = function()
             require("mason-lspconfig").setup({
-                ensure_installed = { "lua_ls", "pylsp", "clangd", "rust_analyzer", "gopls", "marksman" },
+                ensure_installed = { "lua_ls", "pyright", "jedi_language_server", "clangd", "rust_analyzer", "gopls", "marksman" },
             })
         end,
     },
@@ -75,22 +75,39 @@ return {
                 },
             })
 
-            lspconfig.pylsp.setup({
+            -- lspconfig.pylsp.setup({
+            --     capabilities = capabilities,
+            --     configurationSources = { "flake8" },
+            --     settings = {
+            --         pylsp = {
+            --             plugins = {
+            --                 flake8 = {
+            --                     enabled = true,
+            --                     ignore = { "E128", "E122", "E251", "E501" },
+            --                 },
+            --                 mccabe = { enabled = false },
+            --                 pyflakes = { enabled = false },
+            --                 pycodestyle = {
+            --                     enabled = false,
+            --                     ignore = { "E128", "E122", "E251", "E501" },
+            --                 },
+            --             },
+            --         },
+            --     },
+            -- })
+
+            lspconfig.jedi_language_server.setup({
                 capabilities = capabilities,
-                configurationSources = { "flake8" },
+            })
+
+            lspconfig.pyright.setup({
+                capabilities = capabilities,
                 settings = {
-                    pylsp = {
-                        plugins = {
-                            flake8 = {
-                                enabled = true,
-                                ignore = { "E128", "E122", "E251", "E501" },
-                            },
-                            mccabe = { enabled = false },
-                            pyflakes = { enabled = false },
-                            pycodestyle = {
-                                enabled = false,
-                                ignore = { "E128", "E122", "E251", "E501" },
-                            },
+                    python = {
+                        analysis = {
+                            autoSearchPaths = true,
+                            diagnosticMode = "openFilesOnly",
+                            useLibraryCodeForTypes = true,
                         },
                     },
                 },

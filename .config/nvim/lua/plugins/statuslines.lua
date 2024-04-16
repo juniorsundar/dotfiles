@@ -33,7 +33,8 @@ return {
 					icons_enabled = true,
 					theme = "auto",
 					component_separators = { left = "", right = "" },
-					section_separators = { left = "", right = "" },
+					-- section_separators = { left = "", right = "" },
+					section_separators = { left = "", right = "" },
 					disabled_filetypes = {
 						"neo-tree",
 						"no-neck-pain",
@@ -50,12 +51,12 @@ return {
 					},
 				},
 				sections = {
-					lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
+					lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
 					lualine_b = { "branch", "diagnostics" },
 					lualine_c = { { "filename" } },
 					lualine_x = { require("NeoComposer.ui").status_recording },
 					lualine_y = { "filetype" },
-					lualine_z = { { "location", separator = { right = "" }, left_padding = 2 } },
+					lualine_z = { { "location", separator = { right = "" }, left_padding = 2 } },
 				},
 				inactive_sections = {
 					lualine_c = { { "filename", path = 2 } },
@@ -67,7 +68,7 @@ return {
 						{
 							prose.word_count,
 							cond = prose.is_available,
-							separator = { left = "", right = "" },
+							separator = { left = "", right = "" },
 							left_padding = 2,
 							right_padding = 2,
 						},
