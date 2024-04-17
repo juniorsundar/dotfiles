@@ -119,6 +119,7 @@ alias dronsole='docker run --rm -it -p 3000:3000 -p 8888:8888 -p 4280:4280 -p 42
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
+export PATH=$PATH:$HOME/.local/bin/
 
 export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
 export MANPATH="/usr/local/man:$MANPATH"
