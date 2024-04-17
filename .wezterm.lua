@@ -14,7 +14,8 @@ end
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-config.font = wezterm.font("FiraCode Nerd Font", { weight = "Regular" })
+-- config.font = wezterm.font("FiraCode Nerd Font", { weight = "Regular" })
+config.font = wezterm.font("CaskaydiaCove NF", { weight = "Regular" })
 config.font_size = 12
 
 config.color_scheme = "Catppuccin Frappe"
