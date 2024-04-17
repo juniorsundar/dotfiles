@@ -136,3 +136,5 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 source ~/.zoxide.zsh
+
+export MANPAGER="sh -c 'col -bx | batcat --theme Catppuccin\ Frappe -l man -p'"
