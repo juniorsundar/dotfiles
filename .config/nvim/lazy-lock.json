@@ -24,7 +24,7 @@
   "mini.pairs": { "branch": "main", "commit": "04f58f2545ed80ac3b52dd4826e93f33e15b2af6" },
   "mini.surround": { "branch": "main", "commit": "d035934958e2605048ee1378ce47cf799f7071d4" },
   "nabla.nvim": { "branch": "master", "commit": "27a6ea9ed7452bb9e0b19eb0942b5bcf7d051b2f" },
-  "neogit": { "branch": "nightly", "commit": "619bdc41eede817cce589308676b7d5dfdd0a2ab" },
+  "neogit": { "branch": "nightly", "commit": "9fb89364062401570f82f324d3a212d4658d4ce3" },
   "neorg": { "branch": "main", "commit": "c17b8e9e7327e03f78fbdccfb15abd09ec607bd0" },
   "none-ls.nvim": { "branch": "main", "commit": "09a7c58e9283dda582d9805f6b182b5b9f137ec7" },
   "nvim-cmp": { "branch": "main", "commit": "ce16de5665c766f39c271705b17fff06f7bcb84f" },
