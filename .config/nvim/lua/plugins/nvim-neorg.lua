@@ -75,9 +75,10 @@ return {
                 local current_workspace = neorg.modules.get_module("core.dirman").get_current_workspace()
 
                 local base_directory = current_workspace[2]
+                print(base_directory)
                 local norg_files_output = vim.fn.systemlist("fdfind -e norg --type f --base-directory " .. base_directory)
                 local norg_files = table.concat(norg_files_output, " ")
-                local rg_command = 'rg --multiline "(?s)@document\\.meta.*?title:\\s+(.*?)\\s+@end" ' .. norg_files
+                local rg_command = 'rg --multiline "(?s)@document\\.meta.*?title:\\s+(.*?)\\s+@end" ' .. norg_files .. " " .. base_directory
                 local rg_results = vim.fn.system(rg_command)
 
                 -- Extract lines containing "title:"
@@ -97,8 +98,10 @@ return {
                 for line in filtered_results:gmatch("[^\r\n]+") do
                     -- Split the line into two parts based on ":"
                     local file_path, title = line:match("^(.-):(.*)$")
+                    -- And again to get rid of the annoying "title"
                     _, title = title:match("^(.-): (.*)$")
-
+                    -- Store all in a dictionary. This finna be a problem for
+                    -- people with Big Chungus workspaces
                     title_path_pairs[title] = file_path
                 end
 
@@ -112,20 +115,25 @@ return {
 
                 function workspace_previewer:parse_entry(entry_str)
                     return {
-                        path = base_directory.."/" ..title_path_pairs[entry_str],
+                        path = title_path_pairs[entry_str],
                         line = 1,
                         col = 1,
                     }
                 end
 
                 local navigate_to = function (selected)
-                    print("Navigating to --> "..selected[1])
-                    vim.cmd("e "..base_directory..title_path_pairs[selected[1]]:sub(2))
+                    vim.notify("Navigating to --> "..selected[1])
+                    vim.cmd("e "..title_path_pairs[selected[1]])
                 end
 
                 local paste_address = function (selected)
-                    print("Pasting address of --> "..selected[1])
-                    local hyperlink = "{:$"..title_path_pairs[selected[1]]:sub(2,-6)..":}["..selected[1].."]"
+                    vim.notify("Pasting address of --> "..selected[1])
+
+                    -- This is necessary because the "/" in the dir address 
+                    -- can effect the regex-ing
+                    local escaped_prefix = base_directory:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1")
+                    local relative_path = title_path_pairs[selected[1]]:gsub("^"..escaped_prefix, "")
+                    local hyperlink = "{:$"..relative_path:sub(1,-6)..":}["..selected[1].."]"
 
                     local cursor_pos = vim.api.nvim_win_get_cursor(0)
                     vim.api.nvim_put({hyperlink}, "", true, true)

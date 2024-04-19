@@ -91,9 +91,11 @@ eval "$(register-python-argcomplete3 colcon)"
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
+  export EDITOR='nvim'
+  export VISUAL='nvim'
 else
   export EDITOR='nvim'
+  export VISUAL='nvim'
 fi
 
 # Compilation flags
@@ -107,15 +109,9 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias fd="fdfind"
-alias nv="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"
-alias bat="batcat --theme 'Catppuccin Frappe'"
-alias du="dust"
-alias tls="~/.config/tmux/tmux-fzf-session.sh"
-alias zls="~/.config/zellij/zellij-fzf-session.sh"
-
-alias dronsole-sh='docker run --rm -it -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest'
-alias dronsole='docker run --rm -it -p 3000:3000 -p 8888:8888 -p 4280:4280 -p 4222:4222 -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest' 
+if [ -f ~/.zsh_aliases ]; then
+    . ~/.zsh_aliases
+fi
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
@@ -137,5 +133,3 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 source ~/.zoxide.zsh
-
-export MANPAGER="sh -c 'col -bx | batcat --theme Catppuccin\ Frappe -l man -p'"
