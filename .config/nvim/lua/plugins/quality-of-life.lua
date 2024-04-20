@@ -53,4 +53,7 @@ return {
 			require("NeoComposer.ui").status_recording()
 		end,
 	},
+	{
+		"mbbill/undotree",
+	},
 }
