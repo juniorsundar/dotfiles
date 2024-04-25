@@ -133,7 +133,7 @@ return {
                     -- can effect the regex-ing
                     local escaped_prefix = base_directory:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1")
                     local relative_path = title_path_pairs[selected[1]]:gsub("^"..escaped_prefix, "")
-                    local hyperlink = "{:$"..relative_path:sub(2,-6)..":}["..selected[1].."]"
+                    local hyperlink = "{:$"..relative_path:sub(1,-6)..":}["..selected[1].."]"
 
                     local cursor_pos = vim.api.nvim_win_get_cursor(0)
                     vim.api.nvim_put({hyperlink}, "", true, true)
