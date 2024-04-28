@@ -75,7 +75,7 @@ return {
                 local current_workspace = neorg.modules.get_module("core.dirman").get_current_workspace()
 
                 local base_directory = current_workspace[2]
-                print(base_directory)
+                -- IMP: CHANGE FDFIND and RG here according to your preferred tool
                 local norg_files_output = vim.fn.systemlist("fdfind -e norg --type f --base-directory " .. base_directory)
                 local norg_files = table.concat(norg_files_output, " ")
                 local rg_command = 'rg --multiline "(?s)@document\\.meta.*?title:\\s+(.*?)\\s+@end" ' .. norg_files .. " " .. base_directory
@@ -136,6 +136,8 @@ return {
 
                     local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
+                    -- Why use an if statement here, you ask?
+                    -- IDFK, some OS seem to add a random '.' in the address and some don't...
                     if relative_path:sub(1,1) == "." then
                         local hyperlink = "{:$"..relative_path:sub(2,-6)..":}["..selected[1].."]"
                         vim.api.nvim_put({hyperlink}, "", true, true)
