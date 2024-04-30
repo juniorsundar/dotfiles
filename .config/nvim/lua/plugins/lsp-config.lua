@@ -9,7 +9,16 @@ return {
         "williamboman/mason-lspconfig.nvim",
         config = function()
             require("mason-lspconfig").setup({
-                ensure_installed = { "lua_ls", "pyright", "jedi_language_server", "clangd", "rust_analyzer", "gopls", "marksman" },
+                ensure_installed = {
+                    "lua_ls",
+                    "pyright",
+                    "jedi_language_server",
+                    "clangd",
+                    "rust_analyzer",
+                    "gopls",
+                    "markdown_oxide",
+                    "marksman",
+                },
             })
         end,
     },
@@ -19,6 +28,12 @@ return {
         config = function()
             local capabilities = vim.lsp.protocol.make_client_capabilities()
             capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
+
+            capabilities.workspace = {
+                didChangeWatchedFiles = {
+                    dynamicRegistration = true,
+                },
+            }
 
             local lspconfig = require("lspconfig")
 
@@ -75,27 +90,6 @@ return {
                 },
             })
 
-            -- lspconfig.pylsp.setup({
-            --     capabilities = capabilities,
-            --     configurationSources = { "flake8" },
-            --     settings = {
-            --         pylsp = {
-            --             plugins = {
-            --                 flake8 = {
-            --                     enabled = true,
-            --                     ignore = { "E128", "E122", "E251", "E501" },
-            --                 },
-            --                 mccabe = { enabled = false },
-            --                 pyflakes = { enabled = false },
-            --                 pycodestyle = {
-            --                     enabled = false,
-            --                     ignore = { "E128", "E122", "E251", "E501" },
-            --                 },
-            --             },
-            --         },
-            --     },
-            -- })
-
             lspconfig.jedi_language_server.setup({
                 capabilities = capabilities,
             })
@@ -115,6 +109,7 @@ return {
 
             lspconfig.clangd.setup({
                 capabilities = capabilities,
+                root_dir = lspconfig.util.root_pattern("compile_commands.json", ".clangd"),
             })
 
             lspconfig.rust_analyzer.setup({
@@ -138,8 +133,21 @@ return {
                 },
             })
 
-            lspconfig.marksman.setup({
+            lspconfig.markdown_oxide.setup({
                 capabilities = capabilities,
+                on_attach = function(_, bufnr)
+                    -- refresh codelens on TextChanged and InsertLeave as well
+                    vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave", "CursorHold", "LspAttach" }, {
+                        buffer = bufnr,
+                        callback = vim.lsp.codelens.refresh,
+                    })
+                    -- trigger codelens refresh
+                    vim.api.nvim_exec_autocmds("User", { pattern = "LspAttached" })
+                end,
+            })
+
+            lspconfig.marksman.setup({
+                single_file_support = false,
             })
 
             -- Use LspAttach autocommand to only map the following keys
@@ -183,5 +191,39 @@ return {
                 },
             })
         end,
+    },
+    {
+        "nvimdev/lspsaga.nvim",
+        event = "LspAttach",
+        config = function()
+            require("lspsaga").setup({
+                lightbulb = {
+                    sign = false,
+                    virtual_text = true,
+                },
+                symbol_in_winbar = {
+                    enable = false,
+                },
+                ui = {
+                    -- currently only round theme
+                    theme = "rounded",
+                    -- border type can be single,double,rounded,solid,shadow.
+                    border = "solid",
+                    expand = "",
+                    collapse = "",
+                    preview = " ",
+                    code_action = " ",
+                    diagnostic = " ",
+                    incoming = " ",
+                    outgoing = " ",
+                    lines = { "┗", "┣", "┃", "━", "┏" },
+                    kind = require("catppuccin.groups.integrations.lsp_saga").custom_kind(),
+                },
+            })
+        end,
+        dependencies = {
+            "nvim-treesitter/nvim-treesitter", -- optional
+            "nvim-tree/nvim-web-devicons", -- optional
+        },
     },
 }
