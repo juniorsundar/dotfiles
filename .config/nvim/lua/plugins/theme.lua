@@ -10,6 +10,7 @@ return {
 						WhichKeyBorder = { fg = colors.base },
 						CmpBorder = { fg = colors.surface2 },
 						Pmenu = { link = "NormalFloat" },
+                        SagaBorder = { link = "NormalFloat" }
 					}
 				end,
 				integrations = {

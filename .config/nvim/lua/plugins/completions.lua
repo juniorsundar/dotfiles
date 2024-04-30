@@ -60,7 +60,7 @@ return {
 				Event = "",
 				Operator = "",
 				TypeParameter = "󰅲",
-                Codeium = "",
+				Codeium = "",
 			}
 
 			require("luasnip.loaders.from_vscode").lazy_load()
@@ -70,7 +70,7 @@ return {
 					fields = { "kind", "abbr", "menu" },
 					format = function(_, vim_item)
 						-- vim_item.menu = true and  "    (" .. vim_item.kind .. ")" or ""
-						vim_item.menu = true and  "    " or ""
+						vim_item.menu = true and "    " or ""
 						vim_item.kind = " " .. kind_icons[vim_item.kind] .. " "
 						return vim_item
 					end,
@@ -127,10 +127,17 @@ return {
 					end, { "i", "s" }),
 				}),
 				sources = cmp.config.sources({
-					{ name = "nvim_lsp" },
+					{
+						name = "nvim_lsp",
+						option = {
+							markdown_oxide = {
+								keyword_pattern = [[\(\k\| \|\/\|#\)\+]],
+							},
+						},
+					},
 					{ name = "luasnip" }, -- For luasnip users.
 					{ name = "path" },
-                    { name = "codeium" },
+					{ name = "codeium" },
 				}),
 			})
 		end,
