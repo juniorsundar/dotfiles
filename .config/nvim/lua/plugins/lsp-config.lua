@@ -110,7 +110,7 @@ return {
             lspconfig.clangd.setup({
                 capabilities = capabilities,
                 root_dir = lspconfig.util.root_pattern("compile_commands.json", ".clangd", ".git"),
-                cmd = { "clangd", "--query-driver=/usr/bin/g++", "--compile-commands-dir=" .. vim.fn.getcwd() },
+                cmd = { "clangd", "--compile-commands-dir=" .. vim.fn.getcwd() },
             })
 
             lspconfig.rust_analyzer.setup({
@@ -217,7 +217,7 @@ return {
                     diagnostic = " ",
                     incoming = " ",
                     outgoing = " ",
-                    lines = { "┗", "┣", "┃", "━", "┏" },
+                    lines = { "└", "├", "│", "─", "┌" },
                     kind = require("catppuccin.groups.integrations.lsp_saga").custom_kind(),
                 },
             })
