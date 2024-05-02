@@ -1,6 +1,6 @@
 return {
     "goolord/alpha-nvim",
-    dependencies = { "nvim-tree/nvim-web-devicons"},
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
         local dashboard = require("alpha.themes.dashboard")
         require("alpha.themes.theta").header.val = {
@@ -52,7 +52,11 @@ return {
             dashboard.button("c", "  Configuration", "<cmd>cd ~/.config/nvim/ <CR>"),
             dashboard.button("u", "  Update plugins", "<cmd>Lazy sync<CR>"),
             dashboard.button("q", "󰅚  Quit", "<cmd>qa<CR>"),
-            { type = "text",    val = "Statistics",                                           opts = { hl = "SpecialComment", position = "center" } },
+            {
+                type = "text",
+                val = "Statistics",
+                opts = { hl = "SpecialComment", position = "center" },
+            },
             { type = "padding", val = 1 },
             { type = "text",    val = Footer(), opts = { position = "center" } }, -- require("lazy").stats().startuptime
         }
