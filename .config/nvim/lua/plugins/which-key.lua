@@ -112,7 +112,7 @@ return {
 				-- n = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
 				n = { "<cmd>Lspsaga rename<cr>", "Rename" },
 				-- r = { "<cmd>lua vim.lsp.buf.references()<cr>", "References" },
-				r = { "<cmd>Trouble lsp_references<cr>", "References" },
+				r = { "<cmd>Lspsaga finder<cr>", "References" },
 				-- d = { "<cmd>lua vim.lsp.buf.definition()<cr>", "Definition" },
 				d = { "<cmd>Lspsaga goto_definition<cr>", "Definition" },
 				-- c = { "<cmd>lua vim.lsp.buf.declaration()<cr>", "Declaration" },
@@ -123,7 +123,7 @@ return {
 				-- t = { "<cmd>lua vim.lsp.buf.goto_type_definition<cr>", "Type Definition" },
 				t = { "<cmd>Lspsaga goto_type_definition<cr>", "Type Definition" },
 				o = { "<cmd>Lspsaga outline<cr>", "Outline" },
-				h = { "<cmd>lua vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled())<cr>", "Type Hint" },
+				h = { "<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>", "Type Hint" },
 				I = { "<cmd>LspInfo<cr>", "LSP Info" },
 				D = {
 					name = "Document",
