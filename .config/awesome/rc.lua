@@ -94,6 +94,12 @@ awful.layout.layouts = {
 }
 -- }}}
 
+naughty.config.defaults.position = "bottom_right"
+naughty.config.defaults.timeout = 0
+beautiful.notification_max_width = 500
+beautiful.notification_max_height = 250
+beautiful.notification_font = 'CaskaydiaCove Nerd Font Mono 12'
+
 -- {{{ Menu
 -- Create a launcher widget and a main menu
 myawesomemenu = {
