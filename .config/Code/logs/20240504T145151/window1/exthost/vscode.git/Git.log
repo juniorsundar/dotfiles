@@ -1,0 +1,26 @@
+2024-05-04 14:51:52.296 [info] Log level: Info
+2024-05-04 14:51:52.296 [info] Validating found git in: "git"
+2024-05-04 14:51:52.296 [info] Using git "2.34.1" from "git"
+2024-05-04 14:51:52.296 [info] > git rev-parse --show-toplevel [3ms]
+2024-05-04 14:51:52.296 [info] > git rev-parse --git-dir --git-common-dir [1ms]
+2024-05-04 14:51:52.296 [info] Open repository: /home/juniorsundar/.vim.d
+2024-05-04 14:51:52.296 [info] > git rev-parse --show-toplevel [1ms]
+2024-05-04 14:51:52.297 [info] > git config --get commit.template [3ms]
+2024-05-04 14:51:52.299 [info] No remotes found in the git config file.
+2024-05-04 14:51:52.299 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 14:51:52.299 [warning] No such branch: master.
+2024-05-04 14:51:52.301 [info] > git status -z -uall [1ms]
+2024-05-04 14:51:52.306 [info] No remotes found in the git config file.
+2024-05-04 14:51:52.306 [info] > git config --get commit.template [2ms]
+2024-05-04 14:51:52.306 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 14:51:52.306 [warning] No such branch: master.
+2024-05-04 14:51:52.307 [info] > git status -z -uall [0ms]
+2024-05-04 14:51:52.683 [info] > git show --textconv :init.lua [4ms]
+2024-05-04 14:51:52.684 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [2ms]
+2024-05-04 14:51:52.688 [info] > git cat-file -s 58befd75f5096d1ad6e71b5e9e45d0181a1a9f42 [1ms]
+2024-05-04 14:51:52.857 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 14:54:35.171 [info] No remotes found in the git config file.
+2024-05-04 14:54:35.172 [info] > git config --get commit.template [2ms]
+2024-05-04 14:54:35.172 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 14:54:35.172 [warning] No such branch: master.
+2024-05-04 14:54:35.174 [info] > git status -z -uall [1ms]

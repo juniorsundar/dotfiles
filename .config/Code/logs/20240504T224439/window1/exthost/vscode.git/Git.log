@@ -1,0 +1,43 @@
+2024-05-04 22:44:39.668 [info] Log level: Info
+2024-05-04 22:44:39.668 [info] Validating found git in: "git"
+2024-05-04 22:44:39.668 [info] Using git "2.34.1" from "git"
+2024-05-04 22:44:39.668 [info] > git rev-parse --show-toplevel [1ms]
+2024-05-04 22:44:39.668 [info] > git rev-parse --git-dir --git-common-dir [1ms]
+2024-05-04 22:44:39.668 [info] Open repository: /home/juniorsundar/.vim.d
+2024-05-04 22:44:39.668 [info] > git rev-parse --show-toplevel [39ms]
+2024-05-04 22:44:39.668 [info] > git config --get commit.template [40ms]
+2024-05-04 22:44:39.671 [info] No remotes found in the git config file.
+2024-05-04 22:44:39.671 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 22:44:39.671 [warning] No such branch: master.
+2024-05-04 22:44:39.672 [info] > git rev-parse --show-toplevel [3ms]
+2024-05-04 22:44:39.674 [info] > git status -z -uall [2ms]
+2024-05-04 22:44:39.679 [info] No remotes found in the git config file.
+2024-05-04 22:44:39.680 [info] > git config --get commit.template [2ms]
+2024-05-04 22:44:39.680 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 22:44:39.680 [warning] No such branch: master.
+2024-05-04 22:44:39.682 [info] > git status -z -uall [1ms]
+2024-05-04 22:44:40.171 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 22:44:41.861 [info] > git show --textconv :init.lua [2ms]
+2024-05-04 22:44:41.862 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [0ms]
+2024-05-04 22:44:41.864 [info] > git cat-file -s 5cb734269e64c920706e7dc5b653ad16d8da2c6d [1ms]
+2024-05-04 22:44:49.956 [info] No remotes found in the git config file.
+2024-05-04 22:44:49.956 [info] > git config --get commit.template [2ms]
+2024-05-04 22:44:49.957 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [0ms]
+2024-05-04 22:44:49.957 [warning] No such branch: master.
+2024-05-04 22:44:49.959 [info] > git status -z -uall [1ms]
+2024-05-04 22:44:49.985 [info] > git diff --cached -- /home/juniorsundar/.vim.d/lua/plugins/quality-of-life.lua [9ms]
+2024-05-04 22:44:49.986 [info] > git diff --cached -- /home/juniorsundar/.vim.d/lua/plugins/oil.lua [12ms]
+2024-05-04 22:44:49.986 [info] > git diff --cached -- /home/juniorsundar/.vim.d/lua/plugins/mini.lua [13ms]
+2024-05-04 22:44:49.987 [info] > git diff --cached -- /home/juniorsundar/.vim.d/lua/plugins.lua [16ms]
+2024-05-04 22:44:49.987 [info] > git diff --cached -- /home/juniorsundar/.vim.d/lua/options.lua [18ms]
+2024-05-04 22:44:49.987 [info] > git diff --cached -- /home/juniorsundar/.vim.d/lua/keymaps.lua [19ms]
+2024-05-04 22:44:49.987 [info] > git diff --cached -- /home/juniorsundar/.vim.d/lua/.luarc.json [20ms]
+2024-05-04 22:44:49.988 [info] > git diff --cached -- /home/juniorsundar/.vim.d/init.lua [23ms]
+2024-05-04 22:44:49.988 [info] > git diff --cached -- /home/juniorsundar/.vim.d/.vscode/settings.json [24ms]
+2024-05-04 22:44:49.988 [info] > git diff -- /home/juniorsundar/.vim.d/init.lua [25ms]
+2024-05-04 22:44:49.990 [info] > git for-each-ref --sort -committerdate --format %(refname) %(objectname) %(*objectname) [10ms]
+2024-05-04 22:45:34.012 [info] No remotes found in the git config file.
+2024-05-04 22:45:34.012 [info] > git config --get commit.template [2ms]
+2024-05-04 22:45:34.013 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 22:45:34.013 [warning] No such branch: master.
+2024-05-04 22:45:34.014 [info] > git status -z -uall [0ms]
