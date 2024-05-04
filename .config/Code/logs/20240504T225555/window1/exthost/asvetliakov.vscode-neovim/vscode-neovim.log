@@ -30,3 +30,10 @@ E42: No Errors
 E42: No Errors
 2024-05-04 22:58:35.421 [info] 
 E42: No Errors
+2024-05-04 23:11:24.759 [info] 
+33 fewer lines
+2024-05-04 23:11:50.826 [error] BufferManager: nvim_open_win: Invalid buffer id: 12
+2024-05-04 23:11:50.826 [error] BufferManager: Unable to determine neovim window id for editor, viewColumn: 1, docUri: vscode-neovim://12/
+2024-05-04 23:11:55.661 [error] BufferManager: nvim_set_current_win: E11: Invalid in command-line window; <CR> executes, CTRL-C quits
+2024-05-04 23:12:00.800 [info] 
+E464: Ambiguous use of user-defined command

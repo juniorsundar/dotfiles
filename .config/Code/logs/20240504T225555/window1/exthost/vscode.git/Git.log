@@ -68,3 +68,33 @@
 2024-05-04 23:01:25.738 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [0ms]
 2024-05-04 23:01:25.741 [info] > git cat-file -s 5cb734269e64c920706e7dc5b653ad16d8da2c6d [0ms]
 2024-05-04 23:06:20.799 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 23:11:19.942 [warning] ENOENT: no such file or directory, open '/home/juniorsundar/.vim.d/.git/HEAD'
+2024-05-04 23:11:19.944 [warning] getRemotes() - ENOENT: no such file or directory, open '/home/juniorsundar/.vim.d/.git/config'
+2024-05-04 23:11:19.946 [info] > git config --get commit.template [1ms]
+2024-05-04 23:11:19.946 [info] > git remote --verbose [2ms]
+2024-05-04 23:11:19.946 [info] > git symbolic-ref --short HEAD [4ms]
+2024-05-04 23:11:19.947 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/catppuccin refs/remotes/catppuccin [0ms]
+2024-05-04 23:11:19.949 [warning] ENOENT: no such file or directory, open '/home/juniorsundar/.vim.d/.git/refs/remotes/origin/catppuccin'
+2024-05-04 23:11:19.949 [info] > git rev-parse refs/remotes/origin/catppuccin [0ms]
+2024-05-04 23:11:19.955 [info] > git status -z -uall [5ms]
+2024-05-04 23:11:19.958 [info] > git merge-base refs/heads/catppuccin refs/remotes/origin/catppuccin [1ms]
+2024-05-04 23:11:19.961 [info] > git rev-list --count --left-right refs/heads/catppuccin...refs/remotes/origin/catppuccin [2ms]
+2024-05-04 23:11:19.962 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [1ms]
+2024-05-04 23:11:19.962 [info] fatal: /home/juniorsundar/.vim.d/init.lua: '/home/juniorsundar/.vim.d/init.lua' is outside repository at '/home/juniorsundar/dotfiles'
+2024-05-04 23:11:19.963 [info] > git diff --name-status -z --diff-filter=ADMR a44b35c2b75c6b9c3793f65701cd5aa1ee94ef11...refs/remotes/origin/catppuccin [1ms]
+2024-05-04 23:11:19.969 [info] > git show --textconv :init.lua [1ms]
+2024-05-04 23:11:27.251 [warning] getRemotes() - ENOENT: no such file or directory, open '/home/juniorsundar/.vim.d/.git/config'
+2024-05-04 23:11:27.256 [warning] ENOENT: no such file or directory, open '/home/juniorsundar/.vim.d/.git/HEAD'
+2024-05-04 23:11:27.261 [info] > git symbolic-ref --short HEAD [5ms]
+2024-05-04 23:11:27.265 [info] > git remote --verbose [14ms]
+2024-05-04 23:11:27.266 [info] > git config --get commit.template [5ms]
+2024-05-04 23:11:27.267 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/catppuccin refs/remotes/catppuccin [2ms]
+2024-05-04 23:11:27.271 [warning] ENOENT: no such file or directory, open '/home/juniorsundar/.vim.d/.git/refs/remotes/origin/catppuccin'
+2024-05-04 23:11:27.272 [info] > git rev-parse refs/remotes/origin/catppuccin [1ms]
+2024-05-04 23:11:27.292 [info] > git status -z -uall [16ms]
+2024-05-04 23:11:40.832 [info] > git show --textconv :init.lua [6ms]
+2024-05-04 23:11:40.834 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [3ms]
+2024-05-04 23:11:40.834 [info] fatal: /home/juniorsundar/.vim.d/init.lua: '/home/juniorsundar/.vim.d/init.lua' is outside repository at '/home/juniorsundar/dotfiles'
+2024-05-04 23:11:55.761 [info] > git show --textconv :init.lua [6ms]
+2024-05-04 23:11:55.763 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [3ms]
+2024-05-04 23:11:55.763 [info] fatal: /home/juniorsundar/.vim.d/init.lua: '/home/juniorsundar/.vim.d/init.lua' is outside repository at '/home/juniorsundar/dotfiles'
