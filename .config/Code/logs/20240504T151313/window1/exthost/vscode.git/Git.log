@@ -1,0 +1,62 @@
+2024-05-04 15:13:14.246 [info] Log level: Info
+2024-05-04 15:13:14.246 [info] Validating found git in: "git"
+2024-05-04 15:13:14.246 [info] Using git "2.34.1" from "git"
+2024-05-04 15:13:14.246 [info] > git rev-parse --show-toplevel [3ms]
+2024-05-04 15:13:14.247 [info] > git rev-parse --git-dir --git-common-dir [38ms]
+2024-05-04 15:13:14.250 [info] Open repository: /home/juniorsundar/.vim.d
+2024-05-04 15:13:14.264 [info] > git rev-parse --show-toplevel [0ms]
+2024-05-04 15:13:14.265 [info] > git config --get commit.template [1ms]
+2024-05-04 15:13:14.267 [info] No remotes found in the git config file.
+2024-05-04 15:13:14.267 [info] > git rev-parse --show-toplevel [1ms]
+2024-05-04 15:13:14.268 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 15:13:14.268 [warning] No such branch: master.
+2024-05-04 15:13:14.270 [info] > git status -z -uall [0ms]
+2024-05-04 15:13:14.275 [info] No remotes found in the git config file.
+2024-05-04 15:13:14.275 [info] > git config --get commit.template [1ms]
+2024-05-04 15:13:14.275 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [0ms]
+2024-05-04 15:13:14.275 [warning] No such branch: master.
+2024-05-04 15:13:14.277 [info] > git status -z -uall [1ms]
+2024-05-04 15:13:14.728 [info] > git show --textconv :init.lua [3ms]
+2024-05-04 15:13:14.729 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [1ms]
+2024-05-04 15:13:14.732 [info] > git cat-file -s 58befd75f5096d1ad6e71b5e9e45d0181a1a9f42 [1ms]
+2024-05-04 15:13:14.760 [info] > git check-ignore -v -z --stdin [1ms]
+2024-05-04 15:13:22.058 [info] No remotes found in the git config file.
+2024-05-04 15:13:22.064 [info] > git config --get commit.template [7ms]
+2024-05-04 15:13:22.065 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [2ms]
+2024-05-04 15:13:22.065 [warning] No such branch: master.
+2024-05-04 15:13:22.072 [info] > git status -z -uall [2ms]
+2024-05-04 15:13:25.463 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 15:13:27.084 [info] No remotes found in the git config file.
+2024-05-04 15:13:27.085 [info] > git config --get commit.template [4ms]
+2024-05-04 15:13:27.086 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 15:13:27.086 [warning] No such branch: master.
+2024-05-04 15:13:27.091 [info] > git status -z -uall [1ms]
+2024-05-04 15:13:34.123 [info] > git show --textconv :init.lua [6ms]
+2024-05-04 15:13:34.125 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [3ms]
+2024-05-04 15:13:34.131 [info] > git cat-file -s 5cb734269e64c920706e7dc5b653ad16d8da2c6d [2ms]
+2024-05-04 15:13:43.823 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 15:13:44.329 [info] No remotes found in the git config file.
+2024-05-04 15:13:44.330 [info] > git config --get commit.template [6ms]
+2024-05-04 15:13:44.331 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [2ms]
+2024-05-04 15:13:44.331 [warning] No such branch: master.
+2024-05-04 15:13:44.338 [info] > git status -z -uall [3ms]
+2024-05-04 15:13:51.520 [info] > git show --textconv :init.lua [6ms]
+2024-05-04 15:13:51.522 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [3ms]
+2024-05-04 15:13:51.529 [info] > git cat-file -s 5cb734269e64c920706e7dc5b653ad16d8da2c6d [2ms]
+2024-05-04 15:13:53.559 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 22:43:14.442 [info] No remotes found in the git config file.
+2024-05-04 22:43:14.442 [info] > git config --get commit.template [1ms]
+2024-05-04 22:43:14.442 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [0ms]
+2024-05-04 22:43:14.442 [warning] No such branch: master.
+2024-05-04 22:43:14.444 [info] > git status -z -uall [1ms]
+2024-05-04 22:43:14.458 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [0ms]
+2024-05-04 22:43:14.460 [info] > git cat-file -s 5cb734269e64c920706e7dc5b653ad16d8da2c6d [1ms]
+2024-05-04 22:43:14.462 [info] > git show --textconv :init.lua [1ms]
+2024-05-04 22:43:58.267 [info] No remotes found in the git config file.
+2024-05-04 22:43:58.267 [info] > git config --get commit.template [1ms]
+2024-05-04 22:43:58.267 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [0ms]
+2024-05-04 22:43:58.268 [warning] No such branch: master.
+2024-05-04 22:43:58.269 [info] > git status -z -uall [0ms]
+2024-05-04 22:44:25.248 [info] > git show --textconv :init.lua [2ms]
+2024-05-04 22:44:25.249 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [2ms]
+2024-05-04 22:44:25.254 [info] > git cat-file -s 5cb734269e64c920706e7dc5b653ad16d8da2c6d [1ms]

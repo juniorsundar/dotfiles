@@ -1,0 +1,32 @@
+2024-05-04 22:56:02.999 [info] 
+1 change; before #2  1 second ago
+2024-05-04 22:58:06.399 [info] 
+1 change; before #6  1 second ago
+2024-05-04 22:58:26.825 [info] 
+Error detected while processing function <SNR>49_show_toc[64]..BufAdd Autocommands for "*"..BufReadPost Autocommands for "*":
+2024-05-04 22:58:26.825 [info] 
+Error executing lua callback: /usr/share/nvim/runtime/filetype.lua:35: Error executing lua: /usr/share/nvim/runtime/filetype.lua:36: function <SNR>49_show_toc[64]..BufAdd Autocommands for "*"..BufReadPost Autocommands for "*"..FileType Autocommands for "*"..function <SNR>18_LoadFTPlugin[20]..script /usr/share/nvim/runtime/ftplugin/help.lua: Vim(runtime):E5113: Error while calling lua chunk: /usr/share/nvim/runtime/lua/vim/treesitter/highlighter.lua:146: function <SNR>49_show_toc[64]..BufAdd Autocommands for "*"..BufReadPost Autocommands for "*"..FileType Autocommands for "*"..function <SNR>18_LoadFTPlugin[20]..script /usr/share/nvim/runtime/ftplugin/help.vim, line 91: Vim(function):E127: Cannot redefine function <SNR>49_show_toc: It is in use
+stack traceback:
+	[C]: in function 'nvim_buf_call'
+	/usr/share/nvim/runtime/lua/vim/treesitter/highlighter.lua:146: in function 'new'
+	/usr/share/nvim/runtime/lua/vim/treesitter.lua:417: in function 'start'
+	/usr/share/nvim/runtime/ftplugin/help.lua:2: in main chunk
+	[C]: in function 'nvim_cmd'
+	/usr/share/nvim/runtime/filetype.lua:36: in function </usr/share/nvim/runtime/filetype.lua:35>
+	[C]: in function 'nvim_buf_call'
+	/usr/share/nvim/runtime/filetype.lua:35: in function </usr/share/nvim/runtime/filetype.lua:10>
+stack traceback:
+	[C]: in function 'nvim_cmd'
+	/usr/share/nvim/runtime/filetype.lua:36: in function </usr/share/nvim/runtime/filetype.lua:35>
+	[C]: in function 'nvim_buf_call'
+	/usr/share/nvim/runtime/filetype.lua:35: in function </usr/share/nvim/runtime/filetype.lua:10>
+stack traceback:
+	[C]: in function 'nvim_buf_call'
+	/usr/share/nvim/runtime/filetype.lua:35: in function </usr/share/nvim/runtime/filetype.lua:10>
+2024-05-04 22:58:26.825 [info] 
+2024-05-04 22:58:33.606 [info] 
+E42: No Errors
+2024-05-04 22:58:34.686 [info] 
+E42: No Errors
+2024-05-04 22:58:35.421 [info] 
+E42: No Errors

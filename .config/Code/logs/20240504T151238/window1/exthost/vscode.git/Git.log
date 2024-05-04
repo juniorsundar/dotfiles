@@ -1,0 +1,26 @@
+2024-05-04 15:12:39.104 [info] Log level: Info
+2024-05-04 15:12:39.104 [info] Validating found git in: "git"
+2024-05-04 15:12:39.104 [info] Using git "2.34.1" from "git"
+2024-05-04 15:12:39.104 [info] > git rev-parse --show-toplevel [5ms]
+2024-05-04 15:12:39.104 [info] > git rev-parse --git-dir --git-common-dir [3ms]
+2024-05-04 15:12:39.104 [info] Open repository: /home/juniorsundar/.vim.d
+2024-05-04 15:12:39.104 [info] > git config --get commit.template [1ms]
+2024-05-04 15:12:39.104 [info] > git rev-parse --show-toplevel [1ms]
+2024-05-04 15:12:39.104 [info] No remotes found in the git config file.
+2024-05-04 15:12:39.104 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [2ms]
+2024-05-04 15:12:39.104 [warning] No such branch: master.
+2024-05-04 15:12:39.104 [info] > git rev-parse --show-toplevel [2ms]
+2024-05-04 15:12:39.106 [info] > git status -z -uall [2ms]
+2024-05-04 15:12:39.110 [info] > git config --get commit.template [1ms]
+2024-05-04 15:12:39.113 [info] No remotes found in the git config file.
+2024-05-04 15:12:39.113 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2024-05-04 15:12:39.113 [warning] No such branch: master.
+2024-05-04 15:12:39.115 [info] > git status -z -uall [1ms]
+2024-05-04 15:12:39.535 [info] > git show --textconv :init.lua [7ms]
+2024-05-04 15:12:39.537 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [3ms]
+2024-05-04 15:12:39.544 [info] > git cat-file -s 58befd75f5096d1ad6e71b5e9e45d0181a1a9f42 [2ms]
+2024-05-04 15:12:39.673 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 15:12:58.790 [info] > git check-ignore -v -z --stdin [2ms]
+2024-05-04 15:13:03.601 [info] > git show --textconv :init.lua [6ms]
+2024-05-04 15:13:03.603 [info] > git ls-files --stage -- /home/juniorsundar/.vim.d/init.lua [2ms]
+2024-05-04 15:13:03.609 [info] > git cat-file -s 58befd75f5096d1ad6e71b5e9e45d0181a1a9f42 [2ms]

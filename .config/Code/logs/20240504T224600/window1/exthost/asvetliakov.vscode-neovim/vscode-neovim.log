@@ -1,0 +1,115 @@
+2024-05-04 22:46:05.242 [info] 
+[nvim-treesitter] [0/1] Downloading tree-sitter-d...
+2024-05-04 22:46:05.936 [info] 
+[nvim-treesitter] [0/1] Creating temporary directory
+2024-05-04 22:46:05.939 [info] 
+[nvim-treesitter] [0/1] Extracting tree-sitter-d...
+2024-05-04 22:46:05.993 [info] 
+[nvim-treesitter] [0/1] Compiling...
+2024-05-04 22:46:07.110 [info] 
+[nvim-treesitter] [1/1] Treesitter parser for d has been installed
+2024-05-04 22:46:38.140 [info] 
+[nvim-treesitter] [1/2] Uninstalling parser for d
+2024-05-04 22:46:38.157 [info] 
+[nvim-treesitter] [2/2] Treesitter parser for d has been uninstalled
+2024-05-04 22:46:55.058 [info] 
+[nvim-treesitter] [2/3] Downloading tree-sitter-json...
+2024-05-04 22:46:55.626 [info] 
+[nvim-treesitter] [2/3] Creating temporary directory
+2024-05-04 22:46:55.629 [info] 
+[nvim-treesitter] [2/3] Extracting tree-sitter-json...
+2024-05-04 22:46:55.646 [info] 
+[nvim-treesitter] [2/3] Compiling...
+2024-05-04 22:46:55.699 [info] 
+[nvim-treesitter] [3/3] Treesitter parser for json has been installed
+2024-05-04 22:49:53.520 [info] 
+(mini.jump) Enter target single character 
+2024-05-04 22:51:15.198 [info] 
+E78: Unknown mark
+2024-05-04 22:51:21.184 [info] 
+1 change; before #9  4 seconds ago
+2024-05-04 22:51:25.279 [info] 
+E471: Argument required
+2024-05-04 22:51:35.045 [info] 
+status
+2024-05-04 22:51:35.046 [info] 
+"status" [New]
+2024-05-04 22:51:35.049 [info] 
+Cannot open file "status"
+E480: No match: init.lua
+2024-05-04 22:51:37.584 [info] 
+[nvim-treesitter] [3/4] Downloading tree-sitter-lua...
+2024-05-04 22:51:38.486 [info] 
+[nvim-treesitter] [3/4] Creating temporary directory
+2024-05-04 22:51:38.488 [info] 
+[nvim-treesitter] [3/4] Extracting tree-sitter-lua...
+2024-05-04 22:51:38.495 [info] 
+[nvim-treesitter] [3/4] Compiling...
+2024-05-04 22:51:38.615 [info] 
+[nvim-treesitter] [4/4] Treesitter parser for lua has been installed
+2024-05-04 22:51:56.456 [info] 
+/inc             
+2024-05-04 22:51:56.456 [info] 
+E486: Pattern not found: inc
+2024-05-04 22:53:10.082 [info] 
+14 lines yanked
+2024-05-04 22:54:30.428 [info] 
+1 change; before #3  1 second ago
+2024-05-04 22:54:36.686 [info] 
+[nvim-treesitter] [0/6] Downloading tree-sitter-norg...
+2024-05-04 22:54:37.303 [info] 
+[nvim-treesitter] [0/6] Creating temporary directory
+2024-05-04 22:54:37.306 [info] 
+[nvim-treesitter] [0/6] Extracting tree-sitter-python...
+2024-05-04 22:54:37.332 [info] 
+[nvim-treesitter] [0/6] Compiling...
+2024-05-04 22:54:37.361 [info] 
+[nvim-treesitter] [0/6] Creating temporary directory
+2024-05-04 22:54:37.361 [info] 
+[nvim-treesitter] [0/6] Creating temporary directory
+2024-05-04 22:54:37.362 [info] 
+[nvim-treesitter] [0/6] Extracting tree-sitter-norg...
+2024-05-04 22:54:37.363 [info] 
+[nvim-treesitter] [0/6] Extracting tree-sitter-c...
+2024-05-04 22:54:37.367 [info] 
+[nvim-treesitter] [0/6] Creating temporary directory
+2024-05-04 22:54:37.368 [info] 
+[nvim-treesitter] [0/6] Extracting tree-sitter-rust...
+2024-05-04 22:54:37.377 [info] 
+[nvim-treesitter] [0/6] Compiling...
+2024-05-04 22:54:37.385 [info] 
+[nvim-treesitter] [0/6] Compiling...
+2024-05-04 22:54:37.417 [info] 
+[nvim-treesitter] [0/6] Compiling...
+2024-05-04 22:54:37.468 [info] 
+[nvim-treesitter] [0/6] Creating temporary directory
+2024-05-04 22:54:37.469 [info] 
+[nvim-treesitter] [0/6] Extracting tree-sitter-query...
+2024-05-04 22:54:37.473 [info] 
+[nvim-treesitter] [0/6] Compiling...
+2024-05-04 22:54:37.523 [info] 
+[nvim-treesitter] [1/6] Treesitter parser for query has been installed
+2024-05-04 22:54:37.528 [info] 
+[nvim-treesitter] [1/6] Creating temporary directory
+2024-05-04 22:54:37.529 [info] 
+[nvim-treesitter] [1/6] Extracting tree-sitter-cpp...
+2024-05-04 22:54:37.577 [info] 
+[nvim-treesitter] [1/6] Compiling...
+2024-05-04 22:54:37.680 [info] 
+[nvim-treesitter] [2/6] Treesitter parser for c has been installed
+2024-05-04 22:54:37.784 [info] 
+[nvim-treesitter] [3/6] Treesitter parser for rust has been installed
+2024-05-04 22:54:37.936 [info] 
+[nvim-treesitter] [4/6] Treesitter parser for python has been installed
+2024-05-04 22:54:38.543 [info] 
+[nvim-treesitter] [5/6] Treesitter parser for cpp has been installed
+2024-05-04 22:54:38.639 [info] 
+[nvim-treesitter] [6/6] Treesitter parser for norg has been installed
+2024-05-04 22:55:35.497 [info] 
+1 change; before #3  1 second ago
+2024-05-04 22:55:40.769 [info] 
+1 change; before #4  1 second ago
+2024-05-04 22:55:42.578 [info] 
+1 change; before #5  1 second ago
+2024-05-04 22:55:45.603 [info] 
+1 change; before #6  1 second ago
