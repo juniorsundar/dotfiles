@@ -1,3 +1,0 @@
-2024-05-04 23:04:34.724 [warning] [File Watcher (parcel)] Watcher shutdown because watched path got deleted (path: /home/juniorsundar/.vim.d)
-2024-05-04 23:04:39.407 [warning] [File Watcher (parcel)] Watcher restarts because watched path got created again (path: /home/juniorsundar/.vim.d)
-2024-05-04 23:06:32.722 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
