@@ -129,6 +129,7 @@ return {
         config = function()
             vim.api.nvim_command("autocmd FileType fugitive setlocal nonumber norelativenumber")
             vim.api.nvim_command("autocmd FileType git setlocal nonumber norelativenumber")
+            vim.api.nvim_command("autocmd FileType gitcommit setlocal nonumber norelativenumber")
             vim.keymap.set("n", "<space>Gg", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
             vim.keymap.set("v", "gG", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
         end,
