@@ -11,6 +11,6 @@ alias zls="~/.config/zellij/zellij-fzf-session.sh"
 
 alias dronsole-sh='docker run --rm -it -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest'
 alias dronsole='docker run --rm -it -p 3000:3000 -p 8888:8888 -p 4280:4280 -p 4222:4222 -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest' 
-alias G="nvim -c Neogit"
+alias G="lazygit"
 
 export FPATH="~/.zsh_functions/exa/completions/zsh:$FPATH"

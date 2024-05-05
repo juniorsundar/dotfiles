@@ -34,7 +34,7 @@ return {
 				function()
 					require("flash").treesitter_search()
 				end,
-				desc = "Treesitter Search",
+				desc = "Tresitter Search",
 			},
 			{
 				"<C-s>",
@@ -74,6 +74,31 @@ return {
 		main = "ibl",
 	},
 	{
+		"jbyuki/nabla.nvim",
+		ft = { "markdown", "norg" },
+		keys = {
+			{ "<S-E>", ':lua require"nabla".toggle_virt()<cr>', "toggle equations" },
+			{ "<S-H>", ':lua require"nabla".popup()<cr>', "hover equation" },
+		},
+	},
+	{
+		"skwee357/nvim-prose",
+		ft = { "markdown", "txt", "norg" },
+		config = function()
+			require("nvim-prose").setup({
+				wpm = 200.0,
+				filetypes = { "markdown", "asciidoc", "norg" },
+				placeholders = {
+					words = "words",
+					minutes = "min",
+				},
+			})
+		end,
+	},
+	{
 		"mbbill/undotree",
+	},
+	{
+		"tpope/vim-surround",
 	},
 }
