@@ -1,7 +1,0 @@
-2024-05-04 14:50:55.466 [info] 
-Error detected while processing /home/juniorsundar/.vim.d/init.lua:
-2024-05-04 14:50:55.466 [info] 
-E5112: Error while creating lua chunk: /home/juniorsundar/.vim.d/init.lua:143: unexpected symbol near ','
-2024-05-04 14:50:55.466 [info] 
-2024-05-04 14:51:07.632 [info] 
-E492: Not an editor command: PackerSync

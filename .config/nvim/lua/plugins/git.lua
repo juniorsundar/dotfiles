@@ -97,31 +97,38 @@ return {
 			)
 		end,
 	},
+	-- {
+	-- 	"NeogitOrg/neogit",
+	-- 	branch = "nightly",
+	-- 	dependencies = {
+	-- 		"nvim-lua/plenary.nvim", -- required
+	-- 		"sindrets/diffview.nvim", -- optional - Diff integration
+	-- 		"ibhagwan/fzf-lua",
+	-- 	},
+	-- 	config = function()
+	-- 		local neogit = require("neogit")
+	-- 		neogit.setup({
+	-- 			disable_signs = false,
+	-- 			signs = {
+	-- 				hunk = { "", "" },
+	-- 				item = { "", "" },
+	-- 				section = { "", "" },
+	-- 			},
+	-- 			integrations = {
+	-- 				diffview = true,
+	-- 				fzf_lua = true,
+	-- 			},
+	-- 		})
+	--
+	-- 		vim.keymap.set("n", "<space>Gg", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
+	-- 		vim.keymap.set("v", "gG", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
+	-- 	end,
+	-- },
 	{
-		"NeogitOrg/neogit",
-		branch = "nightly",
-		dependencies = {
-			"nvim-lua/plenary.nvim", -- required
-			"sindrets/diffview.nvim", -- optional - Diff integration
-			"ibhagwan/fzf-lua",
-		},
+		"tpope/vim-fugitive",
 		config = function()
-			local neogit = require("neogit")
-			neogit.setup({
-				disable_signs = false,
-				signs = {
-					hunk = { "", "" },
-					item = { "", "" },
-					section = { "", "" },
-				},
-				integrations = {
-					diffview = true,
-					fzf_lua = true,
-				},
-			})
-
-			vim.keymap.set("n", "<space>Gg", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
-			vim.keymap.set("v", "gG", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
+			vim.keymap.set("n", "<space>Gg", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
+			vim.keymap.set("v", "gG", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
 		end,
 	},
 }
