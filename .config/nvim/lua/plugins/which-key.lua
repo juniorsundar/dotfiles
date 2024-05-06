@@ -83,6 +83,7 @@ return {
 			m = { "<cmd>Mason<cr>", "Mason" },
 			o = { "<cmd>Oil<cr>", "Oil" },
 			t = { "<cmd>terminal<cr>", "Terminal" },
+			u = { "<cmd>UndotreeToggle<cr>", "Undotree" },
 			-- Autocompletion
 			A = {
 				name = "Autocompletion",
