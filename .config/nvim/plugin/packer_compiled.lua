@@ -49,8 +49,8 @@ local function save_profiles(threshold)
 end
 
 time([[Luarocks path setup]], true)
-local package_path_str = "/home/juniorsundar/.cache/nvim/packer_hererocks/2.1.1713484068/share/lua/5.1/?.lua;/home/juniorsundar/.cache/nvim/packer_hererocks/2.1.1713484068/share/lua/5.1/?/init.lua;/home/juniorsundar/.cache/nvim/packer_hererocks/2.1.1713484068/lib/luarocks/rocks-5.1/?.lua;/home/juniorsundar/.cache/nvim/packer_hererocks/2.1.1713484068/lib/luarocks/rocks-5.1/?/init.lua"
-local install_cpath_pattern = "/home/juniorsundar/.cache/nvim/packer_hererocks/2.1.1713484068/lib/lua/5.1/?.so"
+local package_path_str = "/home/juniorsundar-unikie/.cache/nvim/packer_hererocks/2.1.1713484068/share/lua/5.1/?.lua;/home/juniorsundar-unikie/.cache/nvim/packer_hererocks/2.1.1713484068/share/lua/5.1/?/init.lua;/home/juniorsundar-unikie/.cache/nvim/packer_hererocks/2.1.1713484068/lib/luarocks/rocks-5.1/?.lua;/home/juniorsundar-unikie/.cache/nvim/packer_hererocks/2.1.1713484068/lib/luarocks/rocks-5.1/?/init.lua"
+local install_cpath_pattern = "/home/juniorsundar-unikie/.cache/nvim/packer_hererocks/2.1.1713484068/lib/lua/5.1/?.so"
 if not string.find(package.path, package_path_str, 1, true) then
   package.path = package.path .. ';' .. package_path_str
 end
@@ -77,52 +77,42 @@ _G.packer_plugins = {
   ["leap.nvim"] = {
     config = { "\27LJ\2\nÙ\1\0\0\5\0\f\0\0226\0\0\0009\0\1\0009\0\2\0005\2\3\0'\3\4\0'\4\5\0B\0\4\0016\0\0\0009\0\1\0009\0\2\0005\2\6\0'\3\a\0'\4\b\0B\0\4\0016\0\0\0009\0\1\0009\0\2\0005\2\t\0'\3\n\0'\4\v\0B\0\4\1K\0\1\0\29<Plug>(leap-from-window)\ags\1\4\0\0\6n\6x\6o\26<Plug>(leap-backward)\agF\1\4\0\0\6n\6x\6o\25<Plug>(leap-forward)\agf\1\4\0\0\6n\6x\6o\bset\vkeymap\bvim\0" },
     loaded = true,
-    path = "/home/juniorsundar/.local/share/nvim/site/pack/packer/start/leap.nvim",
+    path = "/home/juniorsundar-unikie/.local/share/nvim/site/pack/packer/start/leap.nvim",
     url = "https://github.com/ggandor/leap.nvim"
   },
   ["mini.jump"] = {
     config = { "\27LJ\2\n;\0\0\3\0\3\0\a6\0\0\0'\2\1\0B\0\2\0029\0\2\0004\2\0\0B\0\2\1K\0\1\0\nsetup\14mini.jump\frequire\0" },
     loaded = true,
-    path = "/home/juniorsundar/.local/share/nvim/site/pack/packer/start/mini.jump",
+    path = "/home/juniorsundar-unikie/.local/share/nvim/site/pack/packer/start/mini.jump",
     url = "https://github.com/echasnovski/mini.jump"
   },
   ["mini.pairs"] = {
     config = { "\27LJ\2\n8\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\15mini.pairs\frequire\0" },
     loaded = true,
-    path = "/home/juniorsundar/.local/share/nvim/site/pack/packer/start/mini.pairs",
+    path = "/home/juniorsundar-unikie/.local/share/nvim/site/pack/packer/start/mini.pairs",
     url = "https://github.com/echasnovski/mini.pairs"
-  },
-  nvim = {
-    config = { "\27LJ\2\ná\1\0\1\4\0\f\0\0145\1\3\0005\2\1\0009\3\0\0=\3\2\2=\2\4\0015\2\6\0009\3\5\0=\3\2\2=\2\a\0015\2\b\0=\2\t\0015\2\n\0=\2\v\1L\1\2\0\15SagaBorder\1\0\1\tlink\16NormalFloat\nPmenu\1\0\1\tlink\16NormalFloat\14CmpBorder\1\0\1\afg\0\rsurface2\19WhichKeyBorder\1\0\4\14CmpBorder\0\15SagaBorder\0\nPmenu\0\19WhichKeyBorder\0\afg\1\0\1\afg\0\tbase¶\2\1\0\4\0\f\0\0166\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\4\0003\3\3\0=\3\5\0025\3\6\0=\3\a\2B\0\2\0016\0\b\0009\0\t\0009\0\n\0'\2\v\0B\0\2\1K\0\1\0\22catppuccin-frappe\16colorscheme\bcmd\bvim\17integrations\1\0\v\vneogit\2\14which_key\2\23treesitter_context\2\bcmp\2\nflash\2\rmarkdown\2\nalpha\2\rgitsigns\2\vbarbar\2\nmason\2\15treesitter\2\22custom_highlights\1\0\2\17integrations\0\22custom_highlights\0\0\nsetup\15catppuccin\frequire\0" },
-    loaded = true,
-    path = "/home/juniorsundar/.local/share/nvim/site/pack/packer/start/nvim",
-    url = "https://github.com/catppuccin/nvim"
   },
   ["packer.nvim"] = {
     loaded = true,
-    path = "/home/juniorsundar/.local/share/nvim/site/pack/packer/start/packer.nvim",
+    path = "/home/juniorsundar-unikie/.local/share/nvim/site/pack/packer/start/packer.nvim",
     url = "https://github.com/wbthomason/packer.nvim"
   },
   ["vim-surround"] = {
     loaded = true,
-    path = "/home/juniorsundar/.local/share/nvim/site/pack/packer/start/vim-surround",
+    path = "/home/juniorsundar-unikie/.local/share/nvim/site/pack/packer/start/vim-surround",
     url = "https://github.com/tpope/vim-surround"
   }
 }
 
 time([[Defining packer_plugins]], false)
--- Config for: mini.jump
-time([[Config for mini.jump]], true)
-try_loadstring("\27LJ\2\n;\0\0\3\0\3\0\a6\0\0\0'\2\1\0B\0\2\0029\0\2\0004\2\0\0B\0\2\1K\0\1\0\nsetup\14mini.jump\frequire\0", "config", "mini.jump")
-time([[Config for mini.jump]], false)
--- Config for: nvim
-time([[Config for nvim]], true)
-try_loadstring("\27LJ\2\ná\1\0\1\4\0\f\0\0145\1\3\0005\2\1\0009\3\0\0=\3\2\2=\2\4\0015\2\6\0009\3\5\0=\3\2\2=\2\a\0015\2\b\0=\2\t\0015\2\n\0=\2\v\1L\1\2\0\15SagaBorder\1\0\1\tlink\16NormalFloat\nPmenu\1\0\1\tlink\16NormalFloat\14CmpBorder\1\0\1\afg\0\rsurface2\19WhichKeyBorder\1\0\4\14CmpBorder\0\15SagaBorder\0\nPmenu\0\19WhichKeyBorder\0\afg\1\0\1\afg\0\tbase¶\2\1\0\4\0\f\0\0166\0\0\0'\2\1\0B\0\2\0029\0\2\0005\2\4\0003\3\3\0=\3\5\0025\3\6\0=\3\a\2B\0\2\0016\0\b\0009\0\t\0009\0\n\0'\2\v\0B\0\2\1K\0\1\0\22catppuccin-frappe\16colorscheme\bcmd\bvim\17integrations\1\0\v\vneogit\2\14which_key\2\23treesitter_context\2\bcmp\2\nflash\2\rmarkdown\2\nalpha\2\rgitsigns\2\vbarbar\2\nmason\2\15treesitter\2\22custom_highlights\1\0\2\17integrations\0\22custom_highlights\0\0\nsetup\15catppuccin\frequire\0", "config", "nvim")
-time([[Config for nvim]], false)
 -- Config for: leap.nvim
 time([[Config for leap.nvim]], true)
 try_loadstring("\27LJ\2\nÙ\1\0\0\5\0\f\0\0226\0\0\0009\0\1\0009\0\2\0005\2\3\0'\3\4\0'\4\5\0B\0\4\0016\0\0\0009\0\1\0009\0\2\0005\2\6\0'\3\a\0'\4\b\0B\0\4\0016\0\0\0009\0\1\0009\0\2\0005\2\t\0'\3\n\0'\4\v\0B\0\4\1K\0\1\0\29<Plug>(leap-from-window)\ags\1\4\0\0\6n\6x\6o\26<Plug>(leap-backward)\agF\1\4\0\0\6n\6x\6o\25<Plug>(leap-forward)\agf\1\4\0\0\6n\6x\6o\bset\vkeymap\bvim\0", "config", "leap.nvim")
 time([[Config for leap.nvim]], false)
+-- Config for: mini.jump
+time([[Config for mini.jump]], true)
+try_loadstring("\27LJ\2\n;\0\0\3\0\3\0\a6\0\0\0'\2\1\0B\0\2\0029\0\2\0004\2\0\0B\0\2\1K\0\1\0\nsetup\14mini.jump\frequire\0", "config", "mini.jump")
+time([[Config for mini.jump]], false)
 -- Config for: mini.pairs
 time([[Config for mini.pairs]], true)
 try_loadstring("\27LJ\2\n8\0\0\3\0\3\0\0066\0\0\0'\2\1\0B\0\2\0029\0\2\0B\0\1\1K\0\1\0\nsetup\15mini.pairs\frequire\0", "config", "mini.pairs")
