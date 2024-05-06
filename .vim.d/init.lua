@@ -101,36 +101,6 @@ return require('packer').startup(function(use)
 	use 'wbthomason/packer.nvim'
 
 	use {
-		"catppuccin/nvim",
-		config = function()
-			require("catppuccin").setup({
-				custom_highlights = function(colors)
-					return {
-						WhichKeyBorder = { fg = colors.base },
-						CmpBorder = { fg = colors.surface2 },
-						Pmenu = { link = "NormalFloat" },
-						SagaBorder = { link = "NormalFloat" }
-					}
-				end,
-				integrations = {
-					cmp = true,
-					gitsigns = true,
-					treesitter = true,
-					alpha = true,
-					barbar = true,
-					flash = true,
-					markdown = true,
-					neogit = true,
-					treesitter_context = true,
-					which_key = true,
-					mason = true,
-				},
-			})
-			vim.cmd.colorscheme("catppuccin-frappe")
-		end,
-	}
-
-	use {
         'ggandor/leap.nvim',
 		config = function ()
             vim.keymap.set({'n', 'x', 'o'}, 'gf',  '<Plug>(leap-forward)')
