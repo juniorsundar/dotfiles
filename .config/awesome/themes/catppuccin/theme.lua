@@ -19,7 +19,8 @@ theme.wallpaper = themes_path .. "catppuccin/nord-background3.png"
 -- theme.font      = "MesloLGS Nerd Font 9"
 -- theme.font      = "JetBrainsMono Nerd Font 9"
 -- theme.font      = "FiraCode Nerd Font 9"
-theme.font = "CaskaydiaCove NF 10"
+-- theme.font = "CaskaydiaCove NF 10"
+theme.font = "VictorMono NF Medium 10"
 theme.border_radius = dpi(5)
 
 -- NORD COLORS
