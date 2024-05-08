@@ -23,6 +23,7 @@ return {
 					markdown = true,
 					neogit = true,
 					treesitter_context = true,
+                    diffview = true,
 					which_key = true,
 	                   mason = true,
 				},
