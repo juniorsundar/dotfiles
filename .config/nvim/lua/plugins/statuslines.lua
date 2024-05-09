@@ -18,7 +18,6 @@ return {
 					icons_enabled = true,
 					theme = "auto",
 					component_separators = { left = "", right = "" },
-					-- section_separators = { left = "", right = "" },
 					section_separators = { left = "", right = "" },
 					disabled_filetypes = {
 						"neo-tree",
@@ -39,7 +38,13 @@ return {
 					lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
 					lualine_b = { "branch", "diagnostics" },
 					lualine_c = { { "filename" } },
-					lualine_x = {},
+					lualine_x = {
+						{
+							require("noice").api.statusline.mode.get,
+							cond = require("noice").api.statusline.mode.has,
+							color = { fg = "#ff9e64" },
+						},
+					},
 					lualine_y = { "filetype" },
 					lualine_z = { { "location", separator = { right = "" }, left_padding = 2 } },
 				},
