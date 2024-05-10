@@ -20,7 +20,9 @@ return {
 					component_separators = { left = "", right = "" },
 					section_separators = { left = "", right = "" },
 					disabled_filetypes = {
+                        "DiffviewFiles",
                         "NeogitCommitMessage",
+                        "NeogitDiffView",
 						"neo-tree",
 						"no-neck-pain",
 						"NvimTree",
