@@ -99,6 +99,7 @@ return {
 	},
 	{
 		"mbbill/undotree",
+        cmd = "UndotreeToggle"
 	},
 	{
 		"kylechui/nvim-surround",

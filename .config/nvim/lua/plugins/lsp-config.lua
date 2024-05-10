@@ -1,12 +1,14 @@
 return {
 	{
 		"williamboman/mason.nvim",
+        cmd = "Mason",
 		config = function()
 			require("mason").setup()
 		end,
 	},
 	{
 		"williamboman/mason-lspconfig.nvim",
+        event = "BufEnter",
 		config = function()
 			require("mason-lspconfig").setup({
 				ensure_installed = {
@@ -23,7 +25,7 @@ return {
 	},
 	{
 		"neovim/nvim-lspconfig",
-		dependencies = { "hrsh7th/cmp-nvim-lsp" },
+        event = "BufEnter",
 		config = function()
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())

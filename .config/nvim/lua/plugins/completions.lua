@@ -1,16 +1,18 @@
 return {
 	{
 		"hrsh7th/nvim-cmp",
-		event = "InsertEnter",
+		lazy = true,
 		dependencies = {
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-path",
-			"hrsh7th/cmp-cmdline",
+			{ "hrsh7th/cmp-nvim-lsp", lazy = true },
+			{ "hrsh7th/cmp-path", lazy = true },
+			{ "hrsh7th/cmp-nvim-lsp", lazy = true },
+			{ "hrsh7th/cmp-cmdline", lazy = true },
 			{
 				"L3MON4D3/LuaSnip",
+				lazy = true,
 				dependencies = {
-					"saadparwaiz1/cmp_luasnip",
-					"rafamadriz/friendly-snippets",
+					{ "saadparwaiz1/cmp_luasnip", lazy = true },
+					{ "raamadriz/friendly-snippets", lazy = true },
 				},
 
 				build = (function()
