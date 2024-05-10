@@ -1,7 +1,6 @@
 return {
     {
         "lewis6991/gitsigns.nvim",
-        version = "v0.7",
         dependencies = { "sindrets/diffview.nvim" },
         config = function()
             require("gitsigns").setup({
@@ -97,41 +96,44 @@ return {
             )
         end,
     },
-    -- {
-    -- 	"NeogitOrg/neogit",
-    -- 	branch = "nightly",
-    -- 	dependencies = {
-    -- 		"nvim-lua/plenary.nvim", -- required
-    -- 		"sindrets/diffview.nvim", -- optional - Diff integration
-    -- 		"ibhagwan/fzf-lua",
-    -- 	},
-    -- 	config = function()
-    -- 		local neogit = require("neogit")
-    -- 		neogit.setup({
-    -- 			disable_signs = false,
-    -- 			signs = {
-    -- 				hunk = { "", "" },
-    -- 				item = { "", "" },
-    -- 				section = { "", "" },
-    -- 			},
-    -- 			integrations = {
-    -- 				diffview = true,
-    -- 				fzf_lua = true,
-    -- 			},
-    -- 		})
-    --
-    -- 		vim.keymap.set("n", "<space>Gg", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
-    -- 		vim.keymap.set("v", "gG", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
-    -- 	end,
-    -- },
     {
-        "tpope/vim-fugitive",
-        config = function()
-            vim.api.nvim_command("autocmd FileType fugitive setlocal nonumber norelativenumber")
-            vim.api.nvim_command("autocmd FileType git setlocal nonumber norelativenumber")
-            vim.api.nvim_command("autocmd FileType gitcommit setlocal nonumber norelativenumber")
-            vim.keymap.set("n", "<space>Gg", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
-            vim.keymap.set("v", "gG", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
-        end,
+    	"NeogitOrg/neogit",
+        keys = {
+            {"<space>Gg", "<cmd>Neogit<cr>", desc = "Neogit" }
+        },
+    	branch = "nightly",
+    	dependencies = {
+    		"nvim-lua/plenary.nvim", -- required
+    		"sindrets/diffview.nvim", -- optional - Diff integration
+    		"ibhagwan/fzf-lua",
+    	},
+    	config = function()
+    		local neogit = require("neogit")
+    		neogit.setup({
+    			disable_signs = false,
+    			signs = {
+    				hunk = { "", "" },
+    				item = { "", "" },
+    				section = { "", "" },
+    			},
+    			integrations = {
+    				diffview = true,
+    				fzf_lua = true,
+    			},
+    		})
+
+    		-- vim.keymap.set("n", "<space>Gg", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
+    		vim.keymap.set("v", "gG", "<cmd>Neogit<cr>", { noremap = true, silent = false, desc = "Neogit" })
+    	end,
     },
+    -- {
+    --     "tpope/vim-fugitive",
+    --     config = function()
+    --         vim.api.nvim_command("autocmd FileType fugitive setlocal nonumber norelativenumber")
+    --         vim.api.nvim_command("autocmd FileType git setlocal nonumber norelativenumber")
+    --         vim.api.nvim_command("autocmd FileType gitcommit setlocal nonumber norelativenumber")
+    --         vim.keymap.set("n", "<space>Gg", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
+    --         vim.keymap.set("v", "gG", "<cmd>Git<cr>", { noremap = true, silent = false, desc = "Fugitive" })
+    --     end,
+    -- },
 }
