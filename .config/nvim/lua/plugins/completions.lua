@@ -12,7 +12,7 @@ return {
 				lazy = true,
 				dependencies = {
 					{ "saadparwaiz1/cmp_luasnip", lazy = true },
-					{ "raamadriz/friendly-snippets", lazy = true },
+					{ "rafamadriz/friendly-snippets", lazy = true },
 				},
 
 				build = (function()

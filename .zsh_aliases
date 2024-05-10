@@ -4,6 +4,7 @@ alias cd="z"
 alias du="dust"
 alias grep="rg"
 alias ls="eza --hyperlink --color=auto --icons"
+alias neorg="nvim ~/neorg/index.norg"
 
 alias nv="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"
 alias tls="~/.config/tmux/tmux-fzf-session.sh"
