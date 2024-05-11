@@ -113,7 +113,7 @@ return {
 				-- n = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
 				n = { "<cmd>Lspsaga rename<cr>", "Rename" },
 				-- r = { "<cmd>lua vim.lsp.buf.references()<cr>", "References" },
-				r = { "<cmd>Lspsaga finder<cr>", "References" },
+				r = { "<cmd>Lspsaga finder ++normal<cr>", "References" },
 				-- d = { "<cmd>lua vim.lsp.buf.definition()<cr>", "Definition" },
 				d = { "<cmd>Lspsaga goto_definition<cr>", "Definition" },
 				-- c = { "<cmd>lua vim.lsp.buf.declaration()<cr>", "Declaration" },
@@ -129,7 +129,7 @@ return {
 				D = {
 					name = "Document",
 					-- d = { "<cmd>FzfLua diagnostics_document<cr>", "Document Diagnostics" },
-					d = { "<cmd>Lspsaga show_buf_diagnostics<cr>", "Document Diagnostics" },
+					d = { "<cmd>Lspsaga show_buf_diagnostics ++normal<cr>", "Document Diagnostics" },
 					s = { "<cmd>FzfLua lsp_document_symbols<cr>", "Document Symbols" },
 					-- j = { "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", "Next Diagnostic" },
 					j = { "<cmd>Lspsaga diagnostic_jump_next<CR>", "Next Diagnostic" },

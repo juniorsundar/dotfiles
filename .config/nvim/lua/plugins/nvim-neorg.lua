@@ -7,7 +7,6 @@ return {
     },
     {
         "nvim-neorg/neorg",
-        ft = "norg",
         version = "*",
         dependencies = { "luarocks.nvim" },
         config = function()
