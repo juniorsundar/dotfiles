@@ -136,3 +136,5 @@ case ":$PATH:" in
 esac
 
 # <<< juliaup initialize <<<
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

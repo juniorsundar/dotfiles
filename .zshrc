@@ -147,3 +147,5 @@ path=('/home/juniorsundar/.juliaup/bin' $path)
 export PATH
 
 # <<< juliaup initialize <<<
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

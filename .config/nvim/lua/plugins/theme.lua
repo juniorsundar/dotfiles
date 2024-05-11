@@ -10,7 +10,7 @@ return {
 						WhichKeyBorder = { fg = colors.base },
 						CmpBorder = { fg = colors.surface2 },
 						Pmenu = { link = "NormalFloat" },
-                        SagaBorder = { link = "NormalFloat" }
+						SagaBorder = { link = "NormalFloat" },
 					}
 				end,
 				integrations = {
@@ -23,9 +23,16 @@ return {
 					markdown = true,
 					neogit = true,
 					treesitter_context = true,
-                    diffview = true,
+					lsp_trouble = true,
+					diffview = true,
 					which_key = true,
-	                   mason = true,
+					mason = true,
+					noice = true,
+					notify = true,
+					native_lsp = {
+						enabled = true,
+					},
+					mini = true,
 				},
 			})
 			vim.cmd.colorscheme("catppuccin-frappe")

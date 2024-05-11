@@ -11,15 +11,10 @@ require("catppuccin").setup({
         gitsigns = true,
         treesitter = true,
         alpha = true,
-        barbar = true,
         flash = true,
         markdown = true,
         neogit = true,
         treesitter_context = true,
-        telescope = {
-            enabled = true,
-            style = "nvchad",
-        },
         which_key = true,
     },
 })
