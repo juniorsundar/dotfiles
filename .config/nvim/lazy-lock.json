@@ -37,7 +37,7 @@
   "nvim-web-devicons": { "branch": "master", "commit": "5b9067899ee6a2538891573500e8fd6ff008440f" },
   "oil.nvim": { "branch": "master", "commit": "010b44a79d497c697686e2727049d3dd215bbbd6" },
   "plenary.nvim": { "branch": "master", "commit": "08e301982b9a057110ede7a735dd1b5285eb341f" },
-  "trouble.nvim": { "branch": "dev", "commit": "b4b9a11b3578d510963f6f681fecb4631ae992c3" },
+  "trouble.nvim": { "branch": "dev", "commit": "67d36a3b87e8b4458ef64723aa8cdae06fbd3acd" },
   "undotree": { "branch": "master", "commit": "56c684a805fe948936cda0d1b19505b84ad7e065" },
   "which-key.nvim": { "branch": "main", "commit": "4433e5ec9a507e5097571ed55c02ea9658fb268a" }
 }
