@@ -10,7 +10,7 @@
   "diffview.nvim": { "branch": "main", "commit": "3dc498c9777fe79156f3d32dddd483b8b3dbd95f" },
   "flash.nvim": { "branch": "main", "commit": "7bb4a9c75d1e20cd24185afedeaa11681829ba23" },
   "friendly-snippets": { "branch": "main", "commit": "3e9a3f5a0cfcef1741e352c37bda4e82e5eb846a" },
-  "fzf-lua": { "branch": "main", "commit": "9c953dfa7650191d892800333d187f3439e01afd" },
+  "fzf-lua": { "branch": "main", "commit": "eb51d83c4099f8a372332350395bda270832cfea" },
   "gitsigns.nvim": { "branch": "main", "commit": "805610a9393fa231f2c2b49cb521bfa413fadb3d" },
   "image.nvim": { "branch": "master", "commit": "66af29f7244256eea82b2583ab65c2fab0567d0d" },
   "indent-blankline.nvim": { "branch": "master", "commit": "3d08501caef2329aba5121b753e903904088f7e6" },
@@ -37,7 +37,7 @@
   "nvim-web-devicons": { "branch": "master", "commit": "5b9067899ee6a2538891573500e8fd6ff008440f" },
   "oil.nvim": { "branch": "master", "commit": "010b44a79d497c697686e2727049d3dd215bbbd6" },
   "plenary.nvim": { "branch": "master", "commit": "08e301982b9a057110ede7a735dd1b5285eb341f" },
-  "trouble.nvim": { "branch": "dev", "commit": "67d36a3b87e8b4458ef64723aa8cdae06fbd3acd" },
+  "trouble.nvim": { "branch": "dev", "commit": "8d637fcc0c4a6d9e05162bd6b03b25695179ea2b" },
   "undotree": { "branch": "master", "commit": "56c684a805fe948936cda0d1b19505b84ad7e065" },
   "which-key.nvim": { "branch": "main", "commit": "4433e5ec9a507e5097571ed55c02ea9658fb268a" }
 }
