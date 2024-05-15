@@ -73,8 +73,6 @@ return {
 			FileNameBlock =
 				utils.insert(FileNameBlock, utils.insert(FileNameModifer, FileName), FileFlags, { provider = "%<" })
 
-			IsRecording = utils.insert(IsRecording, { provider = "%<" })
-
 			local heirline = require("heirline")
 			local heirline_components = require("heirline-components.all")
 
