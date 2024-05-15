@@ -209,9 +209,9 @@ return {
 					sign = false,
 					virtual_text = true,
 				},
-				symbol_in_winbar = {
-					enable = false,
-				},
+				-- symbol_in_winbar = {
+				-- 	enable = false,
+				-- },
 				ui = {
 					-- currently only round theme
 					theme = "rounded",
