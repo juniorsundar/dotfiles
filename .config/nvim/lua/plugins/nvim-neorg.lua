@@ -46,9 +46,9 @@ return {
                     ["core.dirman"] = {
                         config = {
                             workspaces = {
-                                default = "~/neorg/notes",
-                                the_good_teacher = "~/neorg/tgt",
-                                god_of_war = "~/neorg/gow",
+                                default = "~/Dropbox/neorg/notes",
+                                the_good_teacher = "~/Dropbox/neorg/tgt",
+                                god_of_war = "~/Dropbox/neorg/gow",
                             },
                         },
                     },
