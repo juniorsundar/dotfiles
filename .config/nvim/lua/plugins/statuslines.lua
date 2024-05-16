@@ -1,7 +1,9 @@
 return {
 	{
 		"rebelot/heirline.nvim",
-		dependencies = { "Zeioth/heirline-components.nvim" },
+		dependencies = {
+			"Zeioth/heirline-components.nvim",
+		},
 		opts = {},
 		config = function(_, opts)
 			local conditions = require("heirline.conditions")
@@ -73,10 +75,18 @@ return {
 			FileNameBlock =
 				utils.insert(FileNameBlock, utils.insert(FileNameModifer, FileName), FileFlags, { provider = "%<" })
 
+			local TerminalName = {
+				provider = function()
+					local tname, _ = vim.api.nvim_buf_get_name(0):gsub(".*:", "")
+					return " " .. tname
+				end,
+				hl = { fg = "fg", bold = true },
+			}
+
 			local heirline = require("heirline")
 			local heirline_components = require("heirline-components.all")
 
-			opts.statusline = {
+			local DefaultStatusLine = {
 				hl = { fg = "fg", bg = "bg" },
 				heirline_components.component.mode({ mode_text = {} }),
 				heirline_components.component.git_branch(),
@@ -87,6 +97,51 @@ return {
 				heirline_components.component.file_info(),
 				heirline_components.component.nav(),
 				heirline_components.component.mode({ surround = { separator = "right" } }),
+			}
+			local InactiveStatusline = {
+				condition = conditions.is_not_active,
+				heirline_components.component.fill(),
+				FileNameBlock,
+				{ provider = " --> " },
+				heirline_components.component.file_info(),
+				heirline_components.component.fill(),
+			}
+			local TerminalStatusline = {
+				condition = function()
+					return conditions.buffer_matches({ buftype = { "terminal" } })
+				end,
+				hl = { bg = "bg" },
+				-- Quickly add a condition to the ViMode to only show it when buffer is active!
+				{ condition = conditions.is_active, heirline_components.component.mode({ mode_text = {} }) },
+				heirline_components.component.fill(),
+				TerminalName,
+				heirline_components.component.fill(),
+				{
+					condition = conditions.is_active,
+					heirline_components.component.mode({ surround = { separator = "right" } }),
+				},
+			}
+			local ExcludeStatusline = {
+				condition = function()
+					return conditions.buffer_matches({
+						buftype = { "nofile", "prompt", "help", "quickfix" },
+						filetype = { "^git.*", "fugitive", "oil", "alpha" },
+					})
+				end,
+			}
+			opts.statusline = {
+				hl = function()
+					if conditions.is_active() then
+						return "StatusLine"
+					else
+						return "StatusLineNC"
+					end
+				end,
+				fallthrough = false,
+				ExcludeStatusline,
+                TerminalStatusline,
+				InactiveStatusline,
+				DefaultStatusLine,
 			}
 
 			-- Setup

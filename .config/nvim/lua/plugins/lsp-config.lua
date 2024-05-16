@@ -101,7 +101,7 @@ return {
 							pylint = { enabled = false, executable = "pylint" },
 							pyflakes = { enabled = true },
 							pycodestyle = { enabled = false },
-                            mccabe = { enabled = false },
+							mccabe = { enabled = false },
 							-- type checker
 							pylsp_mypy = { enabled = true },
 							-- auto-completion options
@@ -187,7 +187,7 @@ return {
 	},
 	{
 		"nvimtools/none-ls.nvim",
-        event = "LspAttach",
+		event = "LspAttach",
 		config = function()
 			local null_ls = require("null-ls")
 
@@ -206,38 +206,17 @@ return {
 		config = function()
 			require("lspsaga").setup({
 				lightbulb = {
+					enable = false,
 					sign = false,
-					virtual_text = true,
 				},
-				-- symbol_in_winbar = {
-				-- 	enable = false,
-				-- },
 				ui = {
 					-- currently only round theme
 					theme = "rounded",
-					-- border type can be single,double,rounded,solid,shadow.
 					border = "solid",
-					expand = "",
-					collapse = "",
-					preview = " ",
-					code_action = " ",
-					diagnostic = " ",
-					incoming = " ",
-					outgoing = " ",
 					lines = { "└", "├", "│", "─", "┌" },
 					kind = require("catppuccin.groups.integrations.lsp_saga").custom_kind(),
 				},
 			})
 		end,
-		dependencies = {
-			"nvim-treesitter/nvim-treesitter", -- optional
-			"nvim-tree/nvim-web-devicons", -- optional
-		},
-	},
-	{
-		"folke/trouble.nvim",
-		branch = "dev",
-		event = "LspAttach",
-		opts = {},
 	},
 }
