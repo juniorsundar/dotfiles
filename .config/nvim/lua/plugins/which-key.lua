@@ -117,8 +117,9 @@ return {
 				-- d = { "<cmd>lua vim.lsp.buf.definition()<cr>", "Definition" },
 				d = { "<cmd>Lspsaga goto_definition<cr>", "Definition" },
 				-- c = { "<cmd>lua vim.lsp.buf.declaration()<cr>", "Declaration" },
-				c = { "<cmd>Trouble lsp_declarations<cr>", "Declaration" },
-				i = { "<cmd>Trouble lsp_implementations<cr>", "Implementation" },
+				c = { "<cmd>FzfLua lsp_declarations<cr>", "Declaration" },
+				-- i = { "<cmd>Trouble lsp_implementations<cr>", "Implementation" },
+				i = { "<cmd>FzfLua lsp_implementations<cr>", "Implementation" },
 				-- k = { "<cmd>lua vim.lsp.buf.hover()<cr>", "Hover" },
 				k = { "<cmd>Lspsaga hover_doc<cr>", "Hover" },
 				-- t = { "<cmd>lua vim.lsp.buf.goto_type_definition<cr>", "Type Definition" },
@@ -139,8 +140,8 @@ return {
 				W = {
 					name = "Workspace",
 					a = { "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "Add Workspace Folder" },
-					-- d = { "<cmd>FzfLua diagnostics_workspace<cr>", "Workspace Diagnostics" },
-					d = { "<cmd>Trouble diagnostics<cr>", "Workspace Diagnostics" },
+                    -- d = { "<cmd>FzfLua diagnostics_workspace<cr>", "Workspace Diagnostics" },
+					d = { "<cmd>Lspsaga show_workspace_diagnostics ++normal<cr>", "Document Diagnostics" },
 					s = { "<cmd>FzfLua lsp_workspace_symbols<cr>", "Workspace Symbols" },
 					r = { "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "Remove Workspace Folder" },
 					l = {
