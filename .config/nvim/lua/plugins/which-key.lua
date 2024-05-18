@@ -75,85 +75,74 @@ return {
 
 		local mappings = {
 			a = { "<cmd>Alpha<cr>", "Alpha" },
-			b = {
-				"<cmd>lua require('telescope.builtin').buffers(require('telescope.themes').get_dropdown{previewer = false})<cr>",
-				"Buffers",
-			},
+			b = { "<cmd>FzfLua buffers<cr>", "Buffers" },
 			w = { "<cmd>w!<cr>", "Save" },
-			q = { "<cmd>q!<cr>", "Quit" },
+			q = { "<cmd>q<cr>", "Quit" },
 			c = { "<cmd>bdelete!<cr>", "Close Buffer" },
-			p = { "<cmd>lua require('telescope').extensions.projects.projects()<cr>", "Projects" },
 			l = { "<cmd>Lazy<cr>", "Lazy" },
 			m = { "<cmd>Mason<cr>", "Mason" },
 			o = { "<cmd>Oil<cr>", "Oil" },
+			t = { "<cmd>terminal<cr>", "Terminal" },
+			u = { "<cmd>UndotreeToggle<cr>", "Undotree" },
 			-- Autocompletion
 			A = {
 				name = "Autocompletion",
 				e = { "<cmd>lua require 'cmp'.setup{ enabled = true }<cr>", "Enabled" },
 				d = { "<cmd>lua require 'cmp'.setup{ enabled = false }<cr>", "Disabled" },
 			},
-			-- Explorer
-			-- E = {
-			-- 	name = "Explorer",
-			-- 	e = { "<cmd>NvimTreeToggle<cr>", "Toggle Explorer" },
-			-- 	d = { ":NvimTreeOpen ", "Open to Directory" },
-			-- },
 			-- Find
 			F = {
 				name = "Find",
-				f = { "<cmd>Telescope fd<cr>", "Files" },
-				t = { "<cmd>Telescope live_grep theme=ivy<CR>", "Text" },
+				f = { "<cmd>FzfLua files<cr>", "Files" },
+				t = { "<cmd>FzfLua live_grep<CR>", "Text" },
 			},
 			-- Git
 			G = {
 				name = "Git",
-				-- g = { "<cmd>LazyGit<CR>", "Lazygit" },
-				-- j = { "<cmd>lua require 'gitsigns'.next_hunk()<cr>", "Next Hunk" },
-				-- k = { "<cmd>lua require 'gitsigns'.prev_hunk()<cr>", "Prev Hunk" },
-				-- l = { "<cmd>lua require 'gitsigns'.blame_line()<cr>", "Blame" },
-				-- p = { "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", "Preview Hunk" },
-                -- r = { "<cmd>lua require 'gitsigns'.reset_hunk()<cr>", "Reset Hunk" },
-				-- R = { "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", "Reset Buffer" },
-				-- s = { "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", "Stage Hunk" },
-				-- u = {
-					-- "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>",
-					-- "Undo Stage Hunk",
-				-- },
-				o = { "<cmd>Telescope git_status<cr>", "Open changed file" },
-				b = { "<cmd>Telescope git_branches<cr>", "Checkout branch" },
-				c = { "<cmd>Telescope git_commits<cr>", "Checkout commit" },
-				d = {
-					"<cmd>Gitsigns diffthis HEAD<cr>",
-					"Diff",
-				},
+				o = { "<cmd>FzfLua git_status<cr>", "Open changed file" },
+				b = { "<cmd>FzfLua git_branches<cr>", "Checkout branch" },
+				d = { "<cmd>Gitsigns diffthis HEAD<cr>", "Diff" },
 			},
 			-- Language Server Protocol (LSP)
 			L = {
 				name = "LSP",
-				a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code Action" },
+				-- a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code Action" },
+				a = { "<cmd>Lspsaga code_action<cr>", "Code Action" },
 				f = { "<cmd>lua vim.lsp.buf.format{async=true}<cr>", "Format" },
 				l = { "<cmd>lua vim.lsp.codelens.run()<cr>", "CodeLens Action" },
-				q = { "<cmd>lua vim.diagnostic.setloclist()<cr>", "Quickfix" },
-				n = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
-				r = { "<cmd>lua vim.lsp.buf.references()<cr>", "References" },
-				d = { "<cmd> lua vim.lsp.buf.definition()<cr>", "Definition" },
-				c = { "<cmd> lua vim.lsp.buf.declaration()<cr>", "Declaration" },
-				i = { "<cmd> lua vim.lsp.buf.implementation()<cr>", "Implementation" },
-				k = { "<cmd> lua vim.lsp.buf.hover()<cr>", "Hover" },
-				t = { "<cmd> lua vim.lsp.buf.type_definition()<cr>", "Type Definition" },
+				-- n = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
+				n = { "<cmd>Lspsaga rename<cr>", "Rename" },
+				-- r = { "<cmd>lua vim.lsp.buf.references()<cr>", "References" },
+				r = { "<cmd>Lspsaga finder ++normal<cr>", "References" },
+				-- d = { "<cmd>lua vim.lsp.buf.definition()<cr>", "Definition" },
+				d = { "<cmd>Lspsaga goto_definition<cr>", "Definition" },
+				-- c = { "<cmd>lua vim.lsp.buf.declaration()<cr>", "Declaration" },
+				c = { "<cmd>FzfLua lsp_declarations<cr>", "Declaration" },
+				-- i = { "<cmd>Trouble lsp_implementations<cr>", "Implementation" },
+				i = { "<cmd>FzfLua lsp_implementations<cr>", "Implementation" },
+				-- k = { "<cmd>lua vim.lsp.buf.hover()<cr>", "Hover" },
+				k = { "<cmd>Lspsaga hover_doc<cr>", "Hover" },
+				-- t = { "<cmd>lua vim.lsp.buf.goto_type_definition<cr>", "Type Definition" },
+				t = { "<cmd>Lspsaga goto_type_definition<cr>", "Type Definition" },
+				o = { "<cmd>Lspsaga outline<cr>", "Outline" },
+				h = { "<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>", "Type Hint" },
 				I = { "<cmd>LspInfo<cr>", "LSP Info" },
 				D = {
 					name = "Document",
-					d = { "<cmd>Telescope diagnostics bufnr=0<cr>", "Document Diagnostics" },
-					s = { "<cmd>Telescope lsp_document_symbols<cr>", "Document Symbols" },
-					j = { "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", "Next Diagnostic" },
-					k = { "<cmd>lua vim.lsp.diagnostic.goto_prev()<cr>", "Prev Diagnostic" },
+					-- d = { "<cmd>FzfLua diagnostics_document<cr>", "Document Diagnostics" },
+					d = { "<cmd>Lspsaga show_buf_diagnostics ++normal<cr>", "Document Diagnostics" },
+					s = { "<cmd>FzfLua lsp_document_symbols<cr>", "Document Symbols" },
+					-- j = { "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", "Next Diagnostic" },
+					j = { "<cmd>Lspsaga diagnostic_jump_next<CR>", "Next Diagnostic" },
+					-- k = { "<cmd>lua vim.lsp.diagnostic.goto_prev()<cr>", "Prev Diagnostic" },
+					k = { "<cmd>Lspsaga diagnostic_jump_prev<cr>", "Prev Diagnostic" },
 				},
 				W = {
 					name = "Workspace",
 					a = { "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "Add Workspace Folder" },
-					d = { "<cmd>Telescope diagnostics<cr>", "Workspace Diagnostics" },
-					s = { "<cmd>Telescope lsp_dynamic_workspace_symbols<cr>", "Workspace Symbols" },
+                    -- d = { "<cmd>FzfLua diagnostics_workspace<cr>", "Workspace Diagnostics" },
+					d = { "<cmd>Lspsaga show_workspace_diagnostics ++normal<cr>", "Document Diagnostics" },
+					s = { "<cmd>FzfLua lsp_workspace_symbols<cr>", "Workspace Symbols" },
 					r = { "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "Remove Workspace Folder" },
 					l = {
 						"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
@@ -164,46 +153,34 @@ return {
 			--Telescope
 			S = {
 				name = "Search",
-				b = { "<cmd>Telescope git_branches<cr>", "Checkout branch" },
-				c = { "<cmd>Telescope colorscheme<cr>", "Colorscheme" },
-				h = { "<cmd>Telescope help_tags<cr>", "Find Help" },
-				M = { "<cmd>Telescope man_pages<cr>", "Man Pages" },
-				r = { "<cmd>Telescope oldfiles<cr>", "Open Recent File" },
-				R = { "<cmd>Telescope registers<cr>", "Registers" },
-				k = { "<cmd>Telescope keymaps<cr>", "Keymaps" },
-				C = { "<cmd>Telescope commands<cr>", "Commands" },
-			},
-
-			T = {
-				name = "Terminal",
-				f = { "<cmd>ToggleTerm direction=float<cr>", "Float" },
-				h = { "<cmd>ToggleTerm size=10 direction=horizontal<cr>", "Horizontal" },
-				v = { "<cmd>ToggleTerm size=80 direction=vertical<cr>", "Vertical" },
+				c = { "<cmd>FzfLua colorscheme<cr>", "Colorscheme" },
+				h = { "<cmd>FzfLua helptags<cr>", "Find Help" },
+				k = { "<cmd>FzfLua keymaps<cr>", "Keymaps" },
+				r = { "<cmd>FzfLua oldfiles<cr>", "Open Recent File" },
+				t = { "<cmd>FzfLua tabs<cr>", "Tabs" },
+				M = { "<cmd>FzfLua manpages<cr>", "Man Pages" },
+				R = { "<cmd>FzfLua registers<cr>", "Registers" },
+				C = { "<cmd>FzfLua commands<cr>", "Commands" },
 			},
 
 			N = {
 				name = "Neorg",
 				i = { "<cmd>Neorg index<cr>", "Index" },
-                J = { name = "Journal",
-                    t = {"<cmd>Neorg journal today<cr>", "Today's Journal" },
-                    m = {"<cmd>Neorg journal tomorrow<cr>", "Tomorrow's Journal" },
-                    y = {"<cmd>Neorg journal yesterday<cr>", "Yesterday's Journal" },
-                },
+				J = {
+					name = "Journal",
+					t = { "<cmd>Neorg journal today<cr>", "Today's Journal" },
+					m = { "<cmd>Neorg journal tomorrow<cr>", "Tomorrow's Journal" },
+					y = { "<cmd>Neorg journal yesterday<cr>", "Yesterday's Journal" },
+				},
 				M = {
 					name = "Metadata",
 					i = { "<cmd>Neorg inject-metadata<cr>", "Inject" },
 					u = { "<cmd>Neorg update-metadata<cr>", "Update" },
 				},
-                L = {
-                    name = "Link",
-                    h = { "<cmd>Telescope neorg insert_link<cr>", "Heading" },
-                    f = { "<cmd>Telescope neorg insert_file_link<cr>", "File" },
-                }
 			},
 		}
 
 		which_key.setup(setup)
 		which_key.register(mappings, opts)
-
 	end,
 }

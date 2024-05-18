@@ -1,23 +1,41 @@
 return {
 	{
-		"juniorsundar/nordic.nvim",
-        lazy = false,
+		"catppuccin/nvim",
+		name = "catppuccin",
 		priority = 1000,
 		config = function()
-			local palette = require("nordic.colors")
-			require("nordic").setup({
-				telescope = {
-					style = "classic",
-				},
-				leap = {
-					dim_backdrop = true,
-				},
-				override = {
-					WhichKeyBorder = { fg = palette.black1, bg = palette.black1 },
+			require("catppuccin").setup({
+				custom_highlights = function(colors)
+					return {
+						WhichKeyBorder = { fg = colors.base },
+						CmpBorder = { fg = colors.surface2 },
+						Pmenu = { link = "NormalFloat" },
+						SagaBorder = { link = "NormalFloat" },
+					}
+				end,
+				integrations = {
+					cmp = true,
+					gitsigns = true,
+					treesitter = true,
+					alpha = true,
+					barbar = true,
+					flash = true,
+					markdown = true,
+					neogit = true,
+					treesitter_context = true,
+					lsp_trouble = true,
+					diffview = true,
+					which_key = true,
+					mason = true,
+					noice = true,
+					notify = true,
+					native_lsp = {
+						enabled = true,
+					},
+					mini = true,
 				},
 			})
-			vim.opt.fillchars = { eob = " " }
-			vim.cmd.colorscheme("nordic")
+			vim.cmd.colorscheme("catppuccin-frappe")
 		end,
 	},
 	{

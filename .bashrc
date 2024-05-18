@@ -119,3 +119,22 @@ fi
 PS1='\[\e[94;1;2m\][\u]\[\e[0;1;91m\][\w]  \[\e[0;95;4;53m\]$(git branch 2>/dev/null | grep '"'"'*'"'"' | colrm 1 2)\n\[\e[0m\]\\$ '
 
 . "$HOME/.cargo/env"
+
+export PATH=$PATH:$HOME/.local/bin
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+case ":$PATH:" in
+    *:/home/juniorsundar/.juliaup/bin:*)
+        ;;
+
+    *)
+        export PATH=/home/juniorsundar/.juliaup/bin${PATH:+:${PATH}}
+        ;;
+esac
+
+# <<< juliaup initialize <<<
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

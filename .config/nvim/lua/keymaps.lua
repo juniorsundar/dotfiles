@@ -43,4 +43,4 @@ vim.keymap.set("v", "<S-A-Down>", "<cmd>m .+1<CR>==", opts)
 -- Terminal mode --
 -----------------
 
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+vim.keymap.set('t', '<C-\\><C-\\>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })

@@ -9,16 +9,29 @@ return {
 		"williamboman/mason-lspconfig.nvim",
 		config = function()
 			require("mason-lspconfig").setup({
-				ensure_installed = { "lua_ls", "pylsp", "clangd", "rust_analyzer", "gopls", "marksman" },
+				ensure_installed = {
+					"lua_ls",
+					"pylsp",
+					"clangd",
+					"rust_analyzer",
+					"gopls",
+					"markdown_oxide",
+					"marksman",
+				},
 			})
 		end,
 	},
 	{
 		"neovim/nvim-lspconfig",
-		dependencies = { "hrsh7th/cmp-nvim-lsp" },
 		config = function()
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
+
+			capabilities.workspace = {
+				didChangeWatchedFiles = {
+					dynamicRegistration = true,
+				},
+			}
 
 			local lspconfig = require("lspconfig")
 
@@ -58,17 +71,16 @@ return {
 						runtime = { version = "LuaJIT" },
 						workspace = {
 							checkThirdParty = false,
-							-- Tells lua_ls where to find all the Lua files that you have loaded
-							-- for your neovim configuration.
 							library = {
 								"${3rd}/luv/library",
 								unpack(vim.api.nvim_get_runtime_file("", true)),
 							},
-							-- If lua_ls is really slow on your computer, you can try this instead:
-							-- library = { vim.env.VIMRUNTIME },
 						},
 						completion = {
 							callSnippet = "Replace",
+						},
+						hint = {
+							enable = true,
 						},
 						-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
 						-- diagnostics = { disable = { 'missing-fields' } },
@@ -78,20 +90,24 @@ return {
 
 			lspconfig.pylsp.setup({
 				capabilities = capabilities,
-				configurationSources = { "flake8" },
 				settings = {
 					pylsp = {
 						plugins = {
-							flake8 = {
-								enabled = true,
-								ignore = { "E128", "E122", "E251", "E501" },
-							},
+							-- formatter options
+							black = { enabled = false },
+							autopep8 = { enabled = false },
+							yapf = { enabled = false },
+							-- linter options
+							pylint = { enabled = false, executable = "pylint" },
+							pyflakes = { enabled = true },
+							pycodestyle = { enabled = false },
 							mccabe = { enabled = false },
-							pyflakes = { enabled = false },
-							pycodestyle = {
-								enabled = false,
-								ignore = { "E128", "E122", "E251", "E501" },
-							},
+							-- type checker
+							pylsp_mypy = { enabled = true },
+							-- auto-completion options
+							jedi_completion = { fuzzy = true },
+							-- import sorting
+							pyls_isort = { enabled = true },
 						},
 					},
 				},
@@ -99,6 +115,8 @@ return {
 
 			lspconfig.clangd.setup({
 				capabilities = capabilities,
+				root_dir = lspconfig.util.root_pattern("compile_commands.json", ".clangd", ".git"),
+				cmd = { "clangd", "--compile-commands-dir=" .. vim.fn.getcwd() },
 			})
 
 			lspconfig.rust_analyzer.setup({
@@ -107,11 +125,38 @@ return {
 
 			lspconfig.gopls.setup({
 				capabilities = capabilities,
+				settings = {
+					gopls = {
+						["ui.inlayhint.hints"] = {
+							assignVariableTypes = true,
+							compositeLiteralFields = true,
+							compositeLiteralTypes = true,
+							constantValues = true,
+							functionTypeParameters = true,
+							parameterNames = true,
+							rangeVariableTypes = true,
+						},
+					},
+				},
+			})
+
+			lspconfig.markdown_oxide.setup({
+				capabilities = capabilities,
+				on_attach = function(_, bufnr)
+					-- refresh codelens on TextChanged and InsertLeave as well
+					vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave", "CursorHold", "LspAttach" }, {
+						buffer = bufnr,
+						callback = vim.lsp.codelens.refresh,
+					})
+					-- trigger codelens refresh
+					vim.api.nvim_exec_autocmds("User", { pattern = "LspAttached" })
+				end,
 			})
 
 			lspconfig.marksman.setup({
-				capabilities = capabilities,
+				single_file_support = false,
 			})
+
 			-- Use LspAttach autocommand to only map the following keys
 			-- after the language server attaches to the current buffer
 			vim.api.nvim_create_autocmd("LspAttach", {
@@ -134,6 +179,7 @@ return {
 							buffer = event.buf,
 							callback = vim.lsp.buf.clear_references,
 						})
+						vim.keymap.del("n", "K", { buffer = event.buf })
 					end
 				end,
 			})
@@ -141,6 +187,7 @@ return {
 	},
 	{
 		"nvimtools/none-ls.nvim",
+		event = "LspAttach",
 		config = function()
 			local null_ls = require("null-ls")
 
@@ -149,6 +196,25 @@ return {
 					null_ls.builtins.formatting.stylua,
 					null_ls.builtins.formatting.black,
 					null_ls.builtins.formatting.gofumpt,
+				},
+			})
+		end,
+	},
+	{
+		"nvimdev/lspsaga.nvim",
+		event = "LspAttach",
+		config = function()
+			require("lspsaga").setup({
+				lightbulb = {
+					enable = false,
+					sign = false,
+				},
+				ui = {
+					-- currently only round theme
+					theme = "rounded",
+					border = "solid",
+					lines = { "└", "├", "│", "─", "┌" },
+					kind = require("catppuccin.groups.integrations.lsp_saga").custom_kind(),
 				},
 			})
 		end,
