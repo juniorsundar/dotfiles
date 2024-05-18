@@ -1,6 +1,6 @@
+vim.g.mapleader = vim.api.nvim_replace_termcodes("<A-Space>", true, true, true)
 vim.g.mapleader = " "
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
+vim.g.maplocalleader = "\\"
 
 -- Hint: use `:h <option>` to figure out the meaning if needed
 vim.opt.clipboard = "unnamedplus" -- use system clipboard
@@ -33,10 +33,28 @@ vim.opt.undofile = true
 vim.opt.signcolumn = "yes"
 vim.opt.scrolloff = 10
 
+vim.o.grepprg = "rg --vimgrep"
+vim.o.grepformat = "%f:%l:%c:%m"
+
 vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "Highlight when yanking (copying) text",
 	group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
 	callback = function()
 		vim.highlight.on_yank()
+	end,
+})
+
+vim.api.nvim_create_autocmd("BufReadPost", {
+	pattern = "*",
+	callback = function()
+		local line = vim.fn.line("'\"")
+		if
+			line > 1
+			and line <= vim.fn.line("$")
+			and vim.bo.filetype ~= "commit"
+			and vim.fn.index({ "xxd", "gitrebase" }, vim.bo.filetype) == -1
+		then
+			vim.cmd('normal! g`"')
+		end
 	end,
 })

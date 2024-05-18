@@ -1,63 +1,18 @@
 return {
 	{
-		"windwp/nvim-autopairs",
-		event = "InsertEnter",
-		config = function()
-			-- Import nvim-autopairs safely
-			local autopairs_setup, autopairs = pcall(require, "nvim-autopairs")
-			if not autopairs_setup then
-				return
-			end
-
-			-- Configure autopairs
-			autopairs.setup({
-				check_ts = true, -- Enable treesitter
-				ts_config = {
-					lua = { "string" }, -- Don't add pairs in lua string treesitter nodes
-					javascript = { "template_string" }, -- Don't add pairs in JavaScript template_string treesitter nodes
-					java = false, -- Don't check treesitter on Java
-				},
-				disable_filetype = { "TelescopePrompt", "spectre_panel" },
-				fast_wrap = {
-					map = "<M-e>",
-					chars = { "{", "[", "(", '"', "'" },
-					pattern = string.gsub([[ [%'%"%)%>%]%)%}%,] ]], "%s+", ""),
-					offset = 0, -- Offset from pattern match
-					end_key = "$",
-					keys = "qwertyuiopzxcvbnmasdfghjkl",
-					check_comma = true,
-					highlight = "PmenuSel",
-					highlight_grey = "LineNr",
-				},
-			})
-
-			-- Import nvim-autopairs completion functionality safely
-			local cmp_autopairs_setup, cmp_autopairs = pcall(require, "nvim-autopairs.completion.cmp")
-			if not cmp_autopairs_setup then
-				return
-			end
-			-- Import nvim-cmp plugin safely (completions plugin)
-			local cmp_setup, cmp = pcall(require, "cmp")
-			if not cmp_setup then
-				return
-			end
-
-			-- Make autopairs and completion work together
-			cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-		end,
-	},
-	{
 		"hrsh7th/nvim-cmp",
-		event = "InsertEnter",
+		lazy = true,
 		dependencies = {
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-path",
-			"hrsh7th/cmp-cmdline",
+			{ "hrsh7th/cmp-nvim-lsp", lazy = true },
+			{ "hrsh7th/cmp-path", lazy = true },
+			{ "hrsh7th/cmp-nvim-lsp", lazy = true },
+			{ "hrsh7th/cmp-cmdline", lazy = true },
 			{
 				"L3MON4D3/LuaSnip",
+				lazy = true,
 				dependencies = {
-					"saadparwaiz1/cmp_luasnip",
-					"rafamadriz/friendly-snippets",
+					{ "saadparwaiz1/cmp_luasnip", lazy = true },
+					{ "rafamadriz/friendly-snippets", lazy = true },
 				},
 
 				build = (function()
@@ -107,6 +62,7 @@ return {
 				Event = "",
 				Operator = "",
 				TypeParameter = "󰅲",
+				Codeium = "",
 			}
 
 			require("luasnip.loaders.from_vscode").lazy_load()
@@ -114,14 +70,14 @@ return {
 			cmp.setup({
 				formatting = {
 					fields = { "kind", "abbr", "menu" },
-					format = function(entry, vim_item)
-						vim_item.menu = true and  "    (" .. vim_item.kind .. ")" or ""
+					format = function(_, vim_item)
+						-- vim_item.menu = true and  "    (" .. vim_item.kind .. ")" or ""
+						vim_item.menu = true and "    " or ""
 						vim_item.kind = " " .. kind_icons[vim_item.kind] .. " "
 						return vim_item
-					end,req
+					end,
 				},
 				snippet = {
-
 					completion = {
 						completeopt = "menu,menuone",
 					},
@@ -173,9 +129,17 @@ return {
 					end, { "i", "s" }),
 				}),
 				sources = cmp.config.sources({
-					{ name = "nvim_lsp" },
+					{
+						name = "nvim_lsp",
+						option = {
+							markdown_oxide = {
+								keyword_pattern = [[\(\k\| \|\/\|#\)\+]],
+							},
+						},
+					},
 					{ name = "luasnip" }, -- For luasnip users.
 					{ name = "path" },
+					{ name = "codeium" },
 				}),
 			})
 		end,

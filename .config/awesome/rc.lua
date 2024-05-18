@@ -18,7 +18,7 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 -- Load Debian menu entries
-local debian = require("debian.menu")
+-- local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
 
 -- {{{ Error handling
@@ -56,13 +56,13 @@ end
 -- Themes define colours, icons, font and wallpapers.
 -- beautiful.init(gears.filesystem.get_themes_dir() .. "zenburn/theme.lua")
 -- beautiful.init("~/.config/awesome/themes/tokyonight/theme.lua")
-beautiful.init("~/.config/awesome/themes/nord/theme.lua")
+beautiful.init("~/.config/awesome/themes/catppuccin/theme.lua")
 
 -- windows
 beautiful.useless_gap = 5
 
 -- This is used later as the default terminal and editor to run.
-terminal = "wezterm"
+terminal = "kitty"
 editor = os.getenv("EDITOR") or "nvim"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -75,15 +75,12 @@ modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    awful.layout.suit.floating,
     awful.layout.suit.tile,
     awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
     awful.layout.suit.tile.top,
     awful.layout.suit.fair,
     awful.layout.suit.fair.horizontal,
-    awful.layout.suit.spiral,
-    awful.layout.suit.spiral.dwindle,
     awful.layout.suit.max,
     awful.layout.suit.max.fullscreen,
     -- awful.layout.suit.magnifier,
@@ -93,6 +90,13 @@ awful.layout.layouts = {
     -- awful.layout.suit.corner.se,
 }
 -- }}}
+
+naughty.config.defaults.position = "bottom_right"
+naughty.config.defaults.timeout = 100
+beautiful.notification_max_width = 500
+beautiful.notification_max_height = 250
+-- beautiful.notification_font = 'CaskaydiaCove Nerd Font Mono 12'
+beautiful.notification_font = 'JetBrainsMono NF 12'
 
 -- {{{ Menu
 -- Create a launcher widget and a main menu
@@ -126,7 +130,7 @@ else
     mymainmenu = awful.menu({
         items = {
             menu_awesome,
-            { "Debian", debian.menu.Debian_menu.Debian },
+            -- { "Debian", debian.menu.Debian_menu.Debian },
             menu_terminal,
         },
     })
@@ -630,7 +634,7 @@ awful.rules.rules = {
     },
 
     -- Add titlebars to normal clients and dialogs
-    { rule_any = { type = { "normal", "dialog" } }, properties = { titlebars_enabled = true } },
+    { rule_any = { type = { "normal", "dialog" } }, properties = { titlebars_enabled = false } },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.
     -- { rule = { class = "Firefox" },
