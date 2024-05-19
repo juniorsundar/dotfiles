@@ -153,7 +153,7 @@ return {
 			--Telescope
 			S = {
 				name = "Search",
-				c = { "<cmd>FzfLua colorscheme<cr>", "Colorscheme" },
+				c = { "<cmd>FzfLua colorschemes<cr>", "Colorscheme" },
 				h = { "<cmd>FzfLua helptags<cr>", "Find Help" },
 				k = { "<cmd>FzfLua keymaps<cr>", "Keymaps" },
 				r = { "<cmd>FzfLua oldfiles<cr>", "Open Recent File" },
