@@ -48,49 +48,49 @@ return {
 
             vim.keymap.set(
                 "n",
-                "g]",
+                "<space>G]",
                 "<cmd>lua require 'gitsigns'.next_hunk()<cr>",
                 { noremap = true, silent = false, desc = "Next Hunk" }
             )
             vim.keymap.set(
                 "n",
-                "g[",
+                "<space>G[",
                 "<cmd>lua require 'gitsigns'.prev_hunk()<cr>",
                 { noremap = true, silent = false, desc = "Previous Hunk" }
             )
             vim.keymap.set(
                 "n",
-                "gp",
+                "<space>Gp",
                 "<cmd>lua require 'gitsigns'.preview_hunk()<cr>",
                 { noremap = true, silent = false, desc = "Preview Hunk" }
             )
             vim.keymap.set(
                 "n",
-                "gr",
+                "<space>Gr",
                 "<cmd>lua require 'gitsigns'.reset_hunk()<cr>",
                 { noremap = true, silent = false, desc = "Reset Hunk" }
             )
             vim.keymap.set(
                 "n",
-                "gS",
+                "<space>Gs",
                 "<cmd>lua require 'gitsigns'.stage_hunk()<cr>",
                 { noremap = true, silent = false, desc = "Stage Hunk" }
             )
             vim.keymap.set(
                 "n",
-                "gU",
+                "<space>Gu",
                 "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>",
                 { noremap = true, silent = false, desc = "Undo Stage Hunk" }
             )
             vim.keymap.set(
                 "n",
-                "gR",
+                "<space>GR",
                 "<cmd>lua require 'gitsigns'.reset_buffer()<cr>",
                 { noremap = true, silent = false, desc = "Reset Buffer" }
             )
             vim.keymap.set(
                 "n",
-                "gb",
+                "<space>GB",
                 "<cmd>lua require 'gitsigns'.blame_line()<cr>",
                 { noremap = true, silent = false, desc = "Blame" }
             )
@@ -101,7 +101,7 @@ return {
         keys = {
             {"<space>Gg", "<cmd>Neogit<cr>", desc = "Neogit" }
         },
-    	branch = "nightly",
+    	branch = "master",
     	dependencies = {
     		"nvim-lua/plenary.nvim", -- required
     		"sindrets/diffview.nvim", -- optional - Diff integration
