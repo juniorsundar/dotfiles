@@ -6,11 +6,12 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 OMZ_HOME="${XDG_DATA_HOME:-${HOME}/}.oh-my-zsh"
-# Download Zinit, if it's not there yet
+# Download OMZ, if it's not there yet
 if [ ! -d "$OMZ_HOME" ]; then
-   git clone https://github.com/ohmyzsh/ohmyzsh.git "$OMZ_HOME"
+   git clone -q https://github.com/ohmyzsh/ohmyzsh.git "$OMZ_HOME"
 fi
 export ZSH="$HOME/.oh-my-zsh"
+plugins=(git sudo)
 source $ZSH/oh-my-zsh.sh
 
 # Set the directory we want to store zinit and plugins
@@ -34,15 +35,16 @@ zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 
-# Add in snippets
-zinit snippet OMZP::git
-zinit snippet OMZP::sudo
+# Load completions
+autoload -Uz compinit && compinit
+
+zinit cdreplay -q
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Keybindings
 bindkey -e
-bindkey '^p' history-search-backward
-bindkey '^n' history-search-forward
-bindkey '^[w' kill-region
 
 # History
 HISTSIZE=5000
@@ -76,9 +78,6 @@ zstyle ':fzf-tab:*' switch-group '<' '>'
 source /opt/ros/humble/setup.zsh
 eval "$(register-python-argcomplete3 ros2)"
 eval "$(register-python-argcomplete3 colcon)"
-
-# You may need to manually set your language environment
-export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
@@ -132,11 +131,3 @@ path=('/home/juniorsundar/.juliaup/bin' $path)
 export PATH
 
 # <<< juliaup initialize <<<
-
-# Load completions
-autoload -Uz compinit && compinit
-
-zinit cdreplay -q
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
