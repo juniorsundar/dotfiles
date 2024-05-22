@@ -27,6 +27,4 @@ local function lookup_word()
 end
 
 -- Key mapping to call the function
-vim.api.nvim_set_keymap("n", "<leader>lw", ":lua lookup_word()<CR>", { noremap = true, silent = true })
-
 vim.keymap.set("v", "Nd", lookup_word, { noremap = true, silent = true, desc = "Dictionary" })
