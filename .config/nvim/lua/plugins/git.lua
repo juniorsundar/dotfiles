@@ -1,6 +1,7 @@
 return {
     {
         "lewis6991/gitsigns.nvim",
+        event = "VeryLazy",
         dependencies = { "sindrets/diffview.nvim" },
         config = function()
             require("gitsigns").setup({
@@ -105,7 +106,6 @@ return {
     	dependencies = {
     		"nvim-lua/plenary.nvim", -- required
     		"sindrets/diffview.nvim", -- optional - Diff integration
-    		"ibhagwan/fzf-lua",
     	},
     	config = function()
     		local neogit = require("neogit")
