@@ -10,6 +10,11 @@ alias G="lazygit"
 alias neorg="nvim ~/Dropbox/neorg/index.norg"
 
 alias nv="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"
+
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]
+then
+    git clone https://github.com/tmux-plugins/tpm $HOME/.tmux/plugins/tpm
+fi
 alias tls="~/.config/tmux/tmux-fzf-session.sh"
 alias zls="~/.config/zellij/zellij-fzf-session.sh"
 
