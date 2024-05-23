@@ -28,12 +28,14 @@ plugins=(
     zsh-autosuggestions
     git
     sudo
+    tmux
 )
 
 # Aliases
 if [ -f ~/.zsh_aliases ]; then
     . ~/.zsh_aliases
 fi
+. ~/.zoxide.zsh
 fpath+=${OMZ_HOME}/custom/plugins/zsh-completions/src
 fpath=($HOME/.zsh_completions $fpath)
 
@@ -110,7 +112,6 @@ export MANPATH="/usr/local/man:$MANPATH"
 
 export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
 
-. ~/.zoxide.zsh
 
 # Catppuccin theme for FZF
 export FZF_DEFAULT_OPTS=" \
@@ -127,3 +128,5 @@ path=('/home/juniorsundar/.juliaup/bin' $path)
 export PATH
 
 # <<< juliaup initialize <<<
+
+export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share 
