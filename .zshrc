@@ -15,7 +15,6 @@ if [ ! -d "$OMZ_HOME" ]; then
    # Download all needed plugins
    git clone https://github.com/Aloxaf/fzf-tab $OMZ_CP_DIR/fzf-tab
    git clone https://github.com/zsh-users/zsh-autosuggestions $OMZ_CP_DIR/zsh-autosuggestions
-   git clone https://github.com/zsh-users/zsh-completions $OMZ_CP_DIR/zsh-completions
    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $OMZ_CP_DIR/zsh-syntax-highlighting
    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $OMZ_CT_DIR/powerlevel10k
 fi
@@ -31,18 +30,17 @@ plugins=(
     tmux
 )
 
+# Themes
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+source $ZSH/oh-my-zsh.sh
+
 # Aliases
 if [ -f ~/.zsh_aliases ]; then
     . ~/.zsh_aliases
 fi
 . ~/.zoxide.zsh
-fpath+=${OMZ_HOME}/custom/plugins/zsh-completions/src
 fpath=($HOME/.zsh_completions $fpath)
-
-# Themes
-ZSH_THEME="powerlevel10k/powerlevel10k"
-
-source $ZSH/oh-my-zsh.sh
 
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:/usr/local/bin:$HOME/.local/bin:$PATH
@@ -52,9 +50,6 @@ autoload -Uz compinit && compinit
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# Keybindings
-bindkey -e
 
 # History
 HISTSIZE=5000
@@ -111,7 +106,6 @@ export NVM_DIR="$HOME/.nvm"
 export MANPATH="/usr/local/man:$MANPATH"
 
 export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
-
 
 # Catppuccin theme for FZF
 export FZF_DEFAULT_OPTS=" \
