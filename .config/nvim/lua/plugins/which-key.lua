@@ -83,17 +83,13 @@ return {
 			o = { "<cmd>Oil<cr>", "Oil" },
 			t = { "<cmd>terminal<cr>", "Terminal" },
 			u = { "<cmd>UndotreeToggle<cr>", "Undotree" },
+            c = { "<cmd>bdelete<cr>", "Close Buffer" },
+            b = { "<cmd>FzfLua buffers<cr>", "Buffers" },
 			-- Autocompletion
 			A = {
 				name = "Autocompletion",
 				e = { "<cmd>lua require 'cmp'.setup{ enabled = true }<cr>", "Enabled" },
 				d = { "<cmd>lua require 'cmp'.setup{ enabled = false }<cr>", "Disabled" },
-			},
-            -- Buffers
-			B = {
-				name = "Buffer",
-				b = { "<cmd>FzfLua buffers<cr>", "List Buffers" },
-				c = { "<cmd>bdelete!<cr>", "Close Buffer" },
 			},
 			-- Find
 			F = {
