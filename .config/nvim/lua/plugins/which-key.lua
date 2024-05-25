@@ -76,10 +76,8 @@ return {
 
 		local mappings = {
 			a = { "<cmd>Alpha<cr>", "Alpha" },
-			b = { "<cmd>FzfLua buffers<cr>", "Buffers" },
 			w = { "<cmd>w!<cr>", "Save" },
 			q = { "<cmd>q<cr>", "Quit" },
-			c = { "<cmd>bdelete!<cr>", "Close Buffer" },
 			l = { "<cmd>Lazy<cr>", "Lazy" },
 			m = { "<cmd>Mason<cr>", "Mason" },
 			o = { "<cmd>Oil<cr>", "Oil" },
@@ -90,6 +88,12 @@ return {
 				name = "Autocompletion",
 				e = { "<cmd>lua require 'cmp'.setup{ enabled = true }<cr>", "Enabled" },
 				d = { "<cmd>lua require 'cmp'.setup{ enabled = false }<cr>", "Disabled" },
+			},
+            -- Buffers
+			B = {
+				name = "Buffer",
+				b = { "<cmd>FzfLua buffers<cr>", "List Buffers" },
+				c = { "<cmd>bdelete!<cr>", "Close Buffer" },
 			},
 			-- Find
 			F = {
