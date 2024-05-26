@@ -19,6 +19,16 @@ local calendar_widget = {}
 local function worker(user_args)
 
     local calendar_themes = {
+        catppuccin = {
+            bg = '#626880',
+            fg = '#c6d0f5',
+            focus_date_bg = '#292c3c',
+            focus_date_fg = '#e78284',
+            weekend_day_bg = '#303446',
+            weekday_fg = '#ca9ee6',
+            header_fg = '#E5E9F0',
+            border = '#ca9ee6'
+        },
         nord = {
             bg = '#2E3440',
             fg = '#D8DEE9',
