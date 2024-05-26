@@ -15,7 +15,7 @@ if [ ! -d "$OMZ_HOME" ]; then
    # Download all needed plugins
    git clone https://github.com/Aloxaf/fzf-tab $OMZ_CP_DIR/fzf-tab
    git clone https://github.com/zsh-users/zsh-autosuggestions $OMZ_CP_DIR/zsh-autosuggestions
-   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $OMZ_CP_DIR/zsh-syntax-highlighting
+   git clone https://github.com/zdharma-continuum/fast-syntax-highlighting $OMZ_CP_DIR/fast-syntax-highlighting
    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $OMZ_CT_DIR/powerlevel10k
 fi
 export ZSH="$HOME/.oh-my-zsh"
@@ -23,7 +23,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # Load plugins
 plugins=(
     fzf-tab
-    zsh-syntax-highlighting
+    fast-syntax-highlighting
     zsh-autosuggestions
     git
     sudo
@@ -43,7 +43,7 @@ fi
 fpath=($HOME/.zsh_completions $fpath)
 
 # If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:/usr/local/bin:$HOME/.local/bin:$PATH
+export PATH=$HOME/bin:/sbin:/usr/local/bin:$HOME/.local/bin:$PATH
 
 # Load completions
 autoload -Uz compinit && compinit
