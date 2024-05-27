@@ -110,6 +110,9 @@ return {
     	config = function()
     		local neogit = require("neogit")
     		neogit.setup({
+                disable_hint = true,
+                graph_style = "unicode",
+                kind = "split",
     			disable_signs = false,
     			signs = {
     				hunk = { "", "" },
