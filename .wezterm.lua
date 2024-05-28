@@ -8,13 +8,16 @@ local config = {}
 -- In newer versions of wezterm, use the config_builder which will
 -- help provide clearer error messages
 if wezterm.config_builder then
-    config = wezterm.config_builder()
+	config = wezterm.config_builder()
 end
 
 -- This is where you actually apply your config choices
 
 -- For example, changing the color scheme:
-config.font = wezterm.font("FiraCode Nerd Font", { weight = "Regular" })
+config.font = wezterm.font_with_fallback({
+	{ family = "Fira Code", weight = "Regular" },
+	{ family = "Symbols Nerd Font", weight = "Regular" },
+})
 config.font_size = 11
 
 config.color_scheme = "Catppuccin Frappe"
@@ -27,31 +30,31 @@ config.hide_tab_bar_if_only_one_tab = true
 -- config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 
 config.keys = {
-    {
-        key = "t",
-        mods = "CTRL|SHIFT",
-        action = act.SpawnTab("CurrentPaneDomain"),
-    },
-    {
-        key = "|",
-        mods = "CTRL|SHIFT",
-        action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }),
-    },
-    {
-        key = "_",
-        mods = "CTRL|SHIFT",
-        action = act.SplitVertical({ domain = "CurrentPaneDomain" }),
-    },
-    {
-        key = "d",
-        mods = "CTRL|SHIFT",
-        action = wezterm.action.CloseCurrentPane({ confirm = true }),
-    },
-    {
-        key = "w",
-        mods = "CTRL|SHIFT",
-        action = wezterm.action.CloseCurrentTab({ confirm = true }),
-    },
+	{
+		key = "t",
+		mods = "CTRL|SHIFT",
+		action = act.SpawnTab("CurrentPaneDomain"),
+	},
+	{
+		key = "|",
+		mods = "CTRL|SHIFT",
+		action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }),
+	},
+	{
+		key = "_",
+		mods = "CTRL|SHIFT",
+		action = act.SplitVertical({ domain = "CurrentPaneDomain" }),
+	},
+	{
+		key = "d",
+		mods = "CTRL|SHIFT",
+		action = wezterm.action.CloseCurrentPane({ confirm = true }),
+	},
+	{
+		key = "w",
+		mods = "CTRL|SHIFT",
+		action = wezterm.action.CloseCurrentTab({ confirm = true }),
+	},
 }
 
 -- and finally, return the configuration to wezterm
