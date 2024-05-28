@@ -707,5 +707,5 @@ client.connect_signal("unfocus", function(c)
 end)
 -- }}}
 
-awful.spawn.with_shell("picom --backend glx --vsync --daemon")
+awful.spawn.with_shell("picom --backend glx --vsync --daemon --config ~/.config/picom/picom.conf")
 awful.spawn.with_shell("nitrogen --restore")
