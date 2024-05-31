@@ -28,6 +28,7 @@ plugins=(
     git
     sudo
     tmux
+    kitty
 )
 
 # Themes
