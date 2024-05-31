@@ -461,7 +461,7 @@ clientkeys = gears.table.join(
         -- The client currently has the input focus, so it cannot be
         -- minimized, since minimized clients can't have the focus.
         c.minimized = true
-    end, { description = "minimize", group = "client" }),
+    end, { description = "maximise", group = "client" }),
     awful.key({ modkey }, "m", function(c)
         c.maximized = not c.maximized
         c:raise()
@@ -707,5 +707,6 @@ client.connect_signal("unfocus", function(c)
 end)
 -- }}}
 
-awful.spawn.with_shell("picom --backend glx --vsync --daemon --config ~/.config/picom/picom.conf")
+awful.spawn.with_shell("picom --config ~/.config/picom/picom.conf")
 awful.spawn.with_shell("nitrogen --restore")
+awful.spawn.with_shell("setxkbmap -layout us -option grp:shifts_toggle")

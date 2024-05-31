@@ -2,11 +2,10 @@ return {
 	{
 		"hrsh7th/nvim-cmp",
 		lazy = true,
+        version = false,
 		dependencies = {
 			{ "hrsh7th/cmp-nvim-lsp", lazy = true },
 			{ "hrsh7th/cmp-path", lazy = true },
-			{ "hrsh7th/cmp-nvim-lsp", lazy = true },
-			{ "hrsh7th/cmp-cmdline", lazy = true },
 			{
 				"L3MON4D3/LuaSnip",
 				lazy = true,
