@@ -115,8 +115,7 @@ return {
 
 			lspconfig.clangd.setup({
 				capabilities = capabilities,
-				root_dir = lspconfig.util.root_pattern("compile_commands.json", ".clangd", ".git"),
-				cmd = { "clangd", "--compile-commands-dir=" .. vim.fn.getcwd() },
+				root_dir = lspconfig.util.root_pattern("compile_commands.json", ".clangd"),
 			})
 
 			lspconfig.rust_analyzer.setup({
