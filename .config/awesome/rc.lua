@@ -62,7 +62,7 @@ beautiful.init("~/.config/awesome/themes/catppuccin/theme.lua")
 beautiful.useless_gap = 5
 
 -- This is used later as the default terminal and editor to run.
-terminal = "wezterm"
+terminal = "kitty"
 editor = os.getenv("EDITOR") or "nvim"
 editor_cmd = terminal .. " -e " .. editor
 
