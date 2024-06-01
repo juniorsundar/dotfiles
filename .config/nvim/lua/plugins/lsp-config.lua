@@ -199,23 +199,4 @@ return {
 			})
 		end,
 	},
-	{
-		"nvimdev/lspsaga.nvim",
-		event = "LspAttach",
-		config = function()
-			require("lspsaga").setup({
-				lightbulb = {
-					enable = false,
-					sign = false,
-				},
-				ui = {
-					-- currently only round theme
-					theme = "rounded",
-					border = "solid",
-					lines = { "└", "├", "│", "─", "┌" },
-					kind = require("catppuccin.groups.integrations.lsp_saga").custom_kind(),
-				},
-			})
-		end,
-	},
 }
