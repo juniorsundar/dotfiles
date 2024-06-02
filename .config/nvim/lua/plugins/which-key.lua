@@ -162,7 +162,7 @@ return {
 					name = "Workspace",
 					a = { "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "Add Workspace Folder" },
 					-- d = { "<cmd>FzfLua diagnostics_workspace<cr>", "Workspace Diagnostics" },
-					d = { "<cmd>Lspsaga show_workspace_diagnostics ++normal<cr>", "Document Diagnostics" },
+					d = { "<cmd>Lspsaga show_workspace_diagnostics ++normal<cr>", "Workspace Diagnostics" },
 					s = { "<cmd>FzfLua lsp_workspace_symbols<cr>", "Workspace Symbols" },
 					r = { "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "Remove Workspace Folder" },
 					l = { list_workspace_folders, "List Workspace Folders" },
