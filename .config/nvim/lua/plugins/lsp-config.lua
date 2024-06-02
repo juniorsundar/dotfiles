@@ -82,8 +82,6 @@ return {
 						hint = {
 							enable = true,
 						},
-						-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-						-- diagnostics = { disable = { 'missing-fields' } },
 					},
 				},
 			})
@@ -182,6 +180,121 @@ return {
 					end
 				end,
 			})
+
+			-- Peek definition function that opens the definition in a horizontal split
+			local function peek_definition()
+				local params = vim.lsp.util.make_position_params()
+				vim.lsp.buf_request(0, "textDocument/definition", params, function(_, result, ctx, _)
+					if not result or vim.tbl_isempty(result) then
+						print("Definition not found")
+						return
+					end
+
+					-- Use the first result, can be enhanced to handle multiple results
+					local location = result[1]
+					local uri = location.uri or location.targetUri
+					local range = location.range or location.targetRange
+
+					local bufnr = vim.uri_to_bufnr(uri)
+					vim.fn.bufload(bufnr)
+
+					-- Open the definition in a horizontal split
+					vim.cmd("split")
+					vim.api.nvim_set_current_buf(bufnr)
+
+					-- Move the cursor to the definition line
+					vim.api.nvim_win_set_cursor(
+						vim.api.nvim_get_current_win(),
+						{ range.start.line + 1, range.start.character }
+					)
+
+					-- Optionally, adjust the view to center the cursor line
+					vim.cmd("normal! zz")
+				end)
+			end
+			-- Map the peek_definition function to a key
+			vim.keymap.set(
+				"n",
+				"<Leader>Ld",
+				peek_definition,
+				{ noremap = true, silent = true, desc = "Definition (Peek)" }
+			)
+
+			local function peek_declaration()
+				local params = vim.lsp.util.make_position_params()
+				vim.lsp.buf_request(0, "textDocument/declaration", params, function(_, result, ctx, _)
+					if not result or vim.tbl_isempty(result) then
+						print("Declaration not found")
+						return
+					end
+
+					-- Use the first result, can be enhanced to handle multiple results
+					local location = result[1]
+					local uri = location.uri or location.targetUri
+					local range = location.range or location.targetRange
+
+					local bufnr = vim.uri_to_bufnr(uri)
+					vim.fn.bufload(bufnr)
+
+					-- Open the definition in a horizontal split
+					vim.cmd("split")
+					vim.api.nvim_set_current_buf(bufnr)
+
+					-- Move the cursor to the definition line
+					vim.api.nvim_win_set_cursor(
+						vim.api.nvim_get_current_win(),
+						{ range.start.line + 1, range.start.character }
+					)
+
+					-- Optionally, adjust the view to center the cursor line
+					vim.cmd("normal! zz")
+				end)
+			end
+			-- Map the peek_definition function to a key
+			vim.keymap.set(
+				"n",
+				"<Leader>Lc",
+				peek_declaration,
+				{ noremap = true, silent = true, desc = "Declaration (Peek)" }
+			)
+
+			local function peek_implementation()
+				local params = vim.lsp.util.make_position_params()
+				vim.lsp.buf_request(0, "textDocument/implementation", params, function(_, result, ctx, _)
+					if not result or vim.tbl_isempty(result) then
+						print("Implementation not found")
+						return
+					end
+
+					-- Use the first result, can be enhanced to handle multiple results
+					local location = result[1]
+					local uri = location.uri or location.targetUri
+					local range = location.range or location.targetRange
+
+					local bufnr = vim.uri_to_bufnr(uri)
+					vim.fn.bufload(bufnr)
+
+					-- Open the definition in a horizontal split
+					vim.cmd("split")
+					vim.api.nvim_set_current_buf(bufnr)
+
+					-- Move the cursor to the definition line
+					vim.api.nvim_win_set_cursor(
+						vim.api.nvim_get_current_win(),
+						{ range.start.line + 1, range.start.character }
+					)
+
+					-- Optionally, adjust the view to center the cursor line
+					vim.cmd("normal! zz")
+				end)
+			end
+			-- Map the peek_definition function to a key
+			vim.keymap.set(
+				"n",
+				"<Leader>Li",
+				peek_implementation,
+				{ noremap = true, silent = true, desc = "Implementation (Peek)" }
+			)
 		end,
 	},
 	{
@@ -198,5 +311,10 @@ return {
 				},
 			})
 		end,
+	},
+	{
+		"folke/trouble.nvim",
+		opts = {}, -- for default options, refer to the configuration section for custom setup.
+		event = "LspAttach",
 	},
 }
