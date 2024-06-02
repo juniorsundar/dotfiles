@@ -1,6 +1,6 @@
 return {
 	"folke/which-key.nvim",
-    event = "VeryLazy",
+	event = "VeryLazy",
 	init = function()
 		vim.o.timeout = true
 		vim.o.timeoutlen = 500
@@ -74,6 +74,22 @@ return {
 			nowait = true, -- use `nowait` when creating keymaps
 		}
 
+		local function list_workspace_folders()
+			local folders = vim.lsp.buf.list_workspace_folders()
+			if not folders or vim.tbl_isempty(folders) then
+				print("No workspace folders found")
+				return
+			end
+
+			local qf_list = {}
+			for _, folder in ipairs(folders) do
+				table.insert(qf_list, { filename = folder, lnum = 1, col = 1, text = folder })
+			end
+
+			vim.fn.setqflist(qf_list, "r")
+			vim.cmd("copen")
+		end
+
 		local mappings = {
 			a = { "<cmd>Alpha<cr>", "Alpha" },
 			w = { "<cmd>w!<cr>", "Save" },
@@ -83,8 +99,8 @@ return {
 			o = { "<cmd>Oil<cr>", "Oil" },
 			t = { "<cmd>terminal<cr>", "Terminal" },
 			u = { "<cmd>UndotreeToggle<cr>", "Undotree" },
-            c = { "<cmd>bdelete<cr>", "Close Buffer" },
-            b = { "<cmd>FzfLua buffers<cr>", "Buffers" },
+			c = { "<cmd>bdelete<cr>", "Close Buffer" },
+			b = { "<cmd>FzfLua buffers<cr>", "Buffers" },
 			-- Autocompletion
 			A = {
 				name = "Autocompletion",
@@ -133,12 +149,12 @@ return {
 				W = {
 					name = "Workspace",
 					a = { "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "Add Workspace Folder" },
-                    -- d = { "<cmd>FzfLua diagnostics_workspace<cr>", "Workspace Diagnostics" },
-                    d = { "<cmd>Trouble diagnostics toggle<cr>", "Workspace Diagnostics" },
+					-- d = { "<cmd>FzfLua diagnostics_workspace<cr>", "Workspace Diagnostics" },
+					d = { "<cmd>Trouble diagnostics toggle<cr>", "Workspace Diagnostics" },
 					s = { "<cmd>FzfLua lsp_workspace_symbols<cr>", "Workspace Symbols" },
 					r = { "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "Remove Workspace Folder" },
 					l = {
-						"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
+						list_workspace_folders,
 						"List Workspace Folders",
 					},
 				},
