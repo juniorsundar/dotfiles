@@ -36,8 +36,6 @@ vim.keymap.set("n", "<S-A-Down>", "<cmd>m .+1<CR>==", opts)
 -- Hint: start visual mode with the same area as the previous area and the same mode
 vim.keymap.set("v", "<", "<gv", opts)
 vim.keymap.set("v", ">", ">gv", opts)
-vim.keymap.set("v", "<S-A-Up>", "<cmd>m .-2<CR>==", opts)
-vim.keymap.set("v", "<S-A-Down>", "<cmd>m .+1<CR>==", opts)
 
 -----------------
 -- Terminal mode --
