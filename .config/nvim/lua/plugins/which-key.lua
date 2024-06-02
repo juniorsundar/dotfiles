@@ -112,6 +112,14 @@ return {
 				name = "Find",
 				f = { "<cmd>FzfLua files<cr>", "Files" },
 				t = { "<cmd>FzfLua live_grep<CR>", "Text" },
+				c = { "<cmd>FzfLua colorschemes<cr>", "Colorscheme" },
+				h = { "<cmd>FzfLua helptags<cr>", "Find Help" },
+				k = { "<cmd>FzfLua keymaps<cr>", "Keymaps" },
+				r = { "<cmd>FzfLua oldfiles<cr>", "Open Recent File" },
+				T = { "<cmd>FzfLua tabs<cr>", "Tabs" },
+				M = { "<cmd>FzfLua manpages<cr>", "Man Pages" },
+				R = { "<cmd>FzfLua registers<cr>", "Registers" },
+				C = { "<cmd>FzfLua commands<cr>", "Commands" },
 			},
 			-- Git
 			G = {
@@ -158,18 +166,6 @@ return {
 						"List Workspace Folders",
 					},
 				},
-			},
-			--Telescope
-			S = {
-				name = "Search",
-				c = { "<cmd>FzfLua colorschemes<cr>", "Colorscheme" },
-				h = { "<cmd>FzfLua helptags<cr>", "Find Help" },
-				k = { "<cmd>FzfLua keymaps<cr>", "Keymaps" },
-				r = { "<cmd>FzfLua oldfiles<cr>", "Open Recent File" },
-				t = { "<cmd>FzfLua tabs<cr>", "Tabs" },
-				M = { "<cmd>FzfLua manpages<cr>", "Man Pages" },
-				R = { "<cmd>FzfLua registers<cr>", "Registers" },
-				C = { "<cmd>FzfLua commands<cr>", "Commands" },
 			},
 
 			N = {
