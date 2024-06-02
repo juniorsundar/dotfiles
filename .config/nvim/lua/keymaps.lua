@@ -29,6 +29,9 @@ vim.keymap.set("n", "<C-Down>", "gj", opts)
 vim.keymap.set("n", "<S-A-Up>", "<cmd>m .-2<CR>==", opts)
 vim.keymap.set("n", "<S-A-Down>", "<cmd>m .+1<CR>==", opts)
 
+vim.keymap.set("n", "gb", "<cmd>bnext<CR>", {noremap = false, silent = true, desc = "Next buffer"})
+vim.keymap.set("n", "gB", "<cmd>bprevious<CR>", {noremap = false, silent = true, desc = "Previous buffer"})
+
 -----------------
 -- Visual mode --
 -----------------
