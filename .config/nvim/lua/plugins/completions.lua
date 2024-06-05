@@ -2,9 +2,10 @@ return {
 	{
 		"hrsh7th/nvim-cmp",
 		lazy = true,
-        version = false,
+		version = false,
 		dependencies = {
 			{ "hrsh7th/cmp-nvim-lsp", lazy = true },
+			{ "hrsh7th/cmp-nvim-lsp-signature-help", lazy = true },
 			{ "hrsh7th/cmp-path", lazy = true },
 			{
 				"L3MON4D3/LuaSnip",
@@ -138,6 +139,7 @@ return {
 					},
 					{ name = "luasnip" }, -- For luasnip users.
 					{ name = "path" },
+					{ name = "nvim_lsp_signature_help" },
 					{ name = "codeium" },
 				}),
 			})
