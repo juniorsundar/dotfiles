@@ -44,20 +44,20 @@ return {
 					},
 					override = {
 						-- override the default lsp markdown formatter with Noice
-						["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+						["vim.lsp.util.convert_input_to_markdown_lines"] = false,
 						-- override the lsp markdown formatter with Noice
-						["vim.lsp.util.stylize_markdown"] = true,
+						["vim.lsp.util.stylize_markdown"] = false,
 						-- override cmp documentation with Noice (needs the other options to work)
-						["cmp.entry.get_documentation"] = true,
+						["cmp.entry.get_documentation"] = false,
 					},
 					hover = {
-						enabled = true,
+						enabled = false,
 						silent = false, -- set to true to not show a message if hover is not available
 						view = nil, -- when nil, use defaults from documentation
 						opts = {}, -- merged with defaults from documentation
 					},
 					signature = {
-						enabled = true,
+						enabled = false,
 						auto_open = {
 							enabled = true,
 							trigger = true, -- Automatically show signature help when typing a trigger character from the LSP
@@ -81,7 +81,7 @@ return {
 							replace = true,
 							render = "plain",
 							format = { "{message}" },
-							win_options = { concealcursor = "n", conceallevel = 0 },
+							win_options = { concealcursor = "n", conceallevel = 2 },
 						},
 					},
 				},
