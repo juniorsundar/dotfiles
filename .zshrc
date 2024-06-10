@@ -103,7 +103,7 @@ else
 fi
 
 # Go
-export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 
 # Rust
 . "$HOME/.cargo/env"
