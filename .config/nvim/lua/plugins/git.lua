@@ -112,7 +112,7 @@ return {
     		neogit.setup({
                 disable_hint = true,
                 graph_style = "unicode",
-                kind = "split",
+                kind = "tab",
     			disable_signs = false,
     			signs = {
     				hunk = { "", "" },

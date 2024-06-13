@@ -17,6 +17,12 @@ return {
                     vim.opt_local.wrap = true
                 end,
             })
+            vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
+                pattern = {"*.norg"},
+                callback = function(ev)
+                    vim.wo.foldlevel = 1
+                end
+            })
             require("neorg").setup({
                 load = {
                     ["core.defaults"] = {},
