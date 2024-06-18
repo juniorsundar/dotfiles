@@ -29,5 +29,12 @@ vim.api.nvim_create_autocmd("BufLeave", {
 		vim.cmd("set wrap")
 	end,
 })
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+	pattern = { "*.norg" },
+	callback = function(ev)
+		vim.opt_local.conceallevel = 2
+		vim.wo.foldlevel = 1
+	end,
+})
 
 vim.opt.scrolloff = 999

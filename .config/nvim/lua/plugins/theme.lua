@@ -8,9 +8,9 @@ return {
 				custom_highlights = function(colors)
 					return {
 						WhichKeyBorder = { fg = colors.base },
-						CmpBorder = { fg = colors.surface2 },
-						Pmenu = { link = "NormalFloat" },
-						SagaBorder = { link = "NormalFloat" },
+						-- CmpBorder = { fg = colors.surface2 },
+						-- Pmenu = { link = "NormalFloat" },
+						-- SagaBorder = { link = "NormalFloat" },
 					}
 				end,
 				integrations = {
@@ -23,6 +23,7 @@ return {
 					markdown = true,
 					neogit = true,
 					treesitter_context = true,
+					lsp_saga = true,
 					lsp_trouble = true,
 					diffview = true,
 					which_key = true,

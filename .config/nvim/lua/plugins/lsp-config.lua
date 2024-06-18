@@ -323,8 +323,7 @@ return {
 				},
 				ui = {
 					-- currently only round theme
-					theme = "rounded",
-					border = "solid",
+                    border = 'rounded',
 					lines = { "└", "├", "│", "─", "┌" },
 					kind = require("catppuccin.groups.integrations.lsp_saga").custom_kind(),
 				},
