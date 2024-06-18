@@ -5,7 +5,7 @@ return {
 		opts = {},
 		keys = {
 			{
-				"<C-s>",
+				"gs",
 				mode = { "n", "x", "o" },
 				function()
 					require("flash").jump()
@@ -13,7 +13,7 @@ return {
 				desc = "Flash",
 			},
 			{
-				"<C-S-s>",
+				"gS",
 				mode = { "n", "x", "o" },
 				function()
 					require("flash").treesitter()
@@ -149,7 +149,7 @@ return {
 				-- the window in which the grug-far buffer will appear
 				-- ex (horizontal bottom right split): 'botright split'
 				-- ex (open new tab): 'tabnew'
-				windowCreationCommand = "vsplit",
+				windowCreationCommand = "tabnew",
 
 				-- buffer line numbers + match line numbers can get a bit visually overwhelming
 				-- turn this off if you still like to see the line numbers
