@@ -18,7 +18,7 @@ config.font = wezterm.font_with_fallback({
 	{ family = "Fira Code", weight = "Regular" },
 	{ family = "Symbols Nerd Font", weight = "Regular" },
 })
-config.font_size = 11
+config.font_size = 12
 
 config.color_scheme = "Catppuccin Frappe"
 config.use_fancy_tab_bar = false

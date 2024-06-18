@@ -5,7 +5,7 @@ return {
 		opts = {},
 		keys = {
 			{
-				"gs",
+				"<C-s>",
 				mode = { "n", "x", "o" },
 				function()
 					require("flash").jump()
@@ -13,7 +13,7 @@ return {
 				desc = "Flash",
 			},
 			{
-				"gS",
+				"<C-S-s>",
 				mode = { "n", "x", "o" },
 				function()
 					require("flash").treesitter()
@@ -92,6 +92,7 @@ return {
 	{
 		"3rd/image.nvim",
 		ft = { "markdown", "norg" },
+        dependencies = { "luarocks.nvim" },
 		config = function()
 			require("image").setup({
 				backend = "kitty",

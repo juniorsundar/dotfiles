@@ -3,26 +3,15 @@ return {
         "vhyrro/luarocks.nvim",
         lazy = true,
         priority = 1000,
-        config = true,
+        opts = {
+            rocks = { "magick" },
+        },
     },
     {
         "nvim-neorg/neorg",
         version = "*",
         dependencies = { "luarocks.nvim" },
         config = function()
-            vim.api.nvim_create_autocmd("FileType", {
-                pattern = "norg",
-                callback = function()
-                    vim.opt_local.conceallevel = 2
-                    vim.opt_local.wrap = true
-                end,
-            })
-            vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
-                pattern = {"*.norg"},
-                callback = function(ev)
-                    vim.wo.foldlevel = 1
-                end
-            })
             require("neorg").setup({
                 load = {
                     ["core.defaults"] = {},
