@@ -32,7 +32,7 @@ return {
 					"norg",
 				},
 				-- auto install above language parsers
-				auto_install = true,
+				auto_install = false,
 				incremental_selection = {
 					enable = true,
 					keymaps = {
