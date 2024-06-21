@@ -197,7 +197,7 @@ function M.show_backlinks()
     end
 
     local open_backlink = function(selected)
-        local backlink_path = base_directory .. '/' .. selected[1] .. ".norg"
+        local backlink_path = base_directory .. '/' .. backlink_stats[selected[1]].file .. ".norg"
         vim.cmd(string.format("e +%d %s", backlink_stats[selected[1]].line, backlink_path))
     end
 
