@@ -70,6 +70,9 @@ return {
                 { noremap = true, silent = true, desc = "Workspaces" })
             vim.keymap.set("n", "<leader>Nf", neorg_utils.neorg_node_injector,
                 { noremap = true, silent = true, desc = "Node Injector" })
+            vim.keymap.set("n", "<leader>Na", neorg_utils.neorg_agenda,
+                { noremap = true, silent = true, desc = "Neorg Agenda" })
+
         end,
     },
 }
