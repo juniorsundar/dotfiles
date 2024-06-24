@@ -2,3 +2,7 @@
 	path = .tmux/plugins/tpm
 	url = https://github.com/tmux-plugins/tpm
     branch = master
+[submodule ".config/emacs"]
+	path = .config/emacs
+	url = git@github.com:juniorsundar/emacs.git
+    branch = main
