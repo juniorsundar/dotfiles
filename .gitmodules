@@ -1,6 +1,6 @@
 [submodule ".tmux/plugins/tpm"]
 	path = .tmux/plugins/tpm
-	url = https://github.com/tmux-plugins/tpm
+	url = https://github.com/tmux-plugins/tpm.git
     branch = master
 [submodule ".config/emacs"]
 	path = .config/emacs
