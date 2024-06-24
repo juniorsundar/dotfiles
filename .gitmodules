@@ -6,3 +6,7 @@
 	path = .config/emacs
 	url = git@github.com:juniorsundar/emacs.git
     branch = main
+[submodule ".config/nvim"]
+	path = .config/nvim
+	url = git@github.com:juniorsundar/nvim.git
+    branch = main
