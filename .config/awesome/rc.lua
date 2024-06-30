@@ -318,6 +318,9 @@ root.buttons(gears.table.join(
 
 -- {{{ Key bindings
 globalkeys = gears.table.join(
+    -- Custom Keybinds
+    awful.key({ modkey, "Shift" }, "Return", function() awful.spawn.with_shell("wezterm start -- bash -c 'tmux-fzf-session'") end, { description = "open a tmux session", group = "launcher" }),
+
     awful.key({ modkey }, ";", function() brightness_widget:inc() end, { description = "increase brightness", group = "custom" }),
     awful.key({ modkey, "Shift" }, ";", function() brightness_widget:dec() end, { description = "decrease brightness", group = "custom" }),
     awful.key({ modkey }, "s", hotkeys_popup.show_help, { description = "show help", group = "awesome" }),
