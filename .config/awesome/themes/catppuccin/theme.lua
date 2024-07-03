@@ -1,5 +1,5 @@
 -------------------------------
---  "nord" nord theme  --
+--  "catppuccin" catppuccin theme  --
 --    By Adrian C. (anrxc)   --
 -------------------------------
 
@@ -10,61 +10,55 @@ local gears = require("gears")
 
 -- {{{ Main
 local theme = {}
--- theme.wallpaper = themes_path .. "catppuccin/nord-background.png"
--- theme.wallpaper = themes_path .. "catppuccin/nord-background2.png"
-theme.wallpaper = themes_path .. "catppuccin/nord-background3.png"
+theme.wallpaper = themes_path .. "catppuccin/catppuccin-background3.png"
 -- }}}
 
 -- {{{ Styles
--- theme.font      = "MesloLGS Nerd Font 9"
--- theme.font      = "JetBrainsMono Nerd Font 10"
 theme.font      = "FiraCode Nerd Font 9"
--- theme.font = "CaskaydiaCove NF 10"
--- theme.font = "VictorMono NF Medium 10"
 theme.border_radius = dpi(5)
 
--- NORD COLORS
-theme.nord0  = "#303446"
-theme.nord1  = "#292c3c"
-theme.nord2  = "#414559"
-theme.nord3  = "#51576d"
-theme.nord4  = "#626880"
-theme.nord5  = "#c6d0f5"
-theme.nord6  = "#f2d5cf"
-theme.nord7  = "#babbf1"
-theme.nord8  = "#e78284"
-theme.nord9  = "#ef9f76"
-theme.nord10 = "#e5c890"
-theme.nord11 = "#a6d189"
-theme.nord12 = "#81c8be"
-theme.nord13 = "#8caaee"
-theme.nord14 = "#ca9ee6"
-theme.nord15 = "#eebebe"
+-- catppuccin COLORS
+theme.catppuccin0  = "#303446"
+theme.catppuccin1  = "#292c3c"
+theme.catppuccin2  = "#414559"
+theme.catppuccin3  = "#51576d"
+theme.catppuccin4  = "#626880"
+theme.catppuccin5  = "#c6d0f5"
+theme.catppuccin6  = "#f2d5cf"
+theme.catppuccin7  = "#babbf1"
+theme.catppuccin8  = "#e78284"
+theme.catppuccin9  = "#ef9f76"
+theme.catppuccin10 = "#e5c890"
+theme.catppuccin11 = "#a6d189"
+theme.catppuccin12 = "#81c8be"
+theme.catppuccin13 = "#8caaee"
+theme.catppuccin14 = "#ca9ee6"
+theme.catppuccin15 = "#eebebe"
 theme.transparent   = "#00000000"
 
 -- {{{ Colors
-theme.fg_normal  = theme.nord5
-theme.bg_normal  = theme.nord4
-theme.fg_focus   = theme.nord8
-theme.bg_focus   = theme.nord1
-theme.fg_urgent  = theme.nord12
-theme.bg_urgent  = theme.nord0
+theme.fg_normal  = theme.catppuccin5
+theme.bg_normal  = theme.catppuccin0
+theme.fg_focus   = theme.catppuccin8
+theme.bg_focus   = theme.catppuccin1
+theme.fg_urgent  = theme.catppuccin12
+theme.bg_urgent  = theme.catppuccin4
 theme.bg_systray = theme.bg_normal
 -- }}}
 
 -- {{{ Borders
 theme.useless_gap   = dpi(0)
 theme.border_width  = dpi(2)
-theme.border_normal = theme.nord4
-theme.border_focus  = theme.nord14
-theme.border_marked = theme.nord15
+theme.border_normal = theme.catppuccin4
+theme.border_focus  = theme.catppuccin14
+theme.border_marked = theme.catppuccin15
 -- }}}
 
 -- {{{ Titlebars
-theme.titlebar_fg_normal = theme.nord2
-theme.titlebar_bg_normal = theme.nord4
-theme.titlebar_fg_focus = theme.nord1
-theme.titlebar_bg_focus = theme.nord14
+theme.titlebar_fg_normal = theme.catppuccin2
+theme.titlebar_bg_normal = theme.catppuccin0
+theme.titlebar_fg_focus = theme.catppuccin1
+theme.titlebar_bg_focus = theme.catppuccin14
 -- }}}
 
 -- There are other variable sets
@@ -76,10 +70,10 @@ theme.titlebar_bg_focus = theme.nord14
 -- Example:
 --theme.taglist_bg_focus = "#CC9393"
 -- }}}
-theme.tasklist_fg_focus = theme.nord1
-theme.tasklist_bg_focus = theme.nord14
-theme.tasklist_fg_normal = theme.nord2
-theme.tasklist_bg_normal = theme.nord7
+theme.tasklist_fg_focus = theme.catppuccin1
+theme.tasklist_bg_focus = theme.catppuccin14
+theme.tasklist_fg_normal = theme.catppuccin2
+theme.tasklist_bg_normal = theme.catppuccin7
 theme.tasklist_icon_size = dpi(1)
 theme.tasklist_plain_task_name = true
 theme.tasklist_shape = function(cr, w, h)
@@ -98,7 +92,7 @@ theme.tasklist_spacing = dpi(2)
 -- }}}
 
 -- {{{ Mouse finder
-theme.mouse_finder_color = theme.nord12
+theme.mouse_finder_color = theme.catppuccin12
 -- mouse_finder_[timeout|animate_timeout|radius|factor]
 -- }}}
 
@@ -113,18 +107,18 @@ theme.menu_width  = dpi(100)
 -- {{{ Icons
 -- {{{ Taglist
 theme.taglist_spacing = dpi(2)
-theme.taglist_fg_empty = theme.nord5
-theme.taglist_bg_empty = theme.nord4
-theme.taglist_fg_occupied = theme.nord1
-theme.taglist_bg_occupied = theme.nord7
-theme.taglist_fg_focus = theme.nord0
-theme.taglist_bg_focus = theme.nord14
+theme.taglist_fg_empty = theme.catppuccin5
+theme.taglist_bg_empty = theme.catppuccin0
+theme.taglist_fg_occupied = theme.catppuccin1
+theme.taglist_bg_occupied = theme.catppuccin7
+theme.taglist_fg_focus = theme.catppuccin4
+theme.taglist_bg_focus = theme.catppuccin14
 -- local taglist_square_size = dpi(4)
 -- theme.taglist_squares_sel = theme_assets.taglist_squares_sel(
---     taglist_square_size, theme.nord0
+--     taglist_square_size, theme.catppuccin0
 -- )
 -- theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
---     taglist_square_size, theme.nord4
+--     taglist_square_size, theme.catppuccin4
 -- )
 theme.taglist_shape = function(cr, w, h)
     return gears.shape.rounded_rect(cr, w, h, theme.border_radius)
@@ -134,7 +128,7 @@ end
 -- }}}
 
 -- {{{ Misc
-theme.nord_icon           = themes_path .. "catppuccin/nord-icon.png"
+theme.catppuccin_icon           = themes_path .. "catppuccin/catppuccin-icon.png"
 theme.menu_submenu_icon      = themes_path .. "default/submenu.png"
 -- }}}
 
