@@ -4,7 +4,7 @@ alias cat="batcat --theme 'Catppuccin Frappe'"
 alias cd="z"
 alias du="dust"
 alias grep="rg"
-alias ls="eza --hyperlink --color=auto --icons"
+alias ls="eza --hyperlink --color=auto --icons=auto"
 alias G="lazygit"
 
 alias neorg="nvim ~/Dropbox/neorg/index.norg"
