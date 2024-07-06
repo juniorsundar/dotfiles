@@ -12,6 +12,7 @@
 set $mod Mod4
 
 exec_always killall polybar
+exec_always killall i3bar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 
 # Font for window titles. Will also be used by the bar unless a different font
