@@ -3,7 +3,7 @@ x = 5
 y = 5
 
 [font]
-size = 8
+size = 11
 
 [font.bold]
 family = "Fira Code"
