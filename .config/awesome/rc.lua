@@ -62,7 +62,8 @@ beautiful.init("~/.config/awesome/themes/catppuccin/theme.lua")
 beautiful.useless_gap = 5
 
 -- This is used later as the default terminal and editor to run.
-terminal = "wezterm"
+-- terminal = "wezterm"
+terminal = "kitty"
 editor = os.getenv("EDITOR") or "nvim"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -319,7 +320,8 @@ root.buttons(gears.table.join(
 -- {{{ Key bindings
 globalkeys = gears.table.join(
     -- Custom Keybinds
-    awful.key({ modkey, "Shift" }, "Return", function() awful.spawn.with_shell("wezterm start -- bash -c 'tmux-fzf-session'") end, { description = "open a tmux session", group = "launcher" }),
+    -- awful.key({ modkey, "Shift" }, "Return", function() awful.spawn.with_shell("wezterm start -- bash -c 'tmux-fzf-session'") end, { description = "open a tmux session", group = "launcher" }),
+    awful.key({ modkey, "Shift" }, "Return", function() awful.spawn.with_shell("kitty tmux-fzf-session") end, { description = "open a tmux session", group = "launcher" }),
 
     awful.key({ modkey }, ";", function() brightness_widget:inc() end, { description = "increase brightness", group = "custom" }),
     awful.key({ modkey, "Shift" }, ";", function() brightness_widget:dec() end, { description = "decrease brightness", group = "custom" }),
