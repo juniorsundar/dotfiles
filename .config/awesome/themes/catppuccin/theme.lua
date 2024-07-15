@@ -14,7 +14,8 @@ theme.wallpaper = themes_path .. "catppuccin/catppuccin-background3.png"
 -- }}}
 
 -- {{{ Styles
-theme.font      = "FiraCode Nerd Font 9"
+-- theme.font      = "FiraCode Nerd Font 9"
+theme.font      = "JetBrainsMono NFM 9"
 theme.border_radius = dpi(5)
 
 -- catppuccin COLORS
