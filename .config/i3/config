@@ -14,6 +14,8 @@ set $mod Mod4
 exec_always killall polybar
 exec_always killall i3bar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
+exec_always --no-startup-id nitrogen --restore
+exec_always --no-startup-id dunst &
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -71,6 +73,7 @@ bindsym $mod+Shift+c kill
 
 # start dmenu (a program launcher)
 bindsym $mod+r exec "rofi -show drun"
+bindsym $mod+p exec "rofi -show window"
 # A more modern dmenu replacement is rofi:
 # bindcode $mod+40 exec "rofi -modi drun,run -show drun"
 # There also is i3-dmenu-desktop which only displays applications shipping a
