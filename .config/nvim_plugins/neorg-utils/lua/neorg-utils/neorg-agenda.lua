@@ -64,15 +64,18 @@ function M.neorg_agenda()
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, buffer_lines)
 
     -- Open the buffer in a new split window
-    vim.cmd("e")
-    vim.api.nvim_win_set_buf(0, buf)
+    vim.cmd("tabnew")
+    local win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(win, buf)
 
     vim.api.nvim_set_option_value("filetype", "norg", { buf = buf })
     vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
     vim.api.nvim_set_option_value("readonly", true, { buf = buf })
-    vim.api.nvim_set_option_value("wrap", false, { win = 0 })
-    vim.api.nvim_set_option_value("conceallevel", 2, { win = 0 })
-    vim.api.nvim_set_option_value("foldlevel", 999, { win = 0 })
+    vim.api.nvim_set_option_value("wrap", false, { win = win })
+    vim.api.nvim_set_option_value("conceallevel", 2, { win = win })
+    vim.api.nvim_set_option_value("foldlevel", 999, { win = win })
+
+    vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':tabclose<CR>', { noremap = true, silent = true })
 
     -- Optional: Set filetype to norg for syntax highlighting (if available)
     -- vim.api.nvim_buf_set_option(buf, "filetype", "norg")

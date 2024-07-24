@@ -19,18 +19,35 @@ function M.extract_metadata(norg_address)
 
     -- Parse metadata block into a table
     local metadata = {}
+    local in_categories = false
+    local categories = {}
+
     for line in metadata_block:gmatch("[^\r\n]+") do
-        local key, value = line:match("^%s*(%w+):%s*(.-)%s*$")
-        if key and value then
-            if value:match("^%[.-%]$") then
-                -- Handle array values (categories)
-                local array_values = {}
-                for item in value:gmatch("%[(.-)%]") do
-                    table.insert(array_values, item)
-                end
-                metadata[key] = array_values
+        if in_categories then
+            if line:match("%]") then
+                in_categories = false
+                metadata["categories"] = categories
+                categories = {}
             else
-                metadata[key] = value
+                table.insert(categories, line:match("%s*(.-)%s*$"))
+            end
+        else
+            local key, value = line:match("^%s*(%w+):%s*(.-)%s*$")
+            if key and value then
+                if key == "categories" then
+                    in_categories = true
+                    local initial_values = value:match("%[(.-)%]")
+                    if initial_values then
+                        for item in initial_values:gmatch("[^,%s]+") do
+                            table.insert(categories, item)
+                        end
+                        in_categories = false
+                        metadata["categories"] = categories
+                        categories = {}
+                    end
+                else
+                    metadata[key] = value
+                end
             end
         end
     end
