@@ -62,8 +62,8 @@ gaps inner 10px
 # gaps outer 5px
 
 # start a terminal
-bindsym $mod+Return exec kitty
-bindsym $mod+Shift+Return exec kitty tmux-fzf-session
+bindsym $mod+Return exec wezterm
+bindsym $mod+Shift+Return exec wezterm tmux-fzf-session
 # bindsym $mod+Return exec wezterm
 # bindsym $mod+Shift+Return exec wezterm start tmux-fzf-session
 
