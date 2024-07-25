@@ -12,7 +12,6 @@
 set $mod Mod4
 
 exec_always killall polybar
-exec_always killall i3bar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 exec_always --no-startup-id nitrogen --restore
 exec_always --no-startup-id dunst &
@@ -283,4 +282,6 @@ bar {
     binding_mode       $base $base $surface1
   }
 }
+
+exec_always killall i3bar
 
