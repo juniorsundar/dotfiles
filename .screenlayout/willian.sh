@@ -4,5 +4,4 @@ xrandr --output eDP-1 --primary --mode 1920x1200 --pos 1760x1743 --rotate normal
 sleep 2
 
 setxkbmap -layout us -option grp:shifts_toggle
-
 nitrogen --restore
