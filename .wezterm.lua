@@ -29,12 +29,12 @@ config.hide_tab_bar_if_only_one_tab = true
 -- Disable font ligatures
 -- config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 
--- config.window_padding = {
+config.window_padding = {
 -- 	left = 2.5,
 -- 	right = 2.5,
--- 	top = 2.5,
--- 	bottom = 2.5,
--- }
+	top = 3,
+	bottom = 3,
+}
 
 config.keys = {
 	{
