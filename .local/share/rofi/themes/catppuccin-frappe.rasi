@@ -9,7 +9,7 @@
     grey: #737994;
 
     width: 600;
-    font: "Iosevka NF 16";
+    font: "JetBrainsMono NFM 14";
 }
 
 element-text, element-icon , mode-switcher {
