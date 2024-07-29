@@ -15,9 +15,9 @@ end
 
 -- For example, changing the color scheme:
 config.font = wezterm.font_with_fallback({
-    -- { family = "JetBrains Mono", weight = "Regular" },
+    { family = "JetBrains Mono", weight = "Regular" },
     -- { family = "ZedMono NF", weight = "Regular" },
-    { family = "Iosevka", weight = "Regular" },
+    -- { family = "Iosevka", weight = "Regular" },
     { family = "Symbols Nerd Font", weight = "Regular" },
 })
 config.font_size = 13
