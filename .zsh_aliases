@@ -1,6 +1,6 @@
 # Common
-alias fd="fdfind"
-alias cat="batcat --theme 'Catppuccin Frappe'"
+# alias fd="fdfind"
+alias cat="bat --theme 'Catppuccin Frappe'"
 alias cd="z"
 alias du="dust"
 alias grep="rg"

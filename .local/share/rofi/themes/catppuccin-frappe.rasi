@@ -1,12 +1,12 @@
 * {
-    bg-col:  #292c3c;
-    bg-col-light: #292c3c;
-    border-col: #292c3c;
-    selected-col: #292c3c;
-    blue: #8caaee;
-    fg-col: #c6d0f5;
-    fg-col2: #e78284;
-    grey: #737994;
+    bg-col:  #1e2124;
+    bg-col-light: #1e2124;
+    border-col: #1e2124;
+    selected-col: #1e2124;
+    blue: #5ea1ff;
+    fg-col: #ffffff;
+    fg-col2: #ff6e5e;
+    grey: #474a55;
 
     width: 600;
     font: "JetBrainsMono NF 14";

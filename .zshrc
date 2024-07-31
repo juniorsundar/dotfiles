@@ -127,34 +127,18 @@ export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
 
 # Catppuccin theme for FZF
 export FZF_DEFAULT_OPTS=" \
---color=bg+:#414559,bg:#303446,spinner:#f2d5cf,hl:#e78284 \
---color=fg:#c6d0f5,header:#e78284,info:#ca9ee6,pointer:#f2d5cf \
---color=marker:#f2d5cf,fg+:#c6d0f5,prompt:#ca9ee6,hl+:#e78284"
+--color=bg+:#26282e,bg:#16181a,spinner:#ffd1dc,hl:#ff6e5e \
+--color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
+--color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # >>> juliaup initialize >>>
 
 # !! Contents within this block are managed by juliaup !!
 
-path=('/home/juniorsundar/.juliaup/bin' $path)
-export PATH
+# path=('/home/juniorsundar/.juliaup/bin' $path)
+# export PATH
 
 # <<< juliaup initialize <<<
 
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share 
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/juniorsundar/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/juniorsundar/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/juniorsundar/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/juniorsundar/anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-

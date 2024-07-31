@@ -234,32 +234,60 @@ bar {
 }
 
 # Theme Catppuccin Frappe
-set $rosewater #f2d5cf
-set $flamingo #eebebe
-set $pink #f4b8e4
-set $mauve #ca9ee6
-set $red #e78284
-set $maroon #ea999c
-set $peach #ef9f76
-set $yellow #e5c890
-set $green #a6d189
-set $teal #81c8be
-set $sky #99d1db
-set $sapphire #85c1dc
-set $blue #8caaee
-set $lavender #babbf1
-set $text #c6d0f5
-set $subtext1 #b5bfe2
-set $subtext0 #a5adce
-set $overlay2 #949cbb
-set $overlay1 #838ba7
-set $overlay0 #737994
-set $surface2 #626880
-set $surface1 #51576d
-set $surface0 #414559
-set $base #303446
-set $mantle #292c3c
-set $crust #232634
+# set $rosewater #f2d5cf
+# set $flamingo #eebebe
+# set $pink #f4b8e4
+# set $mauve #ca9ee6
+# set $red #e78284
+# set $maroon #ea999c
+# set $peach #ef9f76
+# set $yellow #e5c890
+# set $green #a6d189
+# set $teal #81c8be
+# set $sky #99d1db
+# set $sapphire #85c1dc
+# set $blue #8caaee
+# set $lavender #babbf1
+# set $text #c6d0f5
+# set $subtext1 #b5bfe2
+# set $subtext0 #a5adce
+# set $overlay2 #949cbb
+# set $overlay1 #838ba7
+# set $overlay0 #737994
+# set $surface2 #626880
+# set $surface1 #51576d
+# set $surface0 #414559
+# set $base #303446
+# set $mantle #292c3c
+# set $crust #232634
+
+set $rosewater  #ffd1dc
+set $flamingo  #ff9f9f
+set $pink  #ff5ea0
+set $mauve  #bd5eff
+set $red  #ff6e5e
+set $maroon  #d96666
+set $peach  #ffbd5e
+set $yellow  #f1ff5e
+set $green  #5eff6c
+set $teal  #64d8cb
+set $sky  #5ef1ff
+set $sapphire  #4a90e2
+set $blue  #5ea1ff
+set $lavender  #ff5ef1
+set $text  #ffffff
+set $subtext1  #a0a4b8
+set $subtext0  #8a8e99
+set $overlay2  #6e7280
+set $overlay1  #5a5e6b
+set $overlay0  #474a55
+set $surface2  #363940
+set $surface1  #2e3138
+set $surface0  #26282e
+set $base  #16181a
+set $mantle  #1e2124
+set $crust  #3c4048
+
 
 # target                 title     bg    text   indicator  border
 client.focused           $lavender $base $text  $rosewater $lavender
