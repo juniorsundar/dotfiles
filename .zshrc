@@ -16,7 +16,6 @@ if [ ! -d "$OMZ_HOME" ]; then
    git clone https://github.com/Aloxaf/fzf-tab $OMZ_CP_DIR/fzf-tab
    git clone https://github.com/zsh-users/zsh-autosuggestions $OMZ_CP_DIR/zsh-autosuggestions
    git clone https://github.com/zdharma-continuum/fast-syntax-highlighting $OMZ_CP_DIR/fast-syntax-highlighting
-   git clone https://github.com/esc/conda-zsh-completion $OMZ_CP_DIR/conda-zsh-completion
 
    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $OMZ_CT_DIR/powerlevel10k
 fi
@@ -31,7 +30,6 @@ plugins=(
     sudo
     tmux
     kitty
-    conda-zsh-completion
 )
 
 # Themes
@@ -78,23 +76,14 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
 # Sourcing ROS 2
-# source /opt/ros/humble/setup.zsh
-# eval "$(register-python-argcomplete3 ros2)"
-# eval "$(register-python-argcomplete3 colcon)"
-# export CC=clang
-# export CXX=clang++
-# export CLANG_BASE="--build-base build_clang --install-base install_clang"
-# export BUILD_ARGS="--symlink-install ${CLANG_BASE} --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
-# alias cb="colcon build ${BUILD_ARGS}"
-# add-compile-commands() {
-#     dest_dir=$(find src -name "${1}" -type d -print -quit)
-#     if [ -z ${dest_dir} ]; then
-#         echo "Failed to find destination directory"
-#         return 1
-#     fi 
-#     ln -s ${PWD}/build_clang/${1}/compile_commands.json ${dest_dir}/compile_commands.json
-# }
-# alias add_compile_commands="add-compile-commands"
+source /opt/ros/humble/setup.zsh
+eval "$(register-python-argcomplete3 ros2)"
+eval "$(register-python-argcomplete3 colcon)"
+export CC=clang
+export CXX=clang++
+export CLANG_BASE="--build-base build_clang --install-base install_clang"
+export BUILD_ARGS="--symlink-install ${CLANG_BASE} --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+alias cb="colcon build ${BUILD_ARGS}"
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
