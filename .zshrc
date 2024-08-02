@@ -1,6 +1,6 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
+# # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# # Initialization code that may require console input (password prompts, [y/n]
+# # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -29,7 +29,6 @@ plugins=(
     git
     sudo
     tmux
-    kitty
 )
 
 # Themes
@@ -48,7 +47,21 @@ fpath=($HOME/.zsh_completions $fpath)
 export PATH=$HOME/bin:/sbin:/usr/local/bin:$HOME/.local/bin:$PATH
 
 # Load completions
-autoload -Uz compinit && compinit
+autoload -Uz compinit
+zstyle ':completion:*' lazy true
+
+_lazy_compinit() {
+  compinit
+  zmodload -i zsh/complist
+}
+
+# Hook to initialize compinit when completion is first attempted
+zle -N _lazy_compinit
+zle -N expand-or-complete _lazy_compinit
+zle -N complete-word _lazy_compinit
+zle -N list-choices _lazy_compinit
+zle -N menu-select _lazy_compinit
+zle -N delete-char-or-list _lazy_compinit
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -76,9 +89,18 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
 # Sourcing ROS 2
-source /opt/ros/humble/setup.zsh
-eval "$(register-python-argcomplete3 ros2)"
-eval "$(register-python-argcomplete3 colcon)"
+## There is a lot of hover head here
+## So we are Lazy-loading ROS setup
+## You are sacrificing autocomplete at first use for speed
+_lazy_load_ros() {
+  source /opt/ros/humble/setup.zsh
+  eval "$(register-python-argcomplete3 ros2)"
+  eval "$(register-python-argcomplete3 colcon)"
+  unfunction _lazy_load_ros
+}
+alias ros2='_lazy_load_ros && ros2'
+alias colcon='_lazy_load_ros && colcon'
+
 export CC=clang
 export CXX=clang++
 export CLANG_BASE="--build-base build_clang --install-base install_clang"
@@ -106,9 +128,15 @@ export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
 export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
 
 # NVM and Node
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+_lazy_load_nvm() {
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  unfunction _lazy_load_nvm
+}
+alias node='_lazy_load_nvm && node'
+alias npm='_lazy_load_nvm && npm'
+alias nvm='_lazy_load_nvm && nvm'
 
 export MANPATH="/usr/local/man:$MANPATH"
 
@@ -120,14 +148,5 @@ export FZF_DEFAULT_OPTS=" \
 --color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
 --color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# >>> juliaup initialize >>>
-
-# !! Contents within this block are managed by juliaup !!
-
-# path=('/home/juniorsundar/.juliaup/bin' $path)
-# export PATH
-
-# <<< juliaup initialize <<<
 
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share 
