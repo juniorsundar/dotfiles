@@ -17,7 +17,6 @@ function M.extract_file_metadata(norg_address)
         return nil
     end
 
-    print(vim.inspect(M.decode_metadata("@document.meta\nstarted:\ndeadline: 2024-08-07 12:30\n@end")))
     return M.decode_metadata(metadata_block)
 end
 
