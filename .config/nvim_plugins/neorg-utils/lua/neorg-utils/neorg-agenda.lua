@@ -45,7 +45,7 @@ function M.neorg_agenda()
             if current_file then
                 table.insert(buffer_lines, "") -- Add a blank line between different files
             end
-            local file_metadata = utils.extract_metadata(entry.filename)
+            local file_metadata = utils.extract_file_metadata(entry.filename)
             if file_metadata then
                 table.insert(buffer_lines, "===")
                 table.insert(buffer_lines, "")

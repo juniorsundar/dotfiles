@@ -22,7 +22,7 @@ function M.neorg_node_injector()
     local title_path_pairs = {}
     for _, line in pairs(norg_files_output) do
         local full_path = base_directory .. "/" .. line
-        local metadata = utils.extract_metadata(full_path)
+        local metadata = utils.extract_file_metadata(full_path)
         if metadata ~= nil then
             table.insert(title_path_pairs, { metadata["title"], full_path })
         else
@@ -119,7 +119,7 @@ function M.neorg_block_injector()
         local file = line:match("^[^:]+")
         local lineno = line:match("^[^:]+:([^:]+):")
         local text = line:match("[^:]+$")
-        local metadata = utils.extract_metadata(file)
+        local metadata = utils.extract_file_metadata(file)
         if metadata ~= nil then
             table.insert(matches, { file, lineno, text, metadata["title"] })
         else
@@ -242,11 +242,11 @@ function M.show_backlinks()
 
     -- Split the results by lines
     local matches = {}
-    local self_title = utils.extract_metadata(current_file_path)["title"]
+    local self_title = utils.extract_file_metadata(current_file_path)["title"]
     for line in rg_results:gmatch("([^\n]+)") do
         -- table.insert(lines, line)
         local file, lineno = line:match("^(.-):(%d+):")
-        local metadata = utils.extract_metadata(file)
+        local metadata = utils.extract_file_metadata(file)
         if metadata == nil then
             table.insert(matches, { file, lineno, "Untitled" })
         elseif metadata["title"] ~= self_title then

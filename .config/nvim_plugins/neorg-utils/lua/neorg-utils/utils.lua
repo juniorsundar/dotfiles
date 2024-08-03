@@ -1,6 +1,6 @@
 local M = {}
 
-function M.extract_metadata(norg_address)
+function M.extract_file_metadata(norg_address)
     -- Read the entire file content
     local file = io.open(norg_address, "r")
     if not file then
@@ -17,6 +17,11 @@ function M.extract_metadata(norg_address)
         return nil
     end
 
+    print(vim.inspect(M.decode_metadata("@document.meta\nstarted:\ndeadline: 2024-08-07 12:30\n@end")))
+    return M.decode_metadata(metadata_block)
+end
+
+function M.decode_metadata(metadata_block)
     -- Parse metadata block into a table
     local metadata = {}
     local in_categories = false
@@ -51,7 +56,6 @@ function M.extract_metadata(norg_address)
             end
         end
     end
-
     return metadata
 end
 
