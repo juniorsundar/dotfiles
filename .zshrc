@@ -95,15 +95,15 @@ zstyle ':fzf-tab:*' switch-group '<' '>'
 _lazy_load_ros() {
   source /opt/ros/humble/setup.zsh
   eval "$(register-python-argcomplete3 ros2)"
-  eval "$(register-python-argcomplete3 colcon)"
-  unfunction _lazy_load_ros
+  # unfunction _lazy_load_ros
 }
 alias ros2='_lazy_load_ros && ros2'
-alias colcon='_lazy_load_ros && colcon'
+
+eval "$(register-python-argcomplete3 colcon)"
 
 export CC=clang
 export CXX=clang++
-export CLANG_BASE="--build-base build_clang --install-base install_clang"
+export CLANG_BASE="--build-base build --install-base install"
 export BUILD_ARGS="--symlink-install ${CLANG_BASE} --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 alias cb="colcon build ${BUILD_ARGS}"
 
