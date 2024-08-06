@@ -152,7 +152,7 @@ function M.neorg_block_injector()
             }),
             previewer = conf.grep_previewer(opts),
             sorter = conf.file_sorter(opts),
-            layout_strategy = "bottom_pane",
+            layout_strategy = "vertical",
             attach_mappings = function(prompt_bufnr, map)
                 map('i', '<C-i>', function()
                     local entry = state.get_selected_entry()

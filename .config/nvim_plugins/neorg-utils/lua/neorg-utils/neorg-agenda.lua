@@ -33,7 +33,7 @@ local function create_agenda_buffer(quickfix_list)
             end
             current_file = entry.filename
         end
-        table.insert(buffer_lines, entry.text)
+        table.insert(buffer_lines, entry.task)
     end
 
     -- Set the buffer lines
@@ -80,10 +80,10 @@ end
 
 -- Function to check if the line after the given line contains '@data agenda'
 -- and extract lines until '@end'
-local function check_and_extract_data(filename, line_number)
+local function extract_agenda_data(filename, line_number)
     local file = io.open(filename, "r")
     if not file then
-        print("Error opening file: " .. filename)
+        vim.notify("Error opening file: " .. filename, vim.log.levels.ERROR)
         return nil
     end
 
@@ -104,12 +104,37 @@ local function check_and_extract_data(filename, line_number)
     end
 end
 
-function M.neorg_agenda()
-    -- rg '\* \(\s*(-?)\s*\)' --glob '*.norg'
+function M.neorg_agenda(input_list)
+    local agenda_states = {
+        { "done",      "x" },
+        { "cancelled", "_" },
+        { "pending",   "-" },
+        { "hold",      "=" },
+        { "undone",    " " },
+        { "important", "!" },
+        { "recurring", "+" },
+        { "ambiguous", "?" }
+    }
+    local filtered_states = {}
+    -- Filter out entries from agenda_states that exist in input_list
+    for _, state in ipairs(agenda_states) do
+        local found = false
+        for _, input in ipairs(input_list) do
+            if state[1] == input then
+                found = true
+                break
+            end
+        end
+        if not found then
+            table.insert(filtered_states, state)
+        end
+    end
+
     local current_workspace = neorg.modules.get_module("core.dirman").get_current_workspace()
     local base_directory = current_workspace[2]
 
-    local rg_command = [[rg '\* \(\s*(-?)\s*\)' --glob '*.norg' --line-number ]] .. base_directory
+    -- local rg_command = [[rg '\* \(\s*(-?)\s*\)' --glob '*.norg' --line-number ]] .. base_directory
+    local rg_command = [[rg '\* \(\s*(-?)\s*x*\?*!*_*\+*=*\)' --glob '*.norg' --line-number ]] .. base_directory
     local rg_results = vim.fn.system(rg_command)
 
     local lines = {}
@@ -121,28 +146,60 @@ function M.neorg_agenda()
 
     for _, line in ipairs(lines) do
         local file, lnum, text = line:match("([^:]+):(%d+):(.*)")
+        local task_state = text:match("%((.)%)")
+        local found = false
+        for _, state in ipairs(filtered_states) do
+            if state[2] == task_state then
+                found = true
+                break
+            end
+        end
+        if found then
+            goto continue
+        end
         if file and lnum and text then
             table.insert(quickfix_list, {
                 filename = file,
                 lnum = tonumber(lnum),
-                text = text,
+                task = text,
             })
+        end
+        ::continue::
+    end
+
+    for _, qf_value in ipairs(quickfix_list) do
+        local agenda_data = extract_agenda_data(qf_value.filename, qf_value.lnum)
+        if agenda_data then
+            for _, entry in ipairs(agenda_data) do
+                for line in string.gmatch(entry, "[^\r\n]+") do
+                    local key, value = line:match("^%s*([^:]+):%s*(.*)")
+                    if key == "started" or key == "completed" or key == "deadline" then
+                        local date, time = value:match("([^|]+)|([^|]+)")
+                        qf_value[key] = { date = date, time = time }
+                    else
+                        qf_value[key] = value
+                    end
+                end
+            end
         end
     end
     -- print(vim.inspect(quickfix_list))
-    for _, qf_value in ipairs(quickfix_list) do
-        local agenda_data = check_and_extract_data(qf_value.filename, qf_value.lnum)
-        if agenda_data then
-            print("Agenda data found:")
-            for _, line in ipairs(agenda_data) do
-                print(line)
-            end
-        else
-            print("No agenda data found.")
-        end
-    end
-
     create_agenda_buffer(quickfix_list)
 end
+
+vim.api.nvim_create_user_command(
+    'NeorgUtils',
+    function(opts)
+        -- Split the input into a list of strings
+        local input_list = vim.split(opts.args, ' ')
+        if input_list[1] == "Agenda" then
+            local _ = table.remove(input_list, 1)
+            M.neorg_agenda(input_list)
+        else
+            vim.notify("WRONG!", vim.log.levels.ERROR)
+        end
+    end,
+    { nargs = '+' } -- Allow one or more arguments
+)
 
 return M

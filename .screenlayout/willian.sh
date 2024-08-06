@@ -4,5 +4,7 @@ xrandr --output eDP-1 --primary --mode 1920x1200 --pos 1760x2000 --rotate normal
 sleep 2
 
 killall i3bar
+killall polybar
 setxkbmap -layout us -option grp:shifts_toggle
 nitrogen --restore
+bash ~/.config/polybar/launch_polybar.sh
