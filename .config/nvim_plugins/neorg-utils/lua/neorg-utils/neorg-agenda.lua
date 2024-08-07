@@ -23,11 +23,11 @@ local function create_agenda_buffer(quickfix_list)
             end
             local file_metadata = utils.extract_file_metadata(entry.filename)
             if file_metadata then
-                table.insert(buffer_lines, "===")
+                table.insert(buffer_lines, "___")
                 table.insert(buffer_lines, "")
                 table.insert(buffer_lines, "{:" .. entry.filename .. ":}[" .. file_metadata.title .. "]") -- Add the filename as a header
             else
-                table.insert(buffer_lines, "===")
+                table.insert(buffer_lines, "___")
                 table.insert(buffer_lines, "")
                 table.insert(buffer_lines, "{:" .. entry.filename .. ":}") -- Add the filename as a header
             end
@@ -35,6 +35,8 @@ local function create_agenda_buffer(quickfix_list)
         end
         table.insert(buffer_lines, entry.task)
     end
+    table.insert(buffer_lines, "")
+    table.insert(buffer_lines, "___")
 
     -- Set the buffer lines
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, buffer_lines)
