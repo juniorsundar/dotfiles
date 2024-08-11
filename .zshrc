@@ -16,6 +16,7 @@ if [ ! -d "$OMZ_HOME" ]; then
    git clone https://github.com/Aloxaf/fzf-tab $OMZ_CP_DIR/fzf-tab
    git clone https://github.com/zsh-users/zsh-autosuggestions $OMZ_CP_DIR/zsh-autosuggestions
    git clone https://github.com/zdharma-continuum/fast-syntax-highlighting $OMZ_CP_DIR/fast-syntax-highlighting
+   git clone https://github.com/zsh-users/zsh-completions $OMZ_CP_DIR/zsh-completions
 
    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $OMZ_CT_DIR/powerlevel10k
 fi
@@ -34,6 +35,7 @@ plugins=(
 # Themes
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
+fpath+=$OMZ_CP_DIR/zsh-completions/src
 source $ZSH/oh-my-zsh.sh
 
 # Aliases
@@ -147,6 +149,6 @@ export FZF_DEFAULT_OPTS=" \
 --color=bg+:#26282e,bg:#16181a,spinner:#ffd1dc,hl:#ff6e5e \
 --color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
 --color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e"
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share 
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
