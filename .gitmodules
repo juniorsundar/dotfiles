@@ -10,6 +10,6 @@
 	path = .config/nvim
 	url = git@github.com:juniorsundar/nvim.git
     branch = main
-[submodule ".config/nvim_plugins/neorg_utils"]
-	path = .config/nvim_plugins/neorg_utils
-	url = https://github.com/juniorsundar/neorg_utils.git
+[submodule ".config/nvim_plugins/neorg_extras"]
+	path = .config/nvim_plugins/neorg_extras
+	url = https://github.com/juniorsundar/neorg_extras.git
