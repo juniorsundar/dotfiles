@@ -99,9 +99,8 @@ _lazy_load_ros() {
   eval "$(register-python-argcomplete3 ros2)"
   # unfunction _lazy_load_ros
 }
-alias ros2='_lazy_load_ros && ros2'
-
-eval "$(register-python-argcomplete3 colcon)"
+# alias ros2='_lazy_load_ros && ros2'
+# eval "$(register-python-argcomplete3 colcon)"
 
 export CC=clang
 export CXX=clang++

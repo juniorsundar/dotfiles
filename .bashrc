@@ -75,7 +75,7 @@ esac
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
+    alias ls='eza --color=auto --hyperlink=true'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
 
@@ -139,6 +139,7 @@ esac
 
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
 alias px4_sim="docker run -it --privileged --rm -v ${FIRMWARE_DIR}:/Firmware:rw -v /tmp/.X11-unix:/tmp/.X11-unix:ro -e DISPLAY=${DISPLAY} -e LOCAL_USER_ID=1000 -w /Firmware --network=host --name=px4_sim px4io/px4-dev-simulation-jammy /bin/bash"
 alias ssr_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=$(id -u) --env GID=$(id -g) -v /home/juniorsundar-unikie/ros_workspaces/caltech-docker:/ros_workspace:rw -w /ros_workspace ssr_ros_ws'
 alias slam_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=$(id -u) --env GID=$(id -g) -v /home/juniorsundar-unikie/ros_workspaces/caltech:/ros_workspace:rw -w /ros_workspace slam_ros_ws'
