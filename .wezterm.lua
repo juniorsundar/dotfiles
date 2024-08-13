@@ -50,7 +50,7 @@ config.hide_tab_bar_if_only_one_tab = true
 -- config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 -- Spawn a fish shell in login mode
 
-config.default_prog = { '/usr/bin/fish', '-l' }
+config.default_prog = { '/usr/bin/fish'}
 config.window_padding = {
     -- 	left = 2.5,
     -- 	right = 2.5,
