@@ -151,4 +151,5 @@ export FZF_DEFAULT_OPTS=" \
 --color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e"
 
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share 
+
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
