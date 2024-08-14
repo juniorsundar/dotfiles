@@ -75,11 +75,11 @@ esac
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='eza --color=auto --hyperlink=true'
+    alias ls='eza --color=auto --hyperlink'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
 
-    alias grep='grep --color=auto'
+    alias grep='rg --color=auto'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
 fi
@@ -91,6 +91,7 @@ fi
 alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
+alias cd='z'
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
@@ -144,5 +145,7 @@ alias ssr_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=
 alias slam_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=$(id -u) --env GID=$(id -g) -v /home/juniorsundar-unikie/ros_workspaces/caltech:/ros_workspace:rw -w /ros_workspace slam_ros_ws'
 
 eval $(starship init bash)
+
+eval "$(zoxide init bash)"
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
