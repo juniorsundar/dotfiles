@@ -2,6 +2,7 @@ if status is-interactive
     # Commands to run in interactive sessions can go here
 end
 
+fish_config theme choose cyberdream
 fish_add_path -g ~/bin /sbin /usr/local/bin ~/.local/bin /usr/local/go/bin ~/go/bin /usr/local/texlive/2023/bin/x86_64-linux
 set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
 
