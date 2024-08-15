@@ -144,7 +144,7 @@ alias px4_sim="docker run -it --privileged --rm -v ${FIRMWARE_DIR}:/Firmware:rw 
 alias ssr_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=$(id -u) --env GID=$(id -g) -v /home/juniorsundar-unikie/ros_workspaces/caltech-docker:/ros_workspace:rw -w /ros_workspace ssr_ros_ws'
 alias slam_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=$(id -u) --env GID=$(id -g) -v /home/juniorsundar-unikie/ros_workspaces/caltech:/ros_workspace:rw -w /ros_workspace slam_ros_ws'
 
-eval $(starship init bash)
+eval "$(starship init bash)"
 
 eval "$(zoxide init bash)"
 

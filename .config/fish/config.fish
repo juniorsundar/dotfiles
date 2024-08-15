@@ -8,7 +8,7 @@ set -U fish_user_paths $HOME/.cargo/bin $fish_user_paths
 set -gx EDITOR vim
 
 alias ls "eza --hyperlink --color=auto --icons=auto"
-alias cat "bat --theme 'Catppuccin Frappe'"
+alias cat "bat --theme='base16-256'"
  
 abbr --add du dust
 abbr --add grep rg
