@@ -1,15 +1,6 @@
-# Common
-# alias fd="fdfind"
-alias cat="bat --theme 'Catppuccin Frappe'"
-alias cd="z"
-alias du="dust"
-alias grep="rg"
-alias ls="eza --hyperlink --color=auto --icons=auto"
-alias G="lazygit"
-
 alias neorg="nvim ~/Dropbox/neorg/index.norg"
 
-alias nv="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"
+# alias nv="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"
 
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]
 then

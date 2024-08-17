@@ -1,0 +1,8 @@
+abbr "cat"="bat --plain --theme=base16-256"
+abbr "cd"="z"
+abbr "du"="dust"
+abbr "du"="dust"
+abbr "G"="lazygit"
+abbr "grep"="rg"
+abbr "ls"="eza --hyperlink --color=auto --icons=auto"
+abbr "nv"="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"

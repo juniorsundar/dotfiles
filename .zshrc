@@ -23,10 +23,11 @@ zinit ice depth"1"; zinit light romkatv/powerlevel10k
 zinit light zsh-users/zsh-autosuggestions
 zinit light zdharma-continuum/fast-syntax-highlighting
 zinit light zsh-users/zsh-completions
+zinit ice wait lucid; zinit light olets/zsh-abbr
 
 # Load git and tmux plugins from Oh-My-Zsh
-zinit snippet OMZP::git
-zinit snippet OMZP::tmux
+# zinit ice wait lucid; zinit snippet OMZP::git
+zinit ice wait lucid; zinit snippet OMZP::tmux
 zinit snippet OMZL::key-bindings.zsh
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
