@@ -20,6 +20,8 @@ abbr --add cd z
 abbr --add G lazygit
 abbr --add nv "fd --type f --hidden --exclude .git | fzf --layout=reverse | xargs nvim"
 
+alias dronsole-sh='docker run --rm -it -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest'
+alias dronsole='docker run --rm -it -p 3000:3000 -p 8888:8888 -p 4280:4280 -p 4222:4222 -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest' 
 
 # Catppuccin theme for FZF
 export FZF_DEFAULT_OPTS=" \
