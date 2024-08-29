@@ -20,6 +20,7 @@ config.font = wezterm.font_with_fallback({
     -- { family = "Iosevka", weight = "Regular" },
     { family = "Symbols Nerd Font", weight = "Regular" },
 })
+
 config.font_size = 13
 
 config.colors = {
