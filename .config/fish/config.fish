@@ -28,6 +28,6 @@ export FZF_DEFAULT_OPTS=" \
 --color=bg+:#26282e,bg:#16181a,spinner:#ffd1dc,hl:#ff6e5e \
 --color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
 --color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e \
---layout=reverse --height=40% --preview='bat --style=numbers --color=always --line-range=:500 {}' --preview-window=right:60%:wrap --min-height=10"
+--layout=reverse --height=40% --preview='bat --style=numbers --color=always --theme=base16-256 --line-range=:500 {}' --preview-window=right:60%:wrap --min-height=10"
 
 zoxide init fish | source
