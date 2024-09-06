@@ -3,8 +3,6 @@ if status is-interactive
     eval (zellij setup --generate-auto-start fish | string collect)
 end
 
-
-# Configure Fish theme
 fish_config theme choose cyberdream
 
 # Add directories to PATH
