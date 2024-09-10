@@ -60,12 +60,15 @@ zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1a --color=always $realpath'
 zstyle ':fzf-tab:complete:eza:*' fzf-preview 'eza -1a --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
-# Sourcing ROS 2
+# Sourcing ROS 2 (lazy load)
 _lazy_load_ros() {
   source /opt/ros/humble/setup.zsh
   eval "$(register-python-argcomplete3 ros2)"
+  alias ros2='ros2'  # Ensure the alias persists after first run
+  ros2 "$@"         # Pass arguments to ros2 if the alias is used with arguments
 }
 
+alias ros2=_lazy_load_ros
 export CC=clang
 export CXX=clang++
 export CLANG_BASE="--build-base build --install-base install"

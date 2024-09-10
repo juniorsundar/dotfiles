@@ -33,6 +33,7 @@ abbr --add cd z
 abbr --add G lazygit
 abbr --add nv "fd --type f --hidden --exclude .git | fzf --layout=reverse | xargs nvim"
 abbr --add zls 'zellij attach "$(zellij list-sessions -n -s | fzf --prompt "Select Zellij Session: ")"'
+abbr --add tls 'tmux-fzf-session'
 
 # Aliases
 alias dronsole-sh='docker run --rm -it -v (pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest'

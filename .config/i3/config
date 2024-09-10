@@ -64,7 +64,7 @@ gaps inner 10px
 
 # start a terminal
 bindsym $mod+Return exec kitty
-bindsym $mod+Shift+Return exec kitty fish -c tmux new-session -As $session_name
+bindsym $mod+Shift+Return exec kitty zsh -c tmux new-session
 # bindsym $mod+Shift+Return exec kitty ~/.config/tmux/tmux-fzf-session.sh
 
 # kill focused window
