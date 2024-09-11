@@ -16,6 +16,7 @@ autoload -Uz compinit; compinit
 source "${ZINIT_HOME}/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
+unalias zi
 
 # Correctly specify repositories
 zinit light Aloxaf/fzf-tab
@@ -26,8 +27,9 @@ zinit light zsh-users/zsh-completions
 zinit ice wait lucid; zinit light olets/zsh-abbr
 
 # Load git and tmux plugins from Oh-My-Zsh
-# zinit ice wait lucid; zinit snippet OMZP::git
+zinit ice wait lucid; zinit snippet OMZP::git
 zinit ice wait lucid; zinit snippet OMZP::tmux
+zinit ice wait lucid; zinit snippet OMZP::nvm
 zinit snippet OMZL::key-bindings.zsh
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -89,17 +91,6 @@ source "$HOME/.cargo/env"
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
 export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
 export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
-
-# NVM and Node
-_lazy_load_nvm() {
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
-}
-
-alias node='_lazy_load_nvm && node'
-alias npm='_lazy_load_nvm && npm'
-alias nvm='_lazy_load_nvm && nvm'
 
 export MANPATH="/usr/local/man:$MANPATH"
 
