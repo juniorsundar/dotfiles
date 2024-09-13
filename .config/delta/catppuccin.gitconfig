@@ -92,21 +92,21 @@
 	# Should match the name of the bat theme
 	syntax-theme = "Catppuccin Macchiato"
 [delta "catppuccin-mocha"]
-	blame-palette = "#1e1e2e #181825 #11111b #313244 #45475a"
+	blame-palette = "#16181a #1e2124 #3c4048 #26282e #2e3138"
 	commit-decoration-style = "box ul"
 	dark = true
-	file-decoration-style = "#cdd6f4"
-	file-style = "#cdd6f4"
+	file-decoration-style = "#ffffff"
+	file-style = "#ffffff"
 	hunk-header-decoration-style = "box ul"
 	hunk-header-file-style = "bold"
-	hunk-header-line-number-style = "bold #a6adc8"
+	hunk-header-line-number-style = "bold #8a8e99"
 	hunk-header-style = "file line-number syntax"
 	line-numbers = true
-	line-numbers-left-style = "#6c7086"
-	line-numbers-minus-style = "bold #f38ba8"
-	line-numbers-plus-style = "bold #a6e3a1"
-	line-numbers-right-style = "#6c7086"
-	line-numbers-zero-style = "#6c7086"
+	line-numbers-left-style = "#474a55"
+	line-numbers-minus-style = "bold #ff6e5e"
+	line-numbers-plus-style = "bold #5eff6c"
+	line-numbers-right-style = "#474a55"
+	line-numbers-zero-style = "#474a55"
 	# 25% red 75% base
 	minus-emph-style = "bold syntax #53394c"
 	# 10% red 90% base
