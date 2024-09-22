@@ -96,7 +96,7 @@ export MANPATH="/usr/local/man:$MANPATH"
 
 export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
 
-# Catppuccin theme for FZF
+# Theme for FZF
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#26282e,bg:#16181a,spinner:#ffd1dc,hl:#ff6e5e \
 --color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
