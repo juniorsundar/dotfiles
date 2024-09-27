@@ -15,11 +15,27 @@ end
 
 -- For example, changing the color scheme:
 config.font = wezterm.font_with_fallback({
-    -- { family = "JetBrains Mono",    weight = "Regular" },
     { family = "Fira Code", weight = "Regular" },
-    -- { family = "Iosevka", weight = "Regular" },
     { family = "Symbols Nerd Font", weight = "Regular" },
 })
+
+config.font_rules = {
+  {
+    intensity = "Bold",
+    italic = true,
+    font = wezterm.font({ family = "Cascadia Code", weight = "Bold", style = "Italic" }),
+  },
+  {
+    italic = true,
+    intensity = "Half",
+    font = wezterm.font({ family = "Cascadia Code", weight = "DemiBold", style = "Italic" }),
+  },
+  {
+    italic = true,
+    intensity = "Normal",
+    font = wezterm.font({ family = "Cascadia Code", style = "Italic" }),
+  },
+}
 
 config.font_size = 13
 
