@@ -15,11 +15,27 @@ end
 
 -- For example, changing the color scheme:
 config.font = wezterm.font_with_fallback({
-    -- { family = "JetBrains Mono",    weight = "Regular" },
     { family = "Fira Code", weight = "Regular" },
-    -- { family = "Iosevka", weight = "Regular" },
     { family = "Symbols Nerd Font", weight = "Regular" },
 })
+
+config.font_rules = {
+  {
+    intensity = "Bold",
+    italic = true,
+    font = wezterm.font({ family = "Cascadia Code", weight = "Bold", style = "Italic" }),
+  },
+  {
+    italic = true,
+    intensity = "Half",
+    font = wezterm.font({ family = "Cascadia Code", weight = "DemiBold", style = "Italic" }),
+  },
+  {
+    italic = true,
+    intensity = "Normal",
+    font = wezterm.font({ family = "Cascadia Code", style = "Italic" }),
+  },
+}
 
 config.font_size = 13
 
@@ -51,7 +67,6 @@ config.hide_tab_bar_if_only_one_tab = true
 -- config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 -- Spawn a fish shell in login mode
 
-config.default_prog = { '/usr/bin/fish'}
 config.window_padding = {
     -- 	left = 2.5,
     -- 	right = 2.5,

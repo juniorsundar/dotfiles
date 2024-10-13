@@ -16,6 +16,7 @@ autoload -Uz compinit; compinit
 source "${ZINIT_HOME}/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
+unalias zi
 
 # Correctly specify repositories
 zinit light Aloxaf/fzf-tab
@@ -26,8 +27,9 @@ zinit light zsh-users/zsh-completions
 zinit ice wait lucid; zinit light olets/zsh-abbr
 
 # Load git and tmux plugins from Oh-My-Zsh
-# zinit ice wait lucid; zinit snippet OMZP::git
+zinit ice wait lucid; zinit snippet OMZP::git
 zinit ice wait lucid; zinit snippet OMZP::tmux
+zinit ice wait lucid; zinit snippet OMZP::nvm
 zinit snippet OMZL::key-bindings.zsh
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -60,12 +62,15 @@ zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1a --color=always $realpath'
 zstyle ':fzf-tab:complete:eza:*' fzf-preview 'eza -1a --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
-# Sourcing ROS 2
+# Sourcing ROS 2 (lazy load)
 _lazy_load_ros() {
   source /opt/ros/humble/setup.zsh
   eval "$(register-python-argcomplete3 ros2)"
+  alias ros2='ros2'  # Ensure the alias persists after first run
+  ros2 "$@"         # Pass arguments to ros2 if the alias is used with arguments
 }
 
+alias ros2=_lazy_load_ros
 export CC=clang
 export CXX=clang++
 export CLANG_BASE="--build-base build --install-base install"
@@ -87,22 +92,11 @@ export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
 export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
 export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
 
-# NVM and Node
-_lazy_load_nvm() {
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
-}
-
-alias node='_lazy_load_nvm && node'
-alias npm='_lazy_load_nvm && npm'
-alias nvm='_lazy_load_nvm && nvm'
-
 export MANPATH="/usr/local/man:$MANPATH"
 
 export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
 
-# Catppuccin theme for FZF
+# Theme for FZF
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#26282e,bg:#16181a,spinner:#ffd1dc,hl:#ff6e5e \
 --color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
