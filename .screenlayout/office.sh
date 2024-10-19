@@ -4,5 +4,6 @@ xrandr --output eDP-1 --primary --mode 2560x1600 --pos 1440x2000 --rotate normal
 killall i3bar
 killall polybar
 setxkbmap -layout us -option grp:shifts_toggle
+setxkbmap -option caps:escape
 nitrogen --restore
 bash ~/.config/polybar/launch_polybar.sh
