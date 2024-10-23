@@ -104,9 +104,9 @@ export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
 # --color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e"
 ## modus_vivendi
 export FZF_DEFAULT_OPTS=" \
---color=bg+:#363a4f,bg:#000000,spinner:##fae3e0,hl:#ff8059 \
---color=fg:#ffffff,header:#ff8059,info:#a899ff,pointer:##fae3e0 \
---color=marker:##fae3e0,fg+:#ffffff,prompt:#a899ff,hl+:#ff8059"
+--color=bg+:#363a4f,bg:#000000,spinner:#fae3e0,hl:#ff8059 \
+--color=fg:#ffffff,header:#ff8059,info:#a899ff,pointer:#fae3e0 \
+--color=marker:#fae3e0,fg+:#ffffff,prompt:#a899ff,hl+:#ff8059"
 
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share
 
