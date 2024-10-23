@@ -61,6 +61,8 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1a --color=always $realpath'
 zstyle ':fzf-tab:complete:eza:*' fzf-preview 'eza -1a --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group '<' '>'
+zstyle ':fzf-tab:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
+zstyle ':fzf-tab:*' use-fzf-default-opts yes
 
 # Sourcing ROS 2 (lazy load)
 _lazy_load_ros() {
