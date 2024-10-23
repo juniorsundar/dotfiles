@@ -40,44 +40,44 @@ config.font_rules = {
 config.font_size = 13
 
 -- Cyberdream
--- config.colors = {
---     foreground = "#ffffff",
---     background = "#16181a",
---
---     cursor_bg = "#ffffff",
---     cursor_fg = "#16181a",
---     cursor_border = "#ffffff",
---
---     selection_fg = "#ffffff",
---     selection_bg = "#3c4048",
---
---     scrollbar_thumb = "#16181a",
---     split = "#16181a",
---
---     ansi = { "#16181a", "#ff6e5e", "#5eff6c", "#f1ff5e", "#5ea1ff", "#bd5eff", "#5ef1ff", "#ffffff" },
---     brights = { "#3c4048", "#ff6e5e", "#5eff6c", "#f1ff5e", "#5ea1ff", "#bd5eff", "#5ef1ff", "#ffffff" },
---     indexed = { [16] = "#ffbd5e", [17] = "#ff6e5e" },
--- }
-
--- Modus_Vivendi
 config.colors = {
     foreground = "#ffffff",
-    background = "#000000",
+    background = "#16181a",
 
     cursor_bg = "#ffffff",
-    cursor_fg = "#000000",
+    cursor_fg = "#16181a",
     cursor_border = "#ffffff",
 
     selection_fg = "#ffffff",
-    selection_bg = "#303030",
+    selection_bg = "#3c4048",
 
-    scrollbar_thumb = "#1e1e1e",
-    split = "#121212",
+    scrollbar_thumb = "#16181a",
+    split = "#16181a",
 
-    ansi = { "#000000", "#ff5f59", "#44bc44", "#d0bc00", "#2fafff", "#b6a0ff", "#4ae2f0", "#ffffff" },
-    brights = { "#303030", "#ff5f59", "#44bc44", "#d0bc00", "#2fafff", "#b6a0ff", "#4ae2f0", "#ffffff" },
-    indexed = { [16] = "#fec43f", [17] = "#ff5f59" },
+    ansi = { "#16181a", "#ff6e5e", "#5eff6c", "#f1ff5e", "#5ea1ff", "#bd5eff", "#5ef1ff", "#ffffff" },
+    brights = { "#3c4048", "#ff6e5e", "#5eff6c", "#f1ff5e", "#5ea1ff", "#bd5eff", "#5ef1ff", "#ffffff" },
+    indexed = { [16] = "#ffbd5e", [17] = "#ff6e5e" },
 }
+
+-- Modus_Vivendi
+-- config.colors = {
+--     foreground = "#ffffff",
+--     background = "#000000",
+--
+--     cursor_bg = "#ffffff",
+--     cursor_fg = "#000000",
+--     cursor_border = "#ffffff",
+--
+--     selection_fg = "#ffffff",
+--     selection_bg = "#303030",
+--
+--     scrollbar_thumb = "#1e1e1e",
+--     split = "#121212",
+--
+--     ansi = { "#000000", "#ff5f59", "#44bc44", "#d0bc00", "#2fafff", "#b6a0ff", "#4ae2f0", "#ffffff" },
+--     brights = { "#303030", "#ff5f59", "#44bc44", "#d0bc00", "#2fafff", "#b6a0ff", "#4ae2f0", "#ffffff" },
+--     indexed = { [16] = "#fec43f", [17] = "#ff5f59" },
+-- }
 -- config.color_scheme = "Catppuccin Frappe"
 config.use_fancy_tab_bar = false
 

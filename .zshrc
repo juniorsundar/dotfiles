@@ -98,15 +98,15 @@ export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
 
 # Theme for FZF
 ## cyberdream
-# export FZF_DEFAULT_OPTS=" \
-# --color=bg+:#26282e,bg:#16181a,spinner:#ffd1dc,hl:#ff6e5e \
-# --color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
-# --color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e"
-## modus_vivendi
 export FZF_DEFAULT_OPTS=" \
---color=bg+:#363a4f,bg:#000000,spinner:#fae3e0,hl:#ff8059 \
---color=fg:#ffffff,header:#ff8059,info:#a899ff,pointer:#fae3e0 \
---color=marker:#fae3e0,fg+:#ffffff,prompt:#a899ff,hl+:#ff8059"
+--color=bg+:#26282e,bg:#16181a,spinner:#ffd1dc,hl:#ff6e5e \
+--color=fg:#ffffff,header:#ff6e5e,info:#bd5eff,pointer:#ffd1dc \
+--color=marker:#ffd1dc,fg+:#ffffff,prompt:#bd5eff,hl+:#ff6e5e"
+## modus_vivendi
+# export FZF_DEFAULT_OPTS=" \
+# --color=bg+:#363a4f,bg:#000000,spinner:#fae3e0,hl:#ff8059 \
+# --color=fg:#ffffff,header:#ff8059,info:#a899ff,pointer:#fae3e0 \
+# --color=marker:#fae3e0,fg+:#ffffff,prompt:#a899ff,hl+:#ff8059"
 
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share
 

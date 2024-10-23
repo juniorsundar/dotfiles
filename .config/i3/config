@@ -232,61 +232,61 @@ bar {
     modifier Mod1
 }
 
-## Modus Vivendi
-set $rosewater #fae3e0
-set $flamingo #f8c7c3
-set $pink #d7a3ff
-set $mauve #a899ff
-set $red #ff8059
-set $maroon #ff6a6a
-set $peach #ffa94d
-set $yellow #e5c07b
-set $green #44bc44
-set $teal #00bc7f
-set $sky #00f5e9
-set $sapphire #1fa3cf
-set $blue #4f97d7
-set $lavender #d7afff
-set $text #ffffff
-set $subtext1 #dcdcdc
-set $subtext0 #bcbcbc
-set $overlay2 #9c9c9c
-set $overlay1 #8c8c8c
-set $overlay0 #7c7c7c
-set $surface2 #5b6078
-set $surface1 #494d64
-set $surface0 #363a4f
-set $base #000000
-set $mantle #121212
-set $crust #1e1e1e
+# ## Modus Vivendi
+# set $rosewater #fae3e0
+# set $flamingo #f8c7c3
+# set $pink #d7a3ff
+# set $mauve #a899ff
+# set $red #ff8059
+# set $maroon #ff6a6a
+# set $peach #ffa94d
+# set $yellow #e5c07b
+# set $green #44bc44
+# set $teal #00bc7f
+# set $sky #00f5e9
+# set $sapphire #1fa3cf
+# set $blue #4f97d7
+# set $lavender #d7afff
+# set $text #ffffff
+# set $subtext1 #dcdcdc
+# set $subtext0 #bcbcbc
+# set $overlay2 #9c9c9c
+# set $overlay1 #8c8c8c
+# set $overlay0 #7c7c7c
+# set $surface2 #5b6078
+# set $surface1 #494d64
+# set $surface0 #363a4f
+# set $base #000000
+# set $mantle #121212
+# set $crust #1e1e1e
 
-# ## Cyberdream
-# set $rosewater  #ffd1dc
-# set $flamingo  #ff9f9f
-# set $pink  #ff5ea0
-# set $mauve  #bd5eff
-# set $red  #ff6e5e
-# set $maroon  #d96666
-# set $peach  #ffbd5e
-# set $yellow  #f1ff5e
-# set $green  #5eff6c
-# set $teal  #64d8cb
-# set $sky  #5ef1ff
-# set $sapphire  #4a90e2
-# set $blue  #5ea1ff
-# set $lavender  #ff5ef1
-# set $text  #ffffff
-# set $subtext1  #a0a4b8
-# set $subtext0  #8a8e99
-# set $overlay2  #6e7280
-# set $overlay1  #5a5e6b
-# set $overlay0  #474a55
-# set $surface2  #363940
-# set $surface1  #2e3138
-# set $surface0  #26282e
-# set $base  #16181a
-# set $mantle  #1e2124
-# set $crust  #3c4048
+## Cyberdream
+set $rosewater  #ffd1dc
+set $flamingo  #ff9f9f
+set $pink  #ff5ea0
+set $mauve  #bd5eff
+set $red  #ff6e5e
+set $maroon  #d96666
+set $peach  #ffbd5e
+set $yellow  #f1ff5e
+set $green  #5eff6c
+set $teal  #64d8cb
+set $sky  #5ef1ff
+set $sapphire  #4a90e2
+set $blue  #5ea1ff
+set $lavender  #ff5ef1
+set $text  #ffffff
+set $subtext1  #a0a4b8
+set $subtext0  #8a8e99
+set $overlay2  #6e7280
+set $overlay1  #5a5e6b
+set $overlay0  #474a55
+set $surface2  #363940
+set $surface1  #2e3138
+set $surface0  #26282e
+set $base  #16181a
+set $mantle  #1e2124
+set $crust  #3c4048
 
 
 # target                 title     bg    text   indicator  border

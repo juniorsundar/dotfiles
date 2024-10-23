@@ -21,4 +21,4 @@ configuration {
       sorting-method:    "name";
   }
 }
-@theme "modus-vivendi"
+@theme "cyberdream"
