@@ -10,12 +10,14 @@
 	editor = nvim
 [interactive]
     diffFilter = delta --color-only
+[include]
+    path = ~/.config/delta/catppuccin.gitconfig
 [delta]
     line-numbers = true
     side-by-side = false
     # delta detects terminal colors automatically; set one of these to disable auto-detection
     dark = true
-    features = base16-256
+    features = cyberdream
     # light = true
 [merge]
     conflictstyle = diff3

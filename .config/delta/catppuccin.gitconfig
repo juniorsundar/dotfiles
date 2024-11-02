@@ -122,3 +122,34 @@
 		bold yellow => syntax "#544f4e"
 	# Should match the name of the bat theme
 	syntax-theme = "Catppuccin Mocha"
+[delta "cyberdream"]
+	blame-palette = "#16181a #1e2124 #3c4048 #26282e #2e3138"
+	commit-decoration-style = "box ul"
+	dark = true
+	file-decoration-style = "#ffffff"
+	file-style = "#ffffff"
+	hunk-header-decoration-style = "box ul"
+	hunk-header-file-style = "bold"
+	hunk-header-line-number-style = "bold #8a8e99"
+	hunk-header-style = "file line-number syntax"
+	line-numbers = true
+	line-numbers-left-style = "#474a55"
+	line-numbers-minus-style = "bold #ff6e5e"
+	line-numbers-plus-style = "bold #5eff6c"
+	line-numbers-right-style = "#474a55"
+	line-numbers-zero-style = "#474a55"
+	# 25% red 75% base
+	minus-emph-style = "bold syntax #53394c"
+	# 10% red 90% base
+	minus-style = "syntax #34293a"
+	# 25% green 75% base
+	plus-emph-style = "bold syntax #404f4a"
+	# 10% green 90% base
+	plus-style = "syntax #2c3239"
+	map-styles = \
+		bold purple => syntax "#494060", \
+		bold blue => syntax "#384361", \
+		bold cyan => syntax "#384d5d", \
+		bold yellow => syntax "#544f4e"
+	# Should match the name of the bat theme
+	syntax-theme = "base16-256"
