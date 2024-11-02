@@ -1,0 +1,23 @@
+[user]
+	email = juniorsundar@gmail.com
+	name = Junior Sundar
+[credential]
+	helper = store
+[gui]
+	recentrepo = /home/juniorsundar/Dropbox/neorg
+[core]
+    pager = delta
+	editor = nvim
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    line-numbers = true
+    side-by-side = false
+    # delta detects terminal colors automatically; set one of these to disable auto-detection
+    dark = true
+    features = base16-256
+    # light = true
+[merge]
+    conflictstyle = diff3
+[diff]
+    colorMoved = default
