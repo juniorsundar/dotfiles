@@ -37,7 +37,7 @@ config.font_rules = {
   },
 }
 
-config.font_size = 13
+config.font_size = 12
 
 -- Cyberdream
 config.colors = {
