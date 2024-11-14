@@ -112,10 +112,11 @@ export FZF_DEFAULT_OPTS=" \
 
 export XDG_DATA_DIRS=$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export ISAACSIM_PATH="${HOME}/.local/share/ov/pkg/isaac-sim-2023.1.1"
 alias ISAACSIM_PYTHON="${ISAACSIM_PATH}/python.sh"
 alias ISAACSIM="${ISAACSIM_PATH}/isaac-sim.sh"
 
 bindkey -v
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
