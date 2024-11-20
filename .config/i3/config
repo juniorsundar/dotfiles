@@ -64,8 +64,8 @@ gaps inner 10px
 
 # start a terminal
 bindsym $mod+Return exec wezterm
-bindsym $mod+Shift+Return exec wezterm -e zsh -c tmux new-session
-# bindsym $mod+Shift+Return exec kitty ~/.config/tmux/tmux-fzf-session.sh
+# bindsym $mod+Shift+Return exec wezterm -e zsh -c tmux new-session
+bindsym $mod+Shift+Return exec kitty zsh -c tmux new-session
 
 # kill focused window
 bindsym $mod+Shift+c kill
