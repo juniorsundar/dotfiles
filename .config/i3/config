@@ -63,7 +63,7 @@ gaps inner 10px
 # gaps outer 5px
 
 # start a terminal
-bindsym $mod+Return exec wezterm
+bindsym $mod+Return exec kitty
 # bindsym $mod+Shift+Return exec wezterm -e zsh -c tmux new-session
 bindsym $mod+Shift+Return exec kitty zsh -c tmux new-session
 
