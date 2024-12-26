@@ -60,48 +60,78 @@
 
   (setq org-agenda-dim-blocked-tasks nil)
 
-  ;; Define custom faces for the blocks and their content
   (defface my-note-face
-    '((t (:background "#a6d189" :foreground "#1e1e2e" :weight bold)))
-    "Face for notes.")
-
+    '((t :background "#a6d189" :foreground "#1e1e2e" :extend t))
+    "Face for NOTE blocks with full width background.")
   (defface my-important-face
-    '((t (:background "#ea6962" :foreground "#1e1e2e" :weight bold)))
-    "Face for important notes.")
-
+    '((t :background "#ea6962" :foreground "#1e1e2e" :extend t))
+    "Face for IMPORTANT blocks with full width background.")
   (defface my-warning-face
-    '((t (:background "#e5c890" :foreground "#1e1e2e" :weight bold)))
-    "Face for warnings.")
-
-  ;; Function  to apply  custom faces  to org  blocks and  their content
-  (defun apply-custom-org-faces ()
-    "Apply custom faces for specific Org blocks."
-    (font-lock-add-keywords nil
-                            '(("^[ \t]*#\\+BEGIN_NOTE" 0 'my-note-face t)
-                              ("^[ \t]*#\\+END_NOTE" 0 'my-note-face t)
-                              ("^[ \t]*#\\+BEGIN_IMPORTANT" 0 'my-important-face t)
-                              ("^[ \t]*#\\+END_IMPORTANT" 0 'my-important-face t)
-                              ("^[ \t]*#\\+BEGIN_WARN" 0 'my-warning-face t)
-                              ("^[ \t]*#\\+END_WARN" 0 'my-warning-face t))
-                            'append)
+    '((t :background "#e5c890" :foreground "#1e1e2e" :extend t))
+    "Face for WARNING blocks with full width background.")
+  (defun apply-custom-org-block-face (start end face)
+    "Apply FACE to the entire visual line from START to END."
+    (let ((overlay (make-overlay start end)))
+      (overlay-put overlay 'face face)
+      (overlay-put overlay 'line-prefix
+                   (propertize " " 'face face 'display '(space :align-to 0)))
+      (overlay-put overlay 'after-string
+                   (propertize " " 'face face 'display '(space :align-to right-margin)))))
+  (defun highlight-org-block-region ()
+    "Highlight org blocks with full window width background."
+    (remove-overlays (point-min) (point-max)) ; Clear existing overlays
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward "^[ \t]*#\\+BEGIN_\\(NOTE\\|IMPORTANT\\|WARN\\)" nil t)
-        (let* ((tag (match-string 1))
-               (start (line-beginning-position))
-               (end (progn (re-search-forward (format "^[ \t]*#\\+END_%s" tag)) (line-end-position)))
-               (face (pcase tag
+        (let* ((block-type (match-string 1))
+               (block-start (line-beginning-position))
+               (face (pcase block-type
                        ("NOTE" 'my-note-face)
                        ("IMPORTANT" 'my-important-face)
                        ("WARN" 'my-warning-face))))
-          ;; Apply face to the entire block content
-          (put-text-property start end 'face face)))))
+          (when (re-search-forward (format "^[ \t]*#\\+END_%s" block-type) nil t)
+            (apply-custom-org-block-face block-start (line-end-position) face))))))
+  (define-minor-mode org-block-highlight-mode
+    "Minor mode for highlighting org blocks with full window width background."
+    :lighter " OrgBlockHL"
+    (if org-block-highlight-mode
+        (progn
+          (highlight-org-block-region)
+          (add-hook 'after-change-functions
+                    (lambda (&rest _) (highlight-org-block-region))
+                    nil t))
+      (remove-overlays (point-min) (point-max))))
+  (add-hook 'org-mode-hook 'org-block-highlight-mode)
 
-  ;; Add the function to org-mode-hook
-  (add-hook 'org-mode-hook 'apply-custom-org-faces)
+  ;; ;; Define custom faces for the blocks and their content
+  ;; (defface my-note-face
+  ;;   '((t (:background "#a6d189" :foreground "#1e1e2e" :weight bold)))
+  ;;   "Face for notes.")
 
+  ;; (defface my-important-face
+  ;;   '((t (:background "#ea6962" :foreground "#1e1e2e" :weight bold)))
+  ;;   "Face for important notes.")
+
+  ;; (defface my-warning-face
+  ;;   '((t (:background "#e5c890" :foreground "#1e1e2e" :weight bold)))
+  ;;   "Face for warnings.")
+  ;; (defun apply-custom-org-faces ()
+  ;;   "Apply custom faces for specific Org blocks, highlighting the entire width."
+  ;;   (font-lock-add-keywords
+  ;;    nil
+  ;;    '(("^[ \t]*#\\+BEGIN_NOTE\\([^\n]*\n\\)\\(?:.*\n\\)*?[ \t]*#\\+END_NOTE.*$"
+  ;;       (0 'my-note-face t))
+  ;;      ("^[ \t]*#\\+BEGIN_IMPORTANT\\([^\n]*\n\\)\\(?:.*\n\\)*?[ \t]*#\\+END_IMPORTANT.*$"
+  ;;       (0 'my-important-face t))
+  ;;      ("^[ \t]*#\\+BEGIN_WARN\\([^\n]*\n\\)\\(?:.*\n\\)*?[ \t]*#\\+END_WARN.*$"
+  ;;       (0 'my-warning-face t)))
+  ;;    'append))
+
+  ;; ;; Add the function to org-mode-hook
+  ;; (add-hook 'org-mode-hook 'apply-custom-org-faces)
   ;; Ensure the changes take effect
   (font-lock-mode 1)
+
   (setq org-directory "~/Dropbox/org")
   (setq org-startup-with-inline-images t)
   (defun display-inline-images ()
