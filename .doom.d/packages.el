@@ -8,7 +8,15 @@
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 ;; (package! some-package)
-(package! catppuccin-theme)
+;; (package! catppuccin-theme)
+
+;(package! catppuccin-theme
+;  :recipe (:host github :repo "juniorsundar/catppuccin-emacs"
+;           :files ("*.el" "scripts/*.el"))
+(package! catppuccin-theme
+  :recipe (:local-repo "lisp/catppuccin-theme"))
+
+(package! fontaine)
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:

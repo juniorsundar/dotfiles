@@ -21,10 +21,9 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
-(setq doom-font (font-spec :family "JetBrains Mono" :size 18 :weight 'semi-light)
-      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 19))
+(setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16 :weight 'semi-light)
+      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 17)
+      doom-symbol-font (font-spec :family "Symbols Nerd Font Mono" :size 16))
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
 ;; refresh your font settings. If Emacs still can't find your font, it likely
@@ -33,7 +32,7 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-one)
+;; (setq doom-theme 'doom-one)
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -41,7 +40,7 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/Dropbox/neorg/org")
+(setq org-directory "~/Dropbox/org")
 ;; Ensure inline images are displayed when opening an Org file
 (setq org-startup-with-inline-images t)
 ;; Function to display images
@@ -58,9 +57,17 @@
     (dolist (file (directory-files-recursively directory "\\.org$"))
       (setq org-file-list (append org-file-list (list file))))
     org-file-list))
-(setq org-agenda-files (my/org-agenda-files-recursive "~/Dropbox/neorg/org/org-roam/"))
-(setq org-roam-directory (file-truename "~/Dropbox/neorg/org/org-roam/"))
-
+(setq org-agenda-files (my/org-agenda-files-recursive "~/Dropbox/org/"))
+(setq org-roam-directory (file-truename "~/Dropbox/org/"))
+(setq org-roam-dailies-directory "journals/")
+(setq org-roam-capture-templates
+      '(("d" "default" plain "%?"
+         ;; Accomodates for the fact that Logseq uses the "pages" directory
+         :target (file+head "pages/${slug}.org" "#+title: ${title}\n")
+         :unnarrowed t))
+      org-roam-dailies-capture-templates
+      '(("d" "default" entry "* %?"
+         :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
 ;;
@@ -92,8 +99,10 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
-(setq doom-theme 'catppuccin)
-(setq catppuccin-flavor 'frappe) ;; or 'latte, 'macchiato, or 'mocha
+;; (setq doom-theme 'catppuccin)
+(load-theme 'catppuccin :no-confirm)
+(setq catppuccin-flavor 'cyberdream) ;; or 'latte, 'macchiato, or 'mocha
+(catppuccin-reload)
 
 ;; Enable traditional ligature support in eww-mode, if the
 ;; Enable all Cascadia and Fira Code ligatures in programming modes
@@ -112,3 +121,21 @@
                         ":?" ":?>" "//" "///" "/*" "*/" "/=" "//=" "/==" "@_" "__" "???"
                         "<:<" ";;;")
 ;; )
+(setq fontaine-presets
+      '((default
+         :default-family "FiraCode Nerd Font"
+         :default-weight regular
+         :default-height 110
+         :fixed-pitch-family "FiraCode Nerd Font"
+         :fixed-pitch-weight regular
+         :italic-family "CaskaydiaCove Nerd Font"
+         :italic-slant italic
+         :variable-pitch-family "Fira Sans"
+         :variable-pitch-weight regular
+         :variable-pitch-height 120)))
+
+;; Ensure the italic face is only italic and not underlined
+(set-face-attribute 'italic nil
+                    :underline nil
+                    :slant 'italic
+                    :family "CaskaydiaCove Nerd Font")
