@@ -122,7 +122,7 @@
   (setq org-log-done 'time)
   (setq org-hide-emphasis-markers t)
   (setq org-roam-directory (file-truename "~/Dropbox/org/pages"))
-  (setq org-roam-dailies-directory "journals/")
+  (setq org-roam-dailies-directory "../journals/")
 
   (setq org-superstar-headline-bullets-list '("󰼏" "󰼐" "󰼑" "󰼒" "󰼓" "󰼔"))
   )
@@ -138,8 +138,8 @@
   (define-key evil-window-map (kbd "k") 'evil-window-up)
   (define-key evil-window-map (kbd "w") 'evil-window-next)
 
-  (evil-define-key 'normal 'global (kbd "C-w") evil-window-map)
   )
+(evil-define-key 'normal 'global (kbd "C-w") evil-window-map)
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
