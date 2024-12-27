@@ -45,12 +45,12 @@
   (setq org-todo-keywords
         '((sequence "TODO(t)" "DOING(d!)" "HOLD(h)" "|" "DONE(D)" "CANCELLED(c)" "MAYBE(m)")))
   (setq org-todo-keyword-faces
-        '(("DOING" . (:foreground "yellow"))
-          ("DONE" . (:foreground "green"))
-          ("HOLD" . (:foreground "turquoise"))
-          ("TODO" . (:foreground "red"))
-          ("CANCELLED" . (:foreground "gray"))
-          ("MAYBE" . (:foreground "orange"))))
+        '(("DOING" . (:background "orange" :foreground "black"))
+          ("DONE" . (:background "green" :foreground "black"))
+          ("HOLD" . (:background "turquoise" :foreground "white"))
+          ("TODO" . (:background "red" :foreground "white"))
+          ("CANCELLED" . (:background "gray" :foreground "black"))
+          ("MAYBE" . (:background "yellow" :foreground "black"))))
   ;; Customize agenda prefix format
   (setq org-agenda-prefix-format
         '((agenda . " %i %?-12t% s")  ; remove file name
