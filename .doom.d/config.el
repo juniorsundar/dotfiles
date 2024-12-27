@@ -58,6 +58,8 @@
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
 ;; refresh your font settings. If Emacs still can't find your font, it likely
 ;; wasn't installed correctly. Font issues are rarely Doom issues!
+(map! :leader :desc "Find text" :n "f t" #'consult-ripgrep)
+
 
 (after! emacs
   (setq display-line-numbers-type 'relative)
@@ -151,6 +153,7 @@
   (setq org-roam-dailies-directory "../journals/")
 
   (setq org-superstar-headline-bullets-list '("󰼏" "󰼐" "󰼑" "󰼒" "󰼓" "󰼔"))
+  (setq org-attach-id-dir "assets/")
   )
 
 (after! evil
@@ -168,6 +171,9 @@
 (evil-define-key 'normal 'global (kbd "C-w") evil-window-map)
 
 (load-theme 'catppuccin :no-confirm)
+;; (setq catppuccin-height-title-1 '1.0)
+;; (setq catppuccin-height-title-2 '1.0)
+;; (setq catppuccin-height-title-3 '1.0)
 (setq catppuccin-flavor 'cyberdream) ;; or 'latte, 'macchiato, or 'mocha
 (catppuccin-reload)
 
