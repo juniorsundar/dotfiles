@@ -62,7 +62,8 @@
 
 
 (after! emacs
-  (setq display-line-numbers-type 'relative)
+  (setq display-line-numbers-type nil)
+  ;; (setq display-line-numbers-type 'relative)
   )
 
 (after! org
@@ -152,8 +153,8 @@
   (setq org-roam-directory (file-truename "~/Dropbox/org/pages"))
   (setq org-roam-dailies-directory "../journals/")
 
-  (setq org-superstar-headline-bullets-list '("󰼏" "󰼐" "󰼑" "󰼒" "󰼓" "󰼔"))
-  (setq org-attach-id-dir "assets/")
+  ;; (setq org-superstar-headline-bullets-list '("󰼏" "󰼐" "󰼑" "󰼒" "󰼓" "󰼔"))
+  (setq org-attach-id-dir "~/Dropbox/org/assets/")
   )
 
 (after! evil
