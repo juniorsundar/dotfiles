@@ -63,9 +63,11 @@ gaps inner 10px
 # gaps outer 5px
 
 # start a terminal
-bindsym $mod+Shift+Return exec kitty
+# bindsym $mod+Shift+Return exec kitty
+bindsym $mod+Shift+Return exec ghostty
 # bindsym $mod+Shift+Return exec wezterm -e zsh -c tmux new-session
-bindsym $mod+Return exec kitty zsh -c tmux new-session
+# bindsym $mod+Return exec kitty zsh -c tmux new-session
+bindsym $mod+Return exec ghostty -e zsh -c tmux new-session
 
 # kill focused window
 bindsym $mod+Shift+c kill
