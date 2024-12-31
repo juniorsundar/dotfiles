@@ -35,10 +35,10 @@ keybind = ctrl+shift+right=goto_split:right
 keybind = ctrl+shift+down=goto_split:bottom
 keybind = ctrl+shift+left=goto_split:left
 keybind = ctrl+shift+up=goto_split:top
-keybind = ctrl+alt+right=resize_split:right,10
-keybind = ctrl+alt+down=resize_split:down,10
-keybind = ctrl+alt+left=resize_split:left,10
-keybind = ctrl+alt+up=resize_split:up,10
+keybind = ctrl+shift+alt+right=resize_split:right,10
+keybind = ctrl+shift+alt+down=resize_split:down,10
+keybind = ctrl+shift+alt+left=resize_split:left,10
+keybind = ctrl+shift+alt+up=resize_split:up,10
 
 window-padding-balance = true
 window-padding-x = 5

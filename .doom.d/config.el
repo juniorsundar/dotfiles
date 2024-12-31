@@ -72,7 +72,7 @@
   (setq org-todo-keyword-faces
         '(("DOING" . (:background "orange" :foreground "black"))
           ("DONE" . (:background "green" :foreground "black"))
-          ("HOLD" . (:background "turquoise" :foreground "white"))
+          ("HOLD" . (:background "turquoise" :foreground "black"))
           ("TODO" . (:background "red" :foreground "white"))
           ("CANCELLED" . (:background "gray" :foreground "black"))
           ("MAYBE" . (:background "yellow" :foreground "black"))))
@@ -137,24 +137,65 @@
     "Display inline images in the buffer."
     (org-display-inline-images))
   (add-hook 'org-mode-hook 'display-inline-images)
+
+  ;; ---- UPDATE CACHE FOR AGENDA
+  (defvar my/org-agenda-files-cache nil
+    "Cache for org agenda files.")
   (defun my/org-agenda-files-recursive (directory)
     "Recursively find all .org files in DIRECTORY."
     (let ((org-file-list '()))
       (dolist (file (directory-files-recursively directory "\\.org$"))
-        (setq org-file-list (append org-file-list (list file))))
+        (push file org-file-list))
       org-file-list))
-  (setq org-agenda-files (my/org-agenda-files-recursive "~/Dropbox/org/"))
   (defun my/update-org-agenda-files (&rest _)
-    "Update `org-agenda-files` to include all .org files in the directory."
-    (setq org-agenda-files (my/org-agenda-files-recursive "~/Dropbox/org/")))
-  (advice-add 'org-agenda :before #'my/update-org-agenda-files)
+    "Update `org-agenda-files` and the cache."
+    (setq my/org-agenda-files-cache (my/org-agenda-files-recursive "~/Dropbox/org/"))
+    (setq org-agenda-files my/org-agenda-files-cache))
+  ;; Initialize the cache on startup
+  (my/update-org-agenda-files)
+  (defun my/org-agenda-maybe-update-files (&rest _)
+    "Update `org-agenda-files` if the cache is empty."
+    (unless my/org-agenda-files-cache
+      (my/update-org-agenda-files)))
+  (advice-add 'org-agenda :before #'my/org-agenda-maybe-update-files)
+  (defun my/org-agenda-refresh-cache ()
+    "Refresh the org agenda files cache."
+    (interactive)
+    (my/update-org-agenda-files))
+  (map! :leader :desc "Refresh agenda cache" :n "o a r" #'my/org-agenda-refresh-cache)
+  ;; -----------------------------------------
+
+
   (setq org-log-done 'time)
   (setq org-hide-emphasis-markers t)
+  (setq org-pretty-entities t)
   (setq org-roam-directory (file-truename "~/Dropbox/org/pages"))
   (setq org-roam-dailies-directory "../journals/")
 
-  ;; (setq org-superstar-headline-bullets-list '("󰼏" "󰼐" "󰼑" "󰼒" "󰼓" "󰼔"))
+  (setq org-superstar-headline-bullets-list '("󰼏" "󰼐" "󰼑" "󰼒" "󰼓" "󰼔"))
   (setq org-attach-id-dir "~/Dropbox/org/assets/")
+
+  (setq org-modern-star nil)
+
+  (setq org-agenda-tags-column 0)
+  (setq org-agenda-block-separator ?─)
+  (setq org-agenda-time-grid
+        '((daily today require-timed)
+          (800 1000 1200 1400 1600 1800 2000)
+          " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"))
+  (setq org-agenda-current-time-string
+        "<-- now ───────")
+  (setq org-modern-priority nil)
+
+  (setq org-modern-todo-faces
+        (quote (("TODO" :background "red" :foreground "white")
+                ("DOING" :background "orange" :foreground "black")
+                ("HOLD" :background "turquoise" :foreground "black")
+                ("CANCELLED" . (:background "gray" :foreground "black"))
+                ("MAYBE" . (:background "yellow" :foreground "black"))
+                ("DONE" . (:background "green" :foreground "black")))))
+  (global-org-modern-mode)
+
   )
 
 (after! evil
