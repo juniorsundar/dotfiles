@@ -4,6 +4,13 @@
 ;; sync' after modifying this file!
 
 
+(load-theme 'catppuccin :no-confirm)
+;; (setq catppuccin-height-title-1 '1.0)
+;; (setq catppuccin-height-title-2 '1.0)
+;; (setq catppuccin-height-title-3 '1.0)
+(setq catppuccin-flavor 'cyberdream) ;; or 'latte, 'macchiato, or 'mocha
+(catppuccin-reload)
+
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
 ;; (setq user-full-name "John Doe"
@@ -211,13 +218,6 @@
 
   )
 (evil-define-key 'normal 'global (kbd "C-w") evil-window-map)
-
-(load-theme 'catppuccin :no-confirm)
-;; (setq catppuccin-height-title-1 '1.0)
-;; (setq catppuccin-height-title-2 '1.0)
-;; (setq catppuccin-height-title-3 '1.0)
-(setq catppuccin-flavor 'cyberdream) ;; or 'latte, 'macchiato, or 'mocha
-(catppuccin-reload)
 
 ;; Enable traditional ligature support in eww-mode, if the
 ;; Enable all Cascadia and Fira Code ligatures in programming modes

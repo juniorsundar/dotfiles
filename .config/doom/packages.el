@@ -10,11 +10,10 @@
 ;; (package! some-package)
 ;; (package! catppuccin-theme)
 
-;(package! catppuccin-theme
-;  :recipe (:host github :repo "juniorsundar/catppuccin-emacs"
-;           :files ("*.el" "scripts/*.el"))
-(package! catppuccin-theme
-  :recipe (:local-repo "lisp/catppuccin-theme"))
+(package! catppuccin-theme :recipe
+  (:host github
+   :repo "juniorsundar/catppuccin-emacs"
+   :files ("*.el" "src/lisp/*.el")))
 
 (package! fontaine)
 
