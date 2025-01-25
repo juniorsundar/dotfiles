@@ -15,10 +15,8 @@
 [delta]
     line-numbers = true
     side-by-side = false
-    # delta detects terminal colors automatically; set one of these to disable auto-detection
     dark = true
     features = cyberdream
-    # light = true
 [merge]
     conflictstyle = diff3
 [diff]
