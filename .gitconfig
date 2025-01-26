@@ -6,17 +6,17 @@
 [gui]
 	recentrepo = /home/juniorsundar/Dropbox/neorg
 [core]
-    pager = delta
+    ; pager = delta
 	editor = nvim
-[interactive]
-    diffFilter = delta --color-only
-[include]
-    path = ~/.config/delta/catppuccin.gitconfig
-[delta]
-    line-numbers = true
-    side-by-side = false
-    dark = true
-    features = cyberdream
+; [interactive]
+;     diffFilter = delta --color-only
+; [include]
+;     path = ~/.config/delta/catppuccin.gitconfig
+; [delta]
+;     line-numbers = true
+;     side-by-side = false
+;     dark = true
+;     features = cyberdream
 [merge]
     conflictstyle = diff3
 [diff]
