@@ -117,6 +117,6 @@ export ISAACSIM_PATH="${HOME}/.local/share/ov/pkg/isaac-sim-2023.1.1"
 alias ISAACSIM_PYTHON="${ISAACSIM_PATH}/python.sh"
 alias ISAACSIM="${ISAACSIM_PATH}/isaac-sim.sh"
 
-bindkey -v
+# bindkey -v
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
