@@ -12,7 +12,7 @@
 set $mod Mod4
 
 exec_always killall polybar
-exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
+exec_always --no-startup-id bash ~/.config/polybar/launch_polybar.bash
 exec_always --no-startup-id nitrogen --restore
 exec_always --no-startup-id dunst &
 

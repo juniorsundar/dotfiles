@@ -87,7 +87,7 @@ export VISUAL='nvim'
 export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 
 # Rust
-source "$HOME/.cargo/env"
+# source "$HOME/.cargo/env"
 
 # LaTeX
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
@@ -118,5 +118,7 @@ alias ISAACSIM_PYTHON="${ISAACSIM_PATH}/python.sh"
 alias ISAACSIM="${ISAACSIM_PATH}/isaac-sim.sh"
 
 # bindkey -v
+
+export PATH=$PATH:$HOME/.local/bin
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

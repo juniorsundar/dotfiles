@@ -1,5 +1,3 @@
-#!/bin/bash
-
 case "$1" in
     powermenu)
         options=" Power Off\n Restart\n Log Out\n Sleep"

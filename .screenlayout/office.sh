@@ -6,4 +6,4 @@ killall polybar
 setxkbmap -layout us -option grp:shifts_toggle
 setxkbmap -option caps:escape
 nitrogen --restore
-bash ~/.config/polybar/launch_polybar.sh
+bash ~/.config/polybar/launch_polybar.bash
