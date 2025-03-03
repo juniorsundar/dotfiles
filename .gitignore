@@ -2,3 +2,4 @@
 .config/fish/fish_variables
 .config/nvim/lazy-lock.json
 .config/fish/fishd.*
+.local/share/fonts/.uuid
