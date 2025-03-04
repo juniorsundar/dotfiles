@@ -1,11 +1,15 @@
-[submodule ".config/emacs"]
-	path = .config/emacs
-	url = git@github.com:juniorsundar/emacs.git
-    branch = main
-[submodule ".config/nvim"]
-	path = .config/nvim
-	url = git@github.com:juniorsundar/nvim.git
-    branch = main
-[submodule ".config/nvim_plugins/neorg_extras"]
-	path = .config/nvim_plugins/neorg-extras
+[submodule "nvim/.config/nvim_plugins/neorg_extras"]
+	path = nvim/.config/nvim_plugins/neorg-extras
 	url = https://github.com/juniorsundar/neorg-extras.git
+[submodule "nvim"]
+	path = nvim/.config/nvim
+	url = https://github.com/juniorsundar/nvim
+[submodule "emacs"]
+	path = emacs/.config/emacs
+	url = https://github.com/juniorsundar/emacs
+[submodule "neorg-extras"]
+	path = nvim/.config/nvim_plugins/neorg-extras
+	url = https://github.com/juniorsundar/neorg-extras
+[submodule "panvimdoc"]
+	path = nvim/.config/nvim_plugins/panvimdoc
+	url = https://github.com/kdheepak/panvimdoc
