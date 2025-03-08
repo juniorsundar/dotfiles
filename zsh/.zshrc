@@ -82,6 +82,7 @@ alias cb="colcon build ${BUILD_ARGS}"
 # Preferred editor for local and remote sessions
 export EDITOR='nvim'
 export VISUAL='nvim'
+export MANPAGER='nvim +Man!'
 
 # Go
 export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
