@@ -8,6 +8,6 @@ in
 ''
   # Your existing configurations
   ${mainConfig}
-  ${keybinds}
   ${windowRules}
+  ${colors}
 ''
