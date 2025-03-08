@@ -7,7 +7,7 @@ let
 in
 ''
   # Your existing configurations
-  ${mainConfig}
-  ${windowRules}
-  ${colors}
+${windowRules}
+${colors}
+${mainConfig}
 ''
