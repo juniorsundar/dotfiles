@@ -13,3 +13,6 @@
 [submodule "panvimdoc"]
 	path = nvim/.config/nvim_plugins/panvimdoc
 	url = https://github.com/kdheepak/panvimdoc
+[submodule "tmux"]
+	path = tmux/.tmux/plugins/tmux
+	url = https://github.com/juniorsundar/tmux
