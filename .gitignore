@@ -3,3 +3,4 @@
 .config/nvim/lazy-lock.json
 .config/fish/fishd.*
 fonts/.local/share/fonts/.uuid
+tmux/.tmux/plugins/tmux-sensible
