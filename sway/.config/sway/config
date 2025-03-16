@@ -11,17 +11,14 @@
 
 set $mod Mod4
 
-# exec_always killall polybar
+exec_always mako
 exec_always waybar
-# exec_always --no-startup-id bash ~/.config/polybar/launch_polybar.bash
-# exec_always --no-startup-id nitrogen --restore
-# exec_always --no-startup-id dunst &
 bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
 # font pango:FiraCode Nerd Font Mono 10
-font pango:FiraCode Nerd Font Mono 10
+font pango:FiraCode Nerd Font Mono 9
 # font pango:Iosevka Nerd Font 11
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
@@ -124,7 +121,7 @@ bindsym $mod+space focus mode_toggle
 bindsym $mod+a focus parent
 
 # focus the child container
-#bindsym $mod+d focus child
+bindsym $mod+d focus child
 
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
@@ -188,6 +185,7 @@ bindsym $mod+Shift+KP_Page_Up move container to workspace number $ws9
 bindsym $mod+Shift+KP_Insert move container to workspace number $ws10
 
 # reload the configuration file
+bindsym $mod+Mod1+r exec swaymsg reload
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -265,18 +263,18 @@ client.placeholder       $overlay0 $base $text  $overlay0  $overlay0
 client.background        $base
 
 # bar
-bar {
-  colors {
-    background         $base
-    statusline         $text
-    focused_statusline $text
-    focused_separator  $base
-    focused_workspace  $base $base $green
-    active_workspace   $base $base $blue
-    inactive_workspace $base $base $surface1
-    urgent_workspace   $base $base $surface1
-    binding_mode       $base $base $surface1
-  }
-}
+# bar {
+#   colors {
+#     background         $base
+#     statusline         $text
+#     focused_statusline $text
+#     focused_separator  $base
+#     focused_workspace  $base $base $green
+#     active_workspace   $base $base $blue
+#     inactive_workspace $base $base $surface1
+#     urgent_workspace   $base $base $surface1
+#     binding_mode       $base $base $surface1
+#   }
+# }
 
 exec_always killall swaybar

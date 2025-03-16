@@ -52,7 +52,6 @@
 #battery,
 #network,
 #pulseaudio,
-#custom-notification,
 #custom-lock,
 #custom-power {
   background-color: @surface0;
@@ -153,9 +152,4 @@
 
 #network {
     color: @rosewater;
-}
-
-#custom-notification {
-  margin-right: 1rem;
-  border-radius: 1rem;
 }
