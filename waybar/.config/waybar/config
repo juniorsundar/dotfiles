@@ -2,27 +2,17 @@
     "name": "top",
         "custom/os_button": {
             "format": "",
-            "on-click": "wofi --conf ~/.config/wofi/config --style ~/.config/wofi/catppuccin.css --show drun",
+            "on-click": "rofi -show drun",
             "tooltip": false
         },
         "sway/workspaces": {
             "disable-scroll": true,
             "format": "{icon}",
         },
-        "hyprland/workspaces": {
-            "format": "{icon}",
-            "on-scroll-up": "hyprctl dispatch workspace e+1",
-            "on-scroll-down": "hyprctl dispatch workspace e-1",
-            "disable-scroll": true,
-            "sort-by-name": true
-        },
-        "hyprland/window": {
-            "separate-outputs": true
-        },
         "layer": "top",
         "position": "top", 
-        "modules-left": ["custom/os_button", "hyprland/workspaces", "sway/workspaces"],
-        "modules-right": ["custom/music", "pulseaudio", "backlight", "battery", "network", "clock", "tray", "custom/lock", "custom/power"],
+        "modules-left": ["custom/os_button", "sway/workspaces"],
+        "modules-right": ["custom/music", "pulseaudio", "backlight", "battery", "network", "clock", "tray","custom/notification", "custom/lock", "custom/power"],
         "tray": {
             "icon-size": 21,
             "spacing": 10
@@ -77,8 +67,7 @@
             "󰤢 ",
             "󰤨 "
             ],
-            "on-click": "kitty -e nmtui"
-
+            "on-click": "nm-connection-editor"
         },
         "custom/lock": {
             "tooltip": false,
@@ -89,6 +78,26 @@
             "tooltip": false,
             "on-click": "wlogout &",
             "format": "⏻"
+        },
+        "custom/notification": {
+            "tooltip": false,
+            "format": "{} {icon}",
+            "format-icons": {
+                "notification": "󱅫",
+                "none": "",
+                "dnd-notification": " ",
+                "dnd-none": "󰂛",
+                "inhibited-notification": " ",
+                "inhibited-none": "",
+                "dnd-inhibited-notification": " ",
+                "dnd-inhibited-none": " "
+            },
+            "return-type": "json",
+            "exec-if": "which swaync-client",
+            "exec": "swaync-client -swb",
+            "on-click": "sleep 0.1 && swaync-client -t -sw",
+            "on-click-right": "sleep 0.1 && swaync-client -d -sw",
+            "escape": true
         }
 },
 {
@@ -104,5 +113,16 @@
         "ignore-list": [],
         "on-click": "activate"
     },
-    "modules-center": []
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
+        "on-scroll-down": "hyprctl dispatch workspace e-1",
+        "disable-scroll": true,
+        "sort-by-name": true
+    },
+    "hyprland/window": {
+        "separate-outputs": true
+    },
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["hyprland/window"]
 }]

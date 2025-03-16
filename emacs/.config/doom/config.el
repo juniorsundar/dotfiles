@@ -67,6 +67,7 @@
 ;; wasn't installed correctly. Font issues are rarely Doom issues!
 (map! :leader :desc "Find text" :n "f t" #'consult-ripgrep)
 
+(add-to-list 'exec-path (expand-file-name "~/.local/share/nvim/mason/bin"))
 
 (after! emacs
   (setq display-line-numbers-type 'relative)

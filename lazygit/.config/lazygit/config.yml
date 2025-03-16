@@ -1,4 +1,32 @@
+os:
+  editPreset: "nvim-remote"
+gui:
+  nerdFontsVersion: "3"
+  theme:
+    activeBorderColor:
+      - '#ffbd5e'
+      - bold
+    inactiveBorderColor:
+      - '#5ea1ff'
+    optionsTextColor:
+      - '#5ea1ff'
+    selectedLineBgColor:
+      - '#2e3138'
+    cherryPickedCommitBgColor:
+      - '#ff9f9f'
+    cherryPickedCommitFgColor:
+      - '#5ea1ff'
+    unstagedChangesColor:
+      - '#ff6e5e'
+    defaultFgColor:
+      - '#ffffff'
+    searchingActiveBorderColor:
+      - '#ffbd5e'
+      - bold
+  authorColors:
+    '*': '#ff5ea0'
 git:
   paging:
     colorArg: always
     pager: delta --dark --paging=never
+  # Config for showing the log in the commits view

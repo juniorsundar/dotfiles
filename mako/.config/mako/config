@@ -4,6 +4,8 @@ background-color=#16181a
 text-color=#ffffff
 border-color=#d96666
 progress-color=over #26282e
+font=SF Pro Regular 12
+width=900
 
 [urgency=high]
 border-color=#ffbd5e

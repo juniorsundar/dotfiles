@@ -16,3 +16,6 @@
 [submodule "tmux"]
 	path = tmux/.tmux/plugins/tmux
 	url = https://github.com/juniorsundar/tmux
+[submodule "fonts"]
+	path = fonts/.local/share/fonts
+	url = https://github.com/juniorsundar/fonts
