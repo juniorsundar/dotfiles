@@ -104,5 +104,5 @@
         "ignore-list": [],
         "on-click": "activate"
     },
-    "modules-center": ["wlr/taskbar"]
+    "modules-center": []
 }]
