@@ -59,8 +59,8 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
-(setq doom-font (font-spec :family "FiraCode Nerd Font" :size 18 :weight 'semi-light)
-      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 19))
+(setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16 :weight 'semi-light)
+      doom-variable-pitch-font (font-spec :family "SF Pro" :size 19))
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
 ;; refresh your font settings. If Emacs still can't find your font, it likely
@@ -69,11 +69,30 @@
 
 
 (after! emacs
-  (setq display-line-numbers-type nil)
+  (setq display-line-numbers-type 'relative)
   ;; (setq display-line-numbers-type 'relative)
   )
 
 (after! org
+  (defvar my/org-enlarge-headings t)
+  (defvar my/org-document-title 1.44)
+  (defvar my/org-heading-height-1 1.3)
+  (defvar my/org-heading-height-2 1.2)
+  (defvar my/org-heading-height-3 1.1)
+  (custom-set-faces
+   `(org-document-title ((t (:inherit bold
+                             ,@(when my/org-enlarge-headings
+                                 `(:height ,my/org-heading-height-1))))))
+   `(org-level-1 ((t (:inherit bold
+                      ,@(when my/org-enlarge-headings
+                          `(:height ,my/org-heading-height-1))))))
+   `(org-level-2 ((t (:inherit bold
+                      ,@(when my/org-enlarge-headings
+                          `(:height ,my/org-heading-height-2))))))
+   `(org-level-3 ((t (:weight normal
+                      ,@(when my/org-enlarge-headings
+                          `(:height ,my/org-heading-height-3)))))))
+
   (setq org-todo-keywords
         '((sequence "TODO(t)" "DOING(d!)" "HOLD(h)" "|" "DONE(D)" "CANCELLED(c)" "MAYBE(m)")))
   (setq org-todo-keyword-faces
@@ -240,17 +259,17 @@
       '((default
          :default-family "FiraCode Nerd Font"
          :default-weight regular
-         :default-height 120
+         :default-height 100
          :fixed-pitch-family "FiraCode Nerd Font"
          :fixed-pitch-weight regular
          :italic-family "CaskaydiaCove Nerd Font"
          :italic-slant italic
          :variable-pitch-family "Fira Sans"
          :variable-pitch-weight regular
-         :variable-pitch-height 140)))
+         :variable-pitch-height 120)))
 
 ;; Set Nerd Font for symbols
-(let ((font-spec (font-spec :family "Symbols Nerd Font Mono" :size 18)))
+(let ((font-spec (font-spec :family "Symbols Nerd Font Mono" :size 14)))
   (set-fontset-font t 'unicode font-spec nil 'prepend)
   (set-fontset-font t '(#x1F000 . #x1F02F) font-spec)  ;; Mahjong Tiles
   (set-fontset-font t '(#x1F0A0 . #x1F0FF) font-spec)  ;; Playing Cards
