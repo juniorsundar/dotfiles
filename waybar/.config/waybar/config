@@ -2,7 +2,7 @@
     "name": "top",
         "custom/os_button": {
             "format": "",
-            "on-click": "wofi --conf ~/.config/wofi/config --style ~/.config/wofi/catppuccin.css --show drun",
+            "on-click": "rofi -show drun",
             "tooltip": false
         },
         "sway/workspaces": {
