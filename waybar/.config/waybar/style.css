@@ -53,6 +53,7 @@
 #network,
 #pulseaudio,
 #custom-lock,
+#custom-notification,
 #custom-power {
   background-color: @surface0;
   padding: 0.5rem 1rem;
@@ -153,3 +154,9 @@
 #network {
     color: @rosewater;
 }
+
+#custom-notification {
+  margin-right: 1rem;
+  border-radius: 1rem;
+}
+
