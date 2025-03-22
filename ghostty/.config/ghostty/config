@@ -6,7 +6,7 @@ font-family-bold-italic = CaskaydiaCove NF
 
 gtk-titlebar = true
 adw-toolbar-style = flat
-gtk-adwaita = true
+gtk-adwaita = false
 
 palette = 0=#2e3138
 palette = 1=#ff6e5e
