@@ -30,5 +30,3 @@ git:
     colorArg: always
     pager: delta --dark --paging=never
   # Config for showing the log in the commits view
-  log:
-    showWholeGraph: true
