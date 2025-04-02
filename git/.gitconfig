@@ -1,0 +1,31 @@
+[user]
+    email = juniorsundar@gmail.com
+    name = Junior Sundar
+[credential]
+    helper = store
+[gui]
+    recentrepo = /home/juniorsundar/Dropbox/neorg
+[core]
+    pager = delta
+    editor = nvim
+[interactive]
+    diffFilter = delta --color-only
+[include]
+    path = ~/.config/delta/catppuccin.gitconfig
+[delta]
+    line-numbers = true
+    side-by-side = false
+    dark = true
+    features = cyberdream
+    navigate = true
+[pager]
+    blame  = delta
+    diff   = delta
+    reflog = delta
+    show   = delta
+[merge]
+    conflictstyle = zdiff3
+[diff]
+    colorMoved = default
+[safe]
+    directory = /etc/nixos

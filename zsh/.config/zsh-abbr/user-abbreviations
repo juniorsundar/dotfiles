@@ -1,0 +1,7 @@
+abbr "cat"="bat --plain --theme='Catppuccin Cyberdream'"
+abbr "cd"="z"
+abbr "du"="dust"
+abbr "G"="lazygit"
+abbr "grep"="rg"
+abbr "ls"="eza --hyperlink --color=auto --icons=auto"
+abbr "nv"="fd --type f --hidden --exclude .git | fzf --height=10 --min-height=5 --layout=reverse | xargs nvim"

@@ -1,0 +1,55 @@
+font-family = FiraCode Nerd Font
+
+font-family-bold = FiraCode Nerd Font
+font-family-italic = CaskaydiaCove NF
+font-family-bold-italic = CaskaydiaCove NF
+
+gtk-titlebar = true
+adw-toolbar-style = flat
+gtk-adwaita = false
+window-decoration = server
+
+palette = 0=#2e3138
+palette = 1=#ff6e5e
+palette = 2=#5eff6c
+palette = 3=#f1ff5e
+palette = 4=#5ea1ff
+palette = 5=#ff5ea0
+palette = 6=#64d8cb
+palette = 7=#a0a4b8
+palette = 8=#363940
+palette = 9=#ff6e5e
+palette = 10=#5eff6c
+palette = 11=#f1ff5e
+palette = 12=#5ea1ff
+palette = 13=#ff5ea0
+palette = 14=#64d8cb
+palette = 15=#8a8e99
+background = 16181a
+foreground = ffffff
+cursor-color = ffd1dc
+selection-background = 3a3e53
+selection-foreground = ffffff
+
+keybind = clear
+keybind = ctrl+shift+c=copy_to_clipboard
+keybind = ctrl+shift+v=paste_from_clipboard
+keybind = ctrl+equal=increase_font_size:1
+keybind = ctrl+minus=decrease_font_size:1
+keybind = ctrl+shift+t=new_tab
+keybind = ctrl+tab=next_tab
+keybind = ctrl+shift+tab=previous_tab
+keybind = ctrl+shift+|=new_split:right
+keybind = ctrl+shift+_=new_split:down
+keybind = ctrl+shift+right=goto_split:right
+keybind = ctrl+shift+down=goto_split:bottom
+keybind = ctrl+shift+left=goto_split:left
+keybind = ctrl+shift+up=goto_split:top
+keybind = ctrl+shift+alt+right=resize_split:right,10
+keybind = ctrl+shift+alt+down=resize_split:down,10
+keybind = ctrl+shift+alt+left=resize_split:left,10
+keybind = ctrl+shift+alt+up=resize_split:up,10
+
+window-padding-balance = true
+window-padding-x = 5
+window-padding-y = 5

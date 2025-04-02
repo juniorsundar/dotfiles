@@ -1,0 +1,128 @@
+[{    
+    "name": "top",
+        "custom/os_button": {
+            "format": "",
+            "on-click": "rofi -show drun",
+            "tooltip": false
+        },
+        "sway/workspaces": {
+            "disable-scroll": true,
+            "format": "{icon}",
+        },
+        "layer": "top",
+        "position": "top", 
+        "modules-left": ["custom/os_button", "sway/workspaces"],
+        "modules-right": ["custom/music", "pulseaudio", "backlight", "battery", "network", "clock", "tray","custom/notification", "custom/lock", "custom/power"],
+        "tray": {
+            "icon-size": 21,
+            "spacing": 10
+        },
+        "custom/music": {
+            "format": "  {}",
+            "escape": true,
+            "interval": 5,
+            "tooltip": false,
+            "exec": "playerctl metadata --format='{{ title }}'",
+            "on-click": "playerctl play-pause",
+            "max-length": 50
+        },
+        "clock": {
+            "timezone": "Asia/Dubai",
+            "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+            "format-alt": " {:%d/%m/%Y}",
+            "format": " {:%H:%M}"
+        },
+        "backlight": {
+            "device": "intel_backlight",
+            "format": "{icon}",
+            "format-icons": ["", "", "", "", "", "", "", "", ""]
+        },
+        "battery": {
+            "states": {
+                "warning": 30,
+                "critical": 15
+            },
+            "format": "{icon}",
+            "format-charging": "",
+            "format-plugged": "",
+            "format-alt": "{icon}",
+            "format-icons": ["", "",  "", "", "", "", "", "", "", "", "", ""]
+        },
+        "pulseaudio": {
+            "format": "{icon} {volume}%",
+            "format-muted": "",
+            "format-icons": {
+                "default": ["", "", " "]
+            },
+            "on-click": "pavucontrol"
+        },
+        "network": {
+            "format-wifi": " {icon}",
+            "format-ethernet": "  ",
+            "format-disconnected": "󰌙",
+            "format-icons": [
+                "󰤯 ",
+            "󰤟 ",
+            "󰤢 ",
+            "󰤢 ",
+            "󰤨 "
+            ],
+            "on-click": "nm-connection-editor"
+        },
+        "custom/lock": {
+            "tooltip": false,
+            "on-click": "sh -c '(sleep 0.5s; swaylock -c 222426)' & disown",
+            "format": ""
+        },
+        "custom/power": {
+            "tooltip": false,
+            "on-click": "wlogout &",
+            "format": "⏻"
+        },
+        "custom/notification": {
+            "tooltip": false,
+            "format": "{} {icon}",
+            "format-icons": {
+                "notification": "󱅫",
+                "none": "",
+                "dnd-notification": " ",
+                "dnd-none": "󰂛",
+                "inhibited-notification": " ",
+                "inhibited-none": "",
+                "dnd-inhibited-notification": " ",
+                "dnd-inhibited-none": " "
+            },
+            "return-type": "json",
+            "exec-if": "which swaync-client",
+            "exec": "swaync-client -swb",
+            "on-click": "sleep 0.1 && swaync-client -t -sw",
+            "on-click-right": "sleep 0.1 && swaync-client -d -sw",
+            "escape": true
+        }
+},
+{
+    "name": "bottom",
+    "layer": "bottom",
+    "position": "bottom",
+    "wlr/taskbar": {
+        "format": "{icon} {title:.17}",
+        "icon-size": 28,
+        "spacing": 3,
+        "on-click-middle": "close",
+        "tooltip-format": "{title}",
+        "ignore-list": [],
+        "on-click": "activate"
+    },
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
+        "on-scroll-down": "hyprctl dispatch workspace e-1",
+        "disable-scroll": true,
+        "sort-by-name": true
+    },
+    "hyprland/window": {
+        "separate-outputs": true
+    },
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["hyprland/window"]
+}]
