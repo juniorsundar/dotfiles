@@ -9,7 +9,7 @@
     pager = delta
     editor = nvim
 [interactive]
-    diffFilter = delta --color-only
+    diffFilter = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
 [include]
     path = ~/.config/delta/catppuccin.gitconfig
 [delta]
@@ -19,10 +19,10 @@
     features = cyberdream
     navigate = true
 [pager]
-    blame  = delta
-    diff   = delta
-    reflog = delta
-    show   = delta
+    blame  = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    diff   = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    reflog = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    show   = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
 [merge]
     conflictstyle = zdiff3
 [diff]

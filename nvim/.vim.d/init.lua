@@ -127,6 +127,15 @@ return require('packer').startup(function(use)
 		end,
 	}
 
+    use {
+        "echasnovski/mini.move",
+        event = "VeryLazy",
+        config = function()
+            require("mini.move").setup()
+        end,
+    }
+
+
 	-- You can specify rocks in isolation
 	-- use_rocks 'penlight'
 	-- use_rocks {'lua-resty-http', 'lpeg'}

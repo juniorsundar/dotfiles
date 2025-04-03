@@ -5,7 +5,7 @@
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
-      *) return;;
+    *) return;;
 esac
 
 # don't put duplicate lines or lines starting with space in the history.
@@ -47,12 +47,12 @@ esac
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-	# We have color support; assume it's compliant with Ecma-48
-	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-	# a case would tend to support setf rather than setaf.)
-	color_prompt=yes
+        # We have color support; assume it's compliant with Ecma-48
+        # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+        # a case would tend to support setf rather than setaf.)
+        color_prompt=yes
     else
-	color_prompt=
+        color_prompt=
     fi
 fi
 
@@ -65,11 +65,11 @@ unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
+    xterm*|rxvt*)
+        PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+        ;;
+    *)
+        ;;
 esac
 
 # enable color support of ls and also add handy aliases
@@ -110,11 +110,11 @@ fi
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
+        . /usr/share/bash-completion/bash_completion
+    elif [ -f /etc/bash_completion ]; then
+        . /etc/bash_completion
+    fi
 fi
 
 PS1='\[\e[94;1;2m\][\u]\[\e[0;1;91m\][\w]  \[\e[0;95;4;53m\]$(git branch 2>/dev/null | grep '"'"'*'"'"' | colrm 1 2)\n\[\e[0m\]\\$ '
@@ -144,7 +144,13 @@ alias px4_sim="docker run -it --privileged --rm -v ${FIRMWARE_DIR}:/Firmware:rw 
 alias ssr_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=$(id -u) --env GID=$(id -g) -v /home/juniorsundar-unikie/ros_workspaces/caltech-docker:/ros_workspace:rw -w /ros_workspace ssr_ros_ws'
 alias slam_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=$(id -u) --env GID=$(id -g) -v /home/juniorsundar-unikie/ros_workspaces/caltech:/ros_workspace:rw -w /ros_workspace slam_ros_ws'
 
-eval "$(starship init bash)"
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+else
+    echo "[Shell Setup] Starship command not found." >&2
+    echo "[Shell Setup] Please install Starship using your preferred method and restart your shell." >&2
+    echo "[Shell Setup] Visit: https://starship.rs" >&2
+fi
 
 eval "$(zoxide init bash)"
 
