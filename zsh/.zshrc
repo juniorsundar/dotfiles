@@ -1,8 +1,17 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+#
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+else
+  echo "[Shell Setup] Starship command not found." >&2
+  echo "[Shell Setup] Please install Starship using your preferred method and restart your shell." >&2
+  echo "[Shell Setup] Visit: https://starship.rs" >&2
+  PS1="[%n@%m %c]%# "
 fi
 
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -20,7 +29,7 @@ unalias zi
 
 # Correctly specify repositories
 zinit light Aloxaf/fzf-tab
-zinit ice depth"1"; zinit light romkatv/powerlevel10k
+# zinit ice depth"1"; zinit light romkatv/powerlevel10k
 zinit light zsh-users/zsh-autosuggestions
 zinit light zdharma-continuum/fast-syntax-highlighting
 zinit light zsh-users/zsh-completions
@@ -32,7 +41,7 @@ zinit ice wait lucid; zinit snippet OMZP::git
 zinit ice wait lucid; zinit snippet OMZP::nvm
 zinit snippet OMZL::key-bindings.zsh
 
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Aliases
 if [ -f ~/.zsh_aliases ]; then
@@ -89,6 +98,7 @@ export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 
 # Rust
 # source "$HOME/.cargo/env"
+export PATH=$PATH:~/.cargo/bin
 
 # LaTeX
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
@@ -122,4 +132,5 @@ alias ISAACSIM="${ISAACSIM_PATH}/isaac-sim.sh"
 
 export PATH=$PATH:$HOME/.local/bin
 
+source ~/.fzf-git.sh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

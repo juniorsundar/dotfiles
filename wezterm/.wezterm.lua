@@ -11,29 +11,31 @@ if wezterm.config_builder then
     config = wezterm.config_builder()
 end
 
--- This is where you actually apply your config choices
+config.default_prog = { 'zsh' }
 
 -- For example, changing the color scheme:
-config.font = wezterm.font_with_fallback({
-    { family = "Fira Code", weight = "Regular" },
-    { family = "Symbols Nerd Font", weight = "Regular" },
-})
+-- Set the default font to JetBrainsMono Nerd Font Light
+config.font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light"})
 
+-- Define rules to override specific styles
 config.font_rules = {
+  -- Override Bold to use ExtraBold
+  {
+    intensity = "Bold",
+    italic = false,
+    font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold"}),
+  },
+  -- Override Italic to use Light Italic
+  {
+    intensity = "Normal",
+    italic = true,
+    font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light", style="Italic"}),
+  },
+  -- Override Bold Italic to use ExtraBold Italic
   {
     intensity = "Bold",
     italic = true,
-    font = wezterm.font({ family = "Cascadia Code", weight = "Bold", style = "Italic" }),
-  },
-  {
-    italic = true,
-    intensity = "Half",
-    font = wezterm.font({ family = "Cascadia Code", weight = "DemiBold", style = "Italic" }),
-  },
-  {
-    italic = true,
-    intensity = "Normal",
-    font = wezterm.font({ family = "Cascadia Code", style = "Italic" }),
+    font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold", style="Italic"}),
   },
 }
 

@@ -1,8 +1,8 @@
-font-family = FiraCode Nerd Font
+font-family = JetBrainsMono Nerd Font
 
-font-family-bold = FiraCode Nerd Font
-font-family-italic = CaskaydiaCove NF
-font-family-bold-italic = CaskaydiaCove NF
+font-family-bold = JetBrainsMono Nerd Font
+font-family-italic = JetBrainsMono Nerd Font
+font-family-bold-italic = JetBrainsMono Nerd Font
 
 gtk-titlebar = true
 adw-toolbar-style = flat
