@@ -122,4 +122,5 @@ alias ISAACSIM="${ISAACSIM_PATH}/isaac-sim.sh"
 
 export PATH=$PATH:$HOME/.local/bin
 
+source ~/.fzf-git.sh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
