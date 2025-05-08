@@ -47,7 +47,9 @@ zinit snippet OMZL::key-bindings.zsh
 if [ -f ~/.zsh_aliases ]; then
     source ~/.zsh_aliases
 fi
-source ~/.zoxide.zsh
+if [ -f ~/.zoxide.zsh ]; then
+    source ~/.zoxide.zsh
+fi
 
 # History settings
 HISTSIZE=5000
