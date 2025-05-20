@@ -59,6 +59,11 @@ config.colors = {
     ansi = { "#16181a", "#ff6e5e", "#5eff6c", "#f1ff5e", "#5ea1ff", "#bd5eff", "#5ef1ff", "#ffffff" },
     brights = { "#3c4048", "#ff6e5e", "#5eff6c", "#f1ff5e", "#5ea1ff", "#bd5eff", "#5ef1ff", "#ffffff" },
     indexed = { [16] = "#ffbd5e", [17] = "#ff6e5e" },
+
+    tab_bar = {
+        inactive_tab_edge = '#16181a',
+    },
+
 }
 
 -- Modus_Vivendi
@@ -81,7 +86,13 @@ config.colors = {
 --     indexed = { [16] = "#fec43f", [17] = "#ff5f59" },
 -- }
 -- config.color_scheme = "Catppuccin Frappe"
-config.use_fancy_tab_bar = false
+config.use_fancy_tab_bar = true
+config.window_frame = {
+  font = wezterm.font { family = 'SF Pro', weight = 'Bold' },
+  font_size = 12.0,
+  active_titlebar_bg = '#16181a',
+  inactive_titlebar_bg = '#16181a',
+}
 
 config.force_reverse_video_cursor = true
 config.warn_about_missing_glyphs = false
