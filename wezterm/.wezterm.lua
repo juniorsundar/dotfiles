@@ -11,35 +11,27 @@ if wezterm.config_builder then
     config = wezterm.config_builder()
 end
 
-config.default_prog = { 'zsh' }
-
+-- config.default_prog = { 'zsh' }
 -- For example, changing the color scheme:
--- Set the default font to JetBrainsMono Nerd Font Light
 config.font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light"})
-
--- Define rules to override specific styles
 config.font_rules = {
-  -- Override Bold to use ExtraBold
   {
     intensity = "Bold",
     italic = false,
     font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold"}),
   },
-  -- Override Italic to use Light Italic
   {
     intensity = "Normal",
     italic = true,
     font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light", style="Italic"}),
   },
-  -- Override Bold Italic to use ExtraBold Italic
   {
     intensity = "Bold",
     italic = true,
     font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold", style="Italic"}),
   },
 }
-
-config.font_size = 12
+config.font_size = 16
 
 -- Cyberdream
 config.colors = {
