@@ -12,25 +12,28 @@ if wezterm.config_builder then
 end
 
 -- config.default_prog = { 'zsh' }
--- For example, changing the color scheme:
-config.font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light"})
-config.font_rules = {
-  {
-    intensity = "Bold",
-    italic = false,
-    font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold"}),
-  },
-  {
-    intensity = "Normal",
-    italic = true,
-    font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light", style="Italic"}),
-  },
-  {
-    intensity = "Bold",
-    italic = true,
-    font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold", style="Italic"}),
-  },
+config.font = wezterm.font_with_fallback {
+  'IosevkaTerm NF',
 }
+-- For example, changing the color scheme:
+-- config.font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light"})
+-- config.font_rules = {
+--   {
+--     intensity = "Bold",
+--     italic = false,
+--     font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold"}),
+--   },
+--   {
+--     intensity = "Normal",
+--     italic = true,
+--     font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light", style="Italic"}),
+--   },
+--   {
+--     intensity = "Bold",
+--     italic = true,
+--     font = wezterm.font("JetBrainsMono Nerd Font", {weight="ExtraBold", style="Italic"}),
+--   },
+-- }
 config.font_size = 16
 
 -- Cyberdream
