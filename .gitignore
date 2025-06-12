@@ -4,3 +4,4 @@
 .config/fish/fishd.*
 fonts/.local/share/fonts/.uuid
 tmux/.tmux/plugins/tmux-sensible
+**.DS_Store
