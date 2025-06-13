@@ -13,9 +13,26 @@ end
 
 -- config.default_prog = { 'zsh' }
 config.font = wezterm.font_with_fallback {
-  'IosevkaTerm NF',
+    'IosevkaTerm NF',
 }
--- For example, changing the color scheme:
+-- config.font = wezterm.font("FiraCode Nerd Font", {weight="Regular"})
+-- config.font_rules = {
+--   {
+--     intensity = "Bold",
+--     italic = false,
+--     font = wezterm.font("FiraCode Nerd Font", {weight="Bold"}),
+--   },
+--   {
+--     intensity = "Normal",
+--     italic = true,
+--     font = wezterm.font("CaskaydiaCove NF", {weight="Regular", style="Italic"}),
+--   },
+--   {
+--     intensity = "Bold",
+--     italic = true,
+--     font = wezterm.font("CaskaydiaCove NF", {weight="Bold", style="Italic"}),
+--   },
+-- }
 -- config.font = wezterm.font("JetBrainsMono Nerd Font", {weight="Light"})
 -- config.font_rules = {
 --   {
@@ -58,7 +75,6 @@ config.colors = {
     tab_bar = {
         inactive_tab_edge = '#16181a',
     },
-
 }
 
 -- Modus_Vivendi
@@ -83,10 +99,10 @@ config.colors = {
 -- config.color_scheme = "Catppuccin Frappe"
 config.use_fancy_tab_bar = true
 config.window_frame = {
-  font = wezterm.font { family = 'SF Pro', weight = 'Bold' },
-  font_size = 12.0,
-  active_titlebar_bg = '#16181a',
-  inactive_titlebar_bg = '#16181a',
+    font = wezterm.font { family = 'SF Pro', weight = 'Bold' },
+    font_size = 12.0,
+    active_titlebar_bg = '#16181a',
+    inactive_titlebar_bg = '#16181a',
 }
 
 config.force_reverse_video_cursor = true
