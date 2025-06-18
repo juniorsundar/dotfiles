@@ -1,11 +1,11 @@
 M = {
     apply_font = function(config, wezterm)
-        config.font = wezterm.font("FiraCode Nerd Font", { weight = "Regular" })
+        config.font = wezterm.font("CaskaydiaCove NF", { weight = "Regular" })
         config.font_rules = {
             {
                 intensity = "Bold",
                 italic = false,
-                font = wezterm.font("FiraCode Nerd Font", { weight = "Bold" }),
+                font = wezterm.font("CaskaydiaCove NF", { weight = "Bold" }),
             },
             {
                 intensity = "Normal",

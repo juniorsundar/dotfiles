@@ -11,7 +11,7 @@ if wezterm.config_builder then
     config = wezterm.config_builder()
 end
 
-local font_function = require("fonts.jetbrains")
+local font_function = require("fonts.firacode")
 font_function.apply_font(config, wezterm)
 config.font_size = 14
 
