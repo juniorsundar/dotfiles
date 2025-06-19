@@ -11,11 +11,11 @@ if wezterm.config_builder then
     config = wezterm.config_builder()
 end
 
-local font_function = require("fonts.firacode")
+local font_function = require("fonts.jetbrains")
 font_function.apply_font(config, wezterm)
 config.font_size = 14
 
-local palette = require("themes.base")
+local palette = require("themes.vscode")
 config.colors = palette
 
 config.use_fancy_tab_bar = true
