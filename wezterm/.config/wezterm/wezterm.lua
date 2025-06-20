@@ -15,7 +15,7 @@ local font_function = require("fonts.jetbrains")
 font_function.apply_font(config, wezterm)
 config.font_size = 14
 
-local palette = require("themes.vscode")
+local palette = require("themes.base")
 config.colors = palette
 
 config.use_fancy_tab_bar = true

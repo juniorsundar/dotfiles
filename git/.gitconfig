@@ -16,6 +16,7 @@
     line-numbers = true
     side-by-side = false
     dark = true
+    features = cyberdream
     ; features = 'Visual Studio Dark+'
     navigate = true
 [pager]

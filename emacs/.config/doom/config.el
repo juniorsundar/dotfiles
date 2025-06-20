@@ -59,7 +59,8 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
-(setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16 :weight 'semi-light)
+;; (setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16 :weight 'semi-light)
+(setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 16 :weight 'semi-light)
       doom-variable-pitch-font (font-spec :family "SF Pro" :size 19))
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
@@ -258,14 +259,14 @@
 ;; )
 (setq fontaine-presets
       '((default
-         :default-family "FiraCode Nerd Font"
+         :default-family "JetBrainsMono Nerd Font"
          :default-weight regular
          :default-height 100
-         :fixed-pitch-family "FiraCode Nerd Font"
+         :fixed-pitch-family "JetBrainsMono Nerd Font"
          :fixed-pitch-weight regular
-         :italic-family "CaskaydiaCove Nerd Font"
+         :italic-family "JetBrainsMono Nerd Font"
          :italic-slant italic
-         :variable-pitch-family "Fira Sans"
+         :variable-pitch-family "SF Pro"
          :variable-pitch-weight regular
          :variable-pitch-height 120)))
 
