@@ -1,4 +1,4 @@
-abbr "cat"="bat --plain --theme='Visual Studio Dark+'"
+abbr "cat"="bat --plain --theme='Catppuccin Cyberdream'"
 abbr "cd"="z"
 abbr "du"="dust"
 abbr "G"="lazygit"
