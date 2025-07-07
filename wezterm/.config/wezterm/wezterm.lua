@@ -15,7 +15,7 @@ local font_function = require("fonts.jetbrains")
 font_function.apply_font(config, wezterm)
 config.font_size = 12
 
-local palette = require("themes.base")
+local palette = require("themes.astrodark")
 config.colors = palette
 
 config.use_fancy_tab_bar = true
@@ -35,8 +35,8 @@ config.hide_tab_bar_if_only_one_tab = true
 config.window_padding = {
     -- 	left = 2.5,
     -- 	right = 2.5,
-    top = 3,
-    bottom = 3,
+    top = 0,
+    bottom = 0,
 }
 
 config.keys = {
