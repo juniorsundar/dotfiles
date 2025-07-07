@@ -13,7 +13,7 @@ end
 
 local font_function = require("fonts.jetbrains")
 font_function.apply_font(config, wezterm)
-config.font_size = 14
+config.font_size = 12
 
 local palette = require("themes.base")
 config.colors = palette
