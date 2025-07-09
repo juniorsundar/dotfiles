@@ -69,7 +69,7 @@ config.keys = {
 
 config.unix_domains = {
     {
-        name = 'personal',
+        name = 'mux',
     }
 }
 
