@@ -67,5 +67,11 @@ config.keys = {
     },
 }
 
+config.unix_domains = {
+    {
+        name = 'personal',
+    }
+}
+
 -- and finally, return the configuration to wezterm
 return config
