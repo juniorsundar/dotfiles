@@ -9,27 +9,49 @@ adw-toolbar-style = flat
 gtk-adwaita = false
 window-decoration = server
 
-palette = 0=#2e3138
-palette = 1=#ff6e5e
-palette = 2=#5eff6c
-palette = 3=#f1ff5e
-palette = 4=#5ea1ff
-palette = 5=#ff5ea0
-palette = 6=#64d8cb
-palette = 7=#a0a4b8
-palette = 8=#363940
-palette = 9=#ff6e5e
-palette = 10=#5eff6c
-palette = 11=#f1ff5e
-palette = 12=#5ea1ff
-palette = 13=#ff5ea0
-palette = 14=#64d8cb
-palette = 15=#8a8e99
-background = 16181a
-foreground = ffffff
-cursor-color = ffd1dc
-selection-background = 3a3e53
-selection-foreground = ffffff
+# palette = 0=#2e3138
+# palette = 1=#ff6e5e
+# palette = 2=#5eff6c
+# palette = 3=#f1ff5e
+# palette = 4=#5ea1ff
+# palette = 5=#ff5ea0
+# palette = 6=#64d8cb
+# palette = 7=#a0a4b8
+# palette = 8=#363940
+# palette = 9=#ff6e5e
+# palette = 10=#5eff6c
+# palette = 11=#f1ff5e
+# palette = 12=#5ea1ff
+# palette = 13=#ff5ea0
+# palette = 14=#64d8cb
+# palette = 15=#8a8e99
+# background = 16181a
+# foreground = ffffff
+# cursor-color = ffd1dc
+# selection-background = 3a3e53
+# selection-foreground = ffffff
+
+background = #1A1D23
+foreground= #ADB0BB
+selection-foreground= #ADB0BB
+selection-background = #26343F
+palette = 0=#111317
+palette = 8=#34363A
+palette = 1=#FF838B       
+palette = 9=#FFA6AE
+palette = 2=#87C05F
+palette = 10=#AAE382
+palette = 3=#DFAB25
+palette = 11=#FFCE48
+palette = 4=#5EB7FF
+palette = 12=#81DAFF
+palette = 5=#DD97F1
+palette = 13=#FFBAFF
+palette = 6=#4AC2B8
+palette = 14=#6DE5DB
+palette = 7=#9B9FA9
+palette = 15=#D0D3DE
+split-divider-color = #5EB7FF
 
 keybind = clear
 keybind = ctrl+shift+c=copy_to_clipboard
@@ -52,4 +74,4 @@ keybind = ctrl+shift+alt+up=resize_split:up,10
 
 window-padding-balance = true
 window-padding-x = 5
-window-padding-y = 5
+window-padding-y = 2
