@@ -110,7 +110,7 @@ if [[ $1 = --list ]]; then
     # Only supports GitHub for now
     case "$1" in
       commit)
-        hash=$(grep -o "[a-f0-9]\{7,\}" <<< "$2")
+        hash=$(grep -o "[a-f0-9]\{7,\}" <<< "$2" | head -n 1)
         path=/commit/$hash
         ;;
       branch|remote-branch)
@@ -139,9 +139,16 @@ if [[ $1 = --list ]]; then
       url=${remote_url%.git}
     fi
 
-    case "$(uname -s)" in
-      Darwin) open "$url$path"     ;;
-      *)      xdg-open "$url$path" ;;
+    case "$(uname -sr)" in
+      Darwin*)
+        open "$url$path"
+        ;;
+      *microsoft* | *Microsoft*)
+        explorer.exe "$url$path"
+        ;;
+      *)
+        xdg-open "$url$path"
+        ;;
     esac
     exit 0
   fi
@@ -149,16 +156,20 @@ fi
 
 if [[ $- =~ i ]] || [[ $1 = --run ]]; then # ----------------------------------
 
-# Redefine this function to change the options
-_fzf_git_fzf() {
-  fzf --height 50% --tmux 90%,70% \
-    --layout reverse --multi --min-height 20+ --border \
-    --no-separator --header-border horizontal \
-    --border-label-pos 2 \
-    --color 'label:blue' \
-    --preview-window 'right,50%' --preview-border line \
-    --bind 'ctrl-/:change-preview-window(down,50%|hidden|)' "$@"
-}
+if [[ $__fzf_git_fzf ]]; then
+  eval "$__fzf_git_fzf"
+else
+  # Redefine this function to change the options
+  _fzf_git_fzf() {
+    fzf --height 50% --tmux 90%,70% \
+      --layout reverse --multi --min-height 20+ --border \
+      --no-separator --header-border horizontal \
+      --border-label-pos 2 \
+      --color 'label:blue' \
+      --preview-window 'right,50%' --preview-border line \
+      --bind 'ctrl-/:change-preview-window(down,50%|hidden|)' "$@"
+  }
+fi
 
 _fzf_git_check() {
   git rev-parse HEAD > /dev/null 2>&1 && return
@@ -190,8 +201,12 @@ _fzf_git_files() {
 
 _fzf_git_branches() {
   _fzf_git_check || return
+
+  local shell
+  [[ -n "${BASH_VERSION:-}" ]] && shell=bash || shell=zsh
+
   bash "$__fzf_git" --list branches |
-  _fzf_git_fzf --ansi \
+  __fzf_git_fzf=$(declare -f _fzf_git_fzf) _fzf_git_fzf --ansi \
     --border-label '🌲 Branches ' \
     --header-lines 2 \
     --tiebreak begin \
@@ -201,7 +216,7 @@ _fzf_git_branches() {
     --bind 'ctrl-/:change-preview-window(down,70%|hidden|)' \
     --bind "ctrl-o:execute-silent:bash \"$__fzf_git\" --list branch {}" \
     --bind "alt-a:change-border-label(🌳 All branches)+reload:bash \"$__fzf_git\" --list all-branches" \
-    --bind "alt-h:become:LIST_OPTS=\$(cut -c3- <<< {} | cut -d' ' -f1) bash \"$__fzf_git\" --run hashes" \
+    --bind "alt-h:become:LIST_OPTS=\$(cut -c3- <<< {} | cut -d' ' -f1) $shell \"$__fzf_git\" --run hashes" \
     --bind "alt-enter:become:printf '%s\n' {+} | cut -c3- | sed 's@[^/]*/@@'" \
     --preview "git log --oneline --graph --date=short --color=$(__fzf_git_color .) --pretty='format:%C(auto)%cd %h%d %s' \$(cut -c3- <<< {} | cut -d' ' -f1) --" "$@" |
   sed 's/^\* //' | awk '{print $1}' # Slightly modified to work with hashes as well
@@ -292,6 +307,23 @@ _fzf_git_worktrees() {
     " "$@" |
   awk '{print $1}'
 }
+
+_fzf_git_list_bindings(){
+  cat <<'EOF'
+
+CTRL-G ? to show this list
+CTRL-G CTRL-F for Files
+CTRL-G CTRL-B for Branches
+CTRL-G CTRL-T for Tags
+CTRL-G CTRL-R for Remotes
+CTRL-G CTRL-H for commit Hashes
+CTRL-G CTRL-S for Stashes
+CTRL-G CTRL-L for reflogs
+CTRL-G CTRL-W for Worktrees
+CTRL-G CTRL-E for Each ref (git for-each-ref)
+EOF
+}
+
 fi # --------------------------------------------------------------------------
 
 if [[ $1 = --run ]]; then
@@ -311,6 +343,10 @@ if [[ -n "${BASH_VERSION:-}" ]]; then
     local o c
     for o in "$@"; do
       c=${o:0:1}
+      if [[ $c == '?' ]]; then
+        bind -x '"\C-g'$c'": _fzf_git_list_bindings'
+        continue
+      fi
       bind -m emacs-standard '"\C-g\C-'$c'": " \C-u \C-a\C-k`_fzf_git_'$o'`\e\C-e\C-y\C-a\C-y\ey\C-h\C-e\er \C-h"'
       bind -m vi-command     '"\C-g\C-'$c'": "\C-z\C-g\C-'$c'\C-z"'
       bind -m vi-insert      '"\C-g\C-'$c'": "\C-z\C-g\C-'$c'\C-z"'
@@ -328,9 +364,14 @@ elif [[ -n "${ZSH_VERSION:-}" ]]; then
   }
 
   __fzf_git_init() {
+    setopt localoptions nonomatch
     local m o
     for o in "$@"; do
-      eval "fzf-git-$o-widget() { local result=\$(_fzf_git_$o | __fzf_git_join); zle reset-prompt; LBUFFER+=\$result }"
+      if [[ ${o[1]} == "?" ]];then
+        eval "fzf-git-$o-widget() { zle -M '$(_fzf_git_list_bindings)' }"
+      else
+        eval "fzf-git-$o-widget() { local result=\$(_fzf_git_$o | __fzf_git_join); zle reset-prompt; LBUFFER+=\$result }"
+      fi
       eval "zle -N fzf-git-$o-widget"
       for m in emacs vicmd viins; do
         eval "bindkey -M $m '^g^${o[1]}' fzf-git-$o-widget"
@@ -339,6 +380,6 @@ elif [[ -n "${ZSH_VERSION:-}" ]]; then
     done
   }
 fi
-__fzf_git_init files branches tags remotes hashes stashes lreflogs each_ref worktrees
+__fzf_git_init files branches tags remotes hashes stashes lreflogs each_ref worktrees '?list_bindings'
 
 fi # --------------------------------------------------------------------------
