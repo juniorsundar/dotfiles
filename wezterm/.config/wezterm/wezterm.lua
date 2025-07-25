@@ -19,6 +19,7 @@ local palette = require("themes.astrodark")
 config.colors = palette
 
 config.use_fancy_tab_bar = true
+-- config.tab_bar_at_bottom = true
 config.window_frame = {
     font = wezterm.font { family = 'SF Pro', weight = 'Bold' },
     font_size = 12.0,
