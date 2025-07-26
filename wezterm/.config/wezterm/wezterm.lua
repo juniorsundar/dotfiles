@@ -11,7 +11,7 @@ if wezterm.config_builder then
     config = wezterm.config_builder()
 end
 
-local font_function = require("fonts.jetbrains")
+local font_function = require("fonts.monaspice")
 font_function.apply_font(config, wezterm)
 config.font_size = 12
 
@@ -31,7 +31,7 @@ config.force_reverse_video_cursor = true
 config.warn_about_missing_glyphs = false
 config.hide_tab_bar_if_only_one_tab = true
 -- Disable font ligatures
--- config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
+config.harfbuzz_features={ 'calt', 'liga', 'dlig', 'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08' }
 
 config.window_padding = {
     -- 	left = 2.5,
