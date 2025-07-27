@@ -10,12 +10,12 @@ M = {
 			{
 				intensity = "Normal",
 				italic = true,
-				font = wezterm.font("Monaspace Radon", { weight = "Light" }),
+				font = wezterm.font("Monaspace Argon", { weight = "Light", style = "Italic" }),
 			},
 			{
 				intensity = "Bold",
 				italic = true,
-				font = wezterm.font("Monaspace Radon", { weight = "Bold" }),
+				font = wezterm.font("Monaspace Argon", { weight = "Bold", style = "Italic" }),
 			},
 		}
 		config.line_height = 1.1
