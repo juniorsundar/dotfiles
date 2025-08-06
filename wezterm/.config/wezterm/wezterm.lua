@@ -66,6 +66,7 @@ config.keys = {
         mods = "CTRL|SHIFT",
         action = wezterm.action.CloseCurrentTab({ confirm = true }),
     },
+    { key = 'l', mods = 'ALT', action = wezterm.action.ShowLauncher },
 }
 
 config.unix_domains = {
@@ -73,6 +74,8 @@ config.unix_domains = {
         name = 'mux',
     }
 }
+
+config.exec_domains = require("extras.docker").docker_exec_domain(wezterm)
 
 -- and finally, return the configuration to wezterm
 return config
