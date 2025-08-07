@@ -19,7 +19,7 @@ exec_always --no-startup-id dunst &
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
 # font pango:FiraCode Nerd Font Mono 10
-font pango:FiraCode Nerd Font Mono 10
+font pango:Monaspace Neon 10
 # font pango:Iosevka Nerd Font 11
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
@@ -63,11 +63,11 @@ gaps inner 10px
 # gaps outer 5px
 
 # start a terminal
-# bindsym $mod+Shift+Return exec wezterm -e zsh -c tmux new-session
-# bindsym $mod+Return exec ghostty
+bindsym $mod+Shift+Return exec wezterm -e zsh -c tmux new-session
+bindsym $mod+Return exec wezterm
 # bindsym $mod+Shift+Return exec ghostty -e tmux new-session
-bindsym $mod+Return exec kitty
-bindsym $mod+Shift+Return exec kitty -e tmux new-session
+# bindsym $mod+Return exec kitty
+# bindsym $mod+Shift+Return exec kitty -e tmux new-session
 
 # kill focused window
 bindsym $mod+Shift+c kill
