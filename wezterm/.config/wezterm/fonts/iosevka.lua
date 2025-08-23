@@ -1,7 +1,8 @@
 M = {
 	apply_font = function(config, wezterm)
 		config.font = wezterm.font_with_fallback({
-			"IosevkaTerm NF",
+			"Iosevka",
+			"Symbols Nerd Font",
 		})
 		return config
 	end,
