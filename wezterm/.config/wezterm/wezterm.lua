@@ -13,7 +13,7 @@ end
 
 local font_function = require "fonts.iosevka"
 font_function.apply_font(config, wezterm)
-config.font_size = 14
+config.font_size = 13
 
 local palette = require "themes.astrodark"
 config.colors = palette

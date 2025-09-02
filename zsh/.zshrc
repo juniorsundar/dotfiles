@@ -36,7 +36,7 @@ zinit light zsh-users/zsh-completions
 zinit ice wait lucid; zinit light olets/zsh-abbr
 
 # Load git and tmux plugins from Oh-My-Zsh
-zinit ice wait lucid; zinit snippet OMZP::git
+# zinit ice wait lucid; zinit snippet OMZP::git
 # zinit ice wait lucid; zinit snippet OMZP::tmux
 zinit ice wait lucid; zinit snippet OMZP::nvm
 zinit snippet OMZL::key-bindings.zsh
