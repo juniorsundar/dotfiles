@@ -102,6 +102,9 @@ export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
 # source "$HOME/.cargo/env"
 export PATH=$PATH:~/.cargo/bin
 
+# Go
+export PATH=$PATH:~/.odin
+
 # LaTeX
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
 export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info
