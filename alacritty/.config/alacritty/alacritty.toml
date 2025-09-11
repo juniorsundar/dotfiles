@@ -1,24 +1,24 @@
 [window.padding]
 x = 5
-y = 1
+y = 0
 
 [font]
 size = 13
 
 [font.bold]
-family = "JetBrainsMono Nerd Font"
+family = "IosevkaTerm Nerd Font"
 style = "ExtraBold"
 
 [font.bold_italic]
-family = "JetBrainsMono Nerd Font"
+family = "IosevkaTerm Nerd Font"
 style = "ExtraBold Italic"
 
 [font.italic]
-family = "JetBrainsMono Nerd Font"
+family = "IosevkaTerm Nerd Font"
 style = "Italic"
 
 [font.normal]
-family = "JetBrainsMono Nerd Font"
+family = "IosevkaTerm Nerd Font"
 style = "Light"
 
 [env]
