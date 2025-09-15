@@ -11,7 +11,7 @@
 @import "catppuccin.css";
 
 * {
-  font-family: FiraCode Nerd Font;
+  font-family: Iosevka Nerd Font;
   font-size: 14px;
   min-height: 0;
 }
@@ -124,7 +124,7 @@
 
 
 #custom-os_button {
-    font-family: "FiraCode Nerd Font";
+    font-family: "IosevkaTerm Nerd Font";
     font-size: 24px;
     padding-left: 12px;
     padding-right: 20px;
