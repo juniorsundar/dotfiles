@@ -100,29 +100,4 @@
             "escape": true
         }
 },
-{
-    "name": "bottom",
-    "layer": "bottom",
-    "position": "bottom",
-    "wlr/taskbar": {
-        "format": "{icon} {title:.17}",
-        "icon-size": 28,
-        "spacing": 3,
-        "on-click-middle": "close",
-        "tooltip-format": "{title}",
-        "ignore-list": [],
-        "on-click": "activate"
-    },
-    "hyprland/workspaces": {
-        "format": "{icon}",
-        "on-scroll-up": "hyprctl dispatch workspace e+1",
-        "on-scroll-down": "hyprctl dispatch workspace e-1",
-        "disable-scroll": true,
-        "sort-by-name": true
-    },
-    "hyprland/window": {
-        "separate-outputs": true
-    },
-    "modules-left": ["hyprland/workspaces"],
-    "modules-center": ["hyprland/window"]
-}]
+]
