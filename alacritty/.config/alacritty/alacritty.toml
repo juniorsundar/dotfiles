@@ -3,7 +3,7 @@ x = 5
 y = 0
 
 [font]
-size = 13
+size = 12
 
 [font.bold]
 family = "IosevkaTerm Nerd Font"
