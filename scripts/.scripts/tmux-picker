@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if command -v gum >/dev/null 2>&1; then
+    _confirm() { gum confirm "$@"; }
+    _input() { gum input --placeholder "Enter session name"; }
+    _pick() { gum choose; }
+else
+    _confirm() {
+        read -p "$1 (y/N) " -n 1 -r REPLY
+        echo
+        [[ $REPLY =~ ^[Yy]$ ]]
+    }
+    _input() {
+        read -p "Enter new session name: " NAME
+        echo "$NAME"
+    }
+    _pick() { fzf --exit-0; }
+fi
+
+if ! tmux has-session 2>/dev/null; then
+    if _confirm "No tmux server running. Create a new session?"; then
+        SESSION_NAME=$(_input)
+
+        if [[ -n "$SESSION_NAME" ]]; then
+            tmux new-session -s "$SESSION_NAME"
+        fi
+    fi
+    exit 0
+fi
+
+SESSION=$((echo "[new]"; tmux list-sessions -F '#S') | _pick)
+
+if [[ -z "$SESSION" ]]; then
+    exit 0
+fi
+
+if [[ "$SESSION" == "[new]" ]]; then
+    NEW_NAME=$(_input)
+    if [[ -z "$NEW_NAME" ]]; then
+        exit 0
+    fi
+    tmux new-session -d -s "$NEW_NAME"
+    SESSION="$NEW_NAME"
+fi
+
+if [[ -n "$TMUX" ]]; then
+    tmux switch-client -t "$SESSION"
+else
+    tmux attach -t "$SESSION"
+fi
