@@ -1,35 +1,13 @@
-font-family = JetBrainsMono Nerd Font
+font-family = IosevkaTerm Nerd Font
 
-font-family-bold = JetBrainsMono Nerd Font
-font-family-italic = JetBrainsMono Nerd Font
-font-family-bold-italic = JetBrainsMono Nerd Font
+font-family-bold = IosevkaTerm Nerd Font
+font-family-italic = IosevkaTerm Nerd Font
+font-family-bold-italic = IosevkaTerm Nerd Font
 
-gtk-titlebar = true
-adw-toolbar-style = flat
-gtk-adwaita = false
+gtk-titlebar = false
+gtk-toolbar-style = flat
 window-decoration = server
-
-# palette = 0=#2e3138
-# palette = 1=#ff6e5e
-# palette = 2=#5eff6c
-# palette = 3=#f1ff5e
-# palette = 4=#5ea1ff
-# palette = 5=#ff5ea0
-# palette = 6=#64d8cb
-# palette = 7=#a0a4b8
-# palette = 8=#363940
-# palette = 9=#ff6e5e
-# palette = 10=#5eff6c
-# palette = 11=#f1ff5e
-# palette = 12=#5ea1ff
-# palette = 13=#ff5ea0
-# palette = 14=#64d8cb
-# palette = 15=#8a8e99
-# background = 16181a
-# foreground = ffffff
-# cursor-color = ffd1dc
-# selection-background = 3a3e53
-# selection-foreground = ffffff
+font-size = 13
 
 background = #1A1D23
 foreground= #ADB0BB
