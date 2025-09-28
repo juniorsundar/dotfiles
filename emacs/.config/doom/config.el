@@ -4,12 +4,12 @@
 ;; sync' after modifying this file!
 
 
-(load-theme 'catppuccin :no-confirm)
+;; (load-theme 'catppuccin :no-confirm)
 ;; (setq catppuccin-height-title-1 '1.0)
 ;; (setq catppuccin-height-title-2 '1.0)
 ;; (setq catppuccin-height-title-3 '1.0)
-(setq catppuccin-flavor 'cyberdream) ;; or 'latte, 'macchiato, or 'mocha
-(catppuccin-reload)
+;; (setq catppuccin-flavor 'cyberdream) ;; or 'latte, 'macchiato, or 'mocha
+;; (catppuccin-reload)
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
@@ -60,8 +60,14 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 ;; (setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16 :weight 'semi-light)
-(setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 16 :weight 'semi-light)
-      doom-variable-pitch-font (font-spec :family "SF Pro" :size 19))
+(setq doom-font (font-spec :family "IosevkaTerm Nerd Font" :size 16 :weight 'semi-light)
+      doom-variable-pitch-font (font-spec :family "Iosevka Aile" :size 19))
+;; Ensure the italic face is only italic and not underlined
+(set-face-attribute 'italic nil
+                    :underline nil
+                    :slant 'italic
+                    :family "IosevkaTerm Nerd Font")
+
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
 ;; refresh your font settings. If Emacs still can't find your font, it likely
@@ -257,18 +263,6 @@
   ":?" ":?>" "//" "///" "/*" "*/" "/=" "//=" "/==" "@_" "__" "???"
   "<:<" ";;;")
 ;; )
-(setq fontaine-presets
-      '((default
-         :default-family "JetBrainsMono Nerd Font"
-         :default-weight regular
-         :default-height 100
-         :fixed-pitch-family "JetBrainsMono Nerd Font"
-         :fixed-pitch-weight regular
-         :italic-family "JetBrainsMono Nerd Font"
-         :italic-slant italic
-         :variable-pitch-family "SF Pro"
-         :variable-pitch-weight regular
-         :variable-pitch-height 120)))
 
 ;; Set Nerd Font for symbols
 (let ((font-spec (font-spec :family "Symbols Nerd Font Mono" :size 14)))
@@ -287,8 +281,3 @@
   (set-fontset-font t '(#x2600 . #x26FF) font-spec)    ;; Miscellaneous Symbols
   (set-fontset-font t '(#x2700 . #x27BF) font-spec))  ;; Dingbats
 
-;; Ensure the italic face is only italic and not underlined
-(set-face-attribute 'italic nil
-                    :underline nil
-                    :slant 'italic
-                    :family "CaskaydiaCove Nerd Font")
