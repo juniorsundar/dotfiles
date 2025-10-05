@@ -8,28 +8,27 @@ gtk-titlebar = false
 gtk-toolbar-style = flat
 window-decoration = server
 font-size = 13
-theme = Doom One
 
-# background = #1A1D23
-# foreground= #ADB0BB
-# selection-foreground= #ADB0BB
-# selection-background = #26343F
-# palette = 0=#111317
-# palette = 8=#34363A
-# palette = 1=#FF838B       
-# palette = 9=#FFA6AE
-# palette = 2=#87C05F
-# palette = 10=#AAE382
-# palette = 3=#DFAB25
-# palette = 11=#FFCE48
-# palette = 4=#5EB7FF
-# palette = 12=#81DAFF
-# palette = 5=#DD97F1
-# palette = 13=#FFBAFF
-# palette = 6=#4AC2B8
-# palette = 14=#6DE5DB
-# palette = 7=#9B9FA9
-# palette = 15=#D0D3DE
+foreground = #bbc2cf
+background = #282c34
+selection-foreground = #bbc2cf
+selection-background = #3f444a
+palette = 0=#2a2e38
+palette = 8=#3f444a
+palette = 1=#ff6c6b
+palette = 9=#ff6655
+palette = 2=#98be65
+palette = 10=#99bb66
+palette = 3=#ECBE7B
+palette = 11=#ECBE7B
+palette = 4=#51afef
+palette = 12=#51afef
+palette = 5=#c678dd
+palette = 13=#c678dd
+palette = 6=#46D9FF
+palette = 14=#46D9FF
+palette = 7=#DFDFDF
+palette = 15=#bbc2cf
 # split-divider-color = #5EB7FF
 
 keybind = clear
@@ -50,6 +49,9 @@ keybind = ctrl+shift+alt+right=resize_split:right,10
 keybind = ctrl+shift+alt+down=resize_split:down,10
 keybind = ctrl+shift+alt+left=resize_split:left,10
 keybind = ctrl+shift+alt+up=resize_split:up,10
+keybind = ctrl+shift+p=toggle_command_palette
+keybind = ctrl+shift+j=write_screen_file:paste
+keybind = ctrl+shift+,=reload_config
 
 window-padding-balance = true
 window-padding-x = 5
