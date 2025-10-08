@@ -73,6 +73,7 @@
 ;; refresh your font settings. If Emacs still can't find your font, it likely
 ;; wasn't installed correctly. Font issues are rarely Doom issues!
 (map! :leader :desc "Find text" :n "f t" #'consult-ripgrep)
+(map! :leader :desc "Find line" :n "f l" #'consult-line)
 
 (add-to-list 'exec-path (expand-file-name "~/.local/share/nvim/mason/bin"))
 
@@ -246,24 +247,6 @@
   )
 (evil-define-key 'normal 'global (kbd "C-w") evil-window-map)
 
-;; Enable traditional ligature support in eww-mode, if the
-;; Enable all Cascadia and Fira Code ligatures in programming modes
-;; (after! ligature
-(set-font-ligatures! 't "--" "---" "==" "===" "!=" "!==" "=!="
-  "=:=" "=/=" "<=" ">=" "&&" "&&&" "&=" "++" "+++" "***" ";;" "!!"
-  "??" "???" "?:" "?." "?=" "<:" ":<" ":>" ">:" "<:<" "<>" "<<<" ">>>"
-  "<<" ">>" "||" "-|" "_|_" "|-" "||-" "|=" "||=" "##" "###" "####"
-  "#{" "#[" "]#" "#(" "#?" "#_" "#_(" "#:" "#!" "#=" "^=" "<$>" "<$"
-  "$>" "<+>" "<+" "+>" "<*>" "<*" "*>" "</" "</>" "/>" "<!--" "<#--"
-  "-->" "->" "->>" "<<-" "<-" "<=<" "=<<" "<<=" "<==" "<=>" "<==>"
-  "==>" "=>" "=>>" ">=>" ">>=" ">>-" ">-" "-<" "-<<" ">->" "<-<" "<-|"
-  "<=|" "|=>" "|->" "<->" "<~~" "<~" "<~>" "~~" "~~>" "~>" "~-" "-~"
-  "~@" "[||]" "|]" "[|" "|}" "{|" "[<" ">]" "|>" "<|" "||>" "<||"
-  "|||>" "<|||" "<|>" "..." ".." ".=" "..<" ".?" "::" ":::" ":=" "::="
-  ":?" ":?>" "//" "///" "/*" "*/" "/=" "//=" "/==" "@_" "__" "???"
-  "<:<" ";;;")
-;; )
-
 ;; Set Nerd Font for symbols
 (let ((font-spec (font-spec :family "Symbols Nerd Font Mono" :size 14)))
   (set-fontset-font t 'unicode font-spec nil 'prepend)
@@ -281,3 +264,6 @@
   (set-fontset-font t '(#x2600 . #x26FF) font-spec)    ;; Miscellaneous Symbols
   (set-fontset-font t '(#x2700 . #x27BF) font-spec))  ;; Dingbats
 
+(after! eglot
+  (setq eglot-code-action-indications '(mode-line))
+  )
