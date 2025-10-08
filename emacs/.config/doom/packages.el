@@ -10,14 +10,16 @@
 ;; (package! some-package)
 ;; (package! catppuccin-theme)
 
-(package! catppuccin-theme :recipe
-  (:host github
-   :repo "juniorsundar/catppuccin-emacs"
-   :files ("*.el" "src/lisp/*.el")))
+;; (package! catppuccin-theme :recipe
+;;   (:host github
+;;    :repo "juniorsundar/catppuccin-emacs"
+;;    :files ("*.el" "src/lisp/*.el")))
 
 (package! fontaine)
 
 (package! org-modern)
+
+(package! rg)
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:
