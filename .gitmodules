@@ -15,4 +15,4 @@
 	url = https://github.com/kdheepak/panvimdoc
 [submodule "fonts"]
 	path = fonts/.local/share/fonts
-	url = https://github.com/juniorsundar/fonts
+	url = git@github.com:juniorsundar/fonts
