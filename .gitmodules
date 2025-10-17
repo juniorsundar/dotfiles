@@ -1,18 +1,9 @@
-[submodule "nvim/.config/nvim_plugins/neorg_extras"]
-	path = nvim/.config/nvim_plugins/neorg-extras
-	url = https://github.com/juniorsundar/neorg-extras.git
 [submodule "nvim"]
 	path = nvim/.config/nvim
-	url = https://github.com/juniorsundar/nvim
+	url = git@github.com:juniorsundar/nvim
 [submodule "emacs"]
 	path = emacs/.config/emacs
-	url = https://github.com/juniorsundar/emacs
-[submodule "neorg-extras"]
-	path = nvim/.config/nvim_plugins/neorg-extras
-	url = https://github.com/juniorsundar/neorg-extras
-[submodule "panvimdoc"]
-	path = nvim/.config/nvim_plugins/panvimdoc
-	url = https://github.com/kdheepak/panvimdoc
+	url = git@github.com:juniorsundar/emacs
 [submodule "fonts"]
 	path = fonts/.local/share/fonts
-	url = https://github.com/juniorsundar/fonts
+	url = git@github.com:juniorsundar/fonts
