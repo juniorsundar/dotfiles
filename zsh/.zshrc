@@ -139,3 +139,7 @@ export PATH=$PATH:$HOME/.local/bin
 
 source ~/.fzf-git.sh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi
