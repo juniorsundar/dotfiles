@@ -15,16 +15,18 @@ local font_function = require "fonts.iosevka"
 font_function.apply_font(config, wezterm)
 config.font_size = 13
 
-local palette = require "themes.astrodark"
+local palette = require "themes.doomone"
 config.colors = palette
 
-config.use_fancy_tab_bar = true
--- config.tab_bar_at_bottom = true
+config.use_fancy_tab_bar = false
+config.tab_bar_at_bottom = false
 config.window_frame = {
-  font = wezterm.font { family = "SF Pro", weight = "Bold" },
+  font = wezterm.font { family = "Iosevka Aile", weight = "Bold" },
   font_size = 12.0,
   active_titlebar_bg = palette.background,
   inactive_titlebar_bg = palette.background,
+  border_bottom_height = '0.25cell',
+  border_top_height = '0.25cell',
 }
 
 config.force_reverse_video_cursor = true
@@ -34,8 +36,8 @@ config.hide_tab_bar_if_only_one_tab = true
 config.window_padding = {
   -- 	left = 2.5,
   -- 	right = 2.5,
-  top = 0,
-  bottom = 0,
+  top = '0.0cell',
+  bottom = '0.0cell',
 }
 
 config.keys = {
