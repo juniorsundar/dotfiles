@@ -51,6 +51,11 @@ if [ -f ~/.zoxide.zsh ]; then
     source ~/.zoxide.zsh
 fi
 
+# Wezterm Shell Integration
+if [ -f ~/.config/wezterm/wezterm.sh ]; then
+    source ~/.config/wezterm/wezterm.sh
+fi
+
 # History settings
 HISTSIZE=5000
 HISTFILE=~/.zsh_history
