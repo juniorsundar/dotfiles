@@ -1,9 +1,9 @@
 [submodule "nvim"]
 	path = nvim/.config/nvim
-	url = git@github.com:juniorsundar/nvim
+	url = https://github.com/juniorsundar/nvim
 [submodule "emacs"]
 	path = emacs/.config/emacs
-	url = git@github.com:juniorsundar/emacs
+	url = https://github.com/juniorsundar/emacs
 [submodule "fonts"]
 	path = fonts/.local/share/fonts
-	url = git@github.com:juniorsundar/fonts
+	url = https://github.com/juniorsundar/fonts
