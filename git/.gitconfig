@@ -10,13 +10,11 @@
     editor = nvim
 [interactive]
     diffFilter = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
-[include]
-    path = ~/.config/delta/catppuccin.gitconfig
 [delta]
     line-numbers = true
     side-by-side = false
     dark = true
-    features = base16
+    features = colibri
     ; features = 'Visual Studio Dark+'
     navigate = true
 [pager]
