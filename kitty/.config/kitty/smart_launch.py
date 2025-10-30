@@ -22,8 +22,8 @@ def handle_result(args: list[str], answer: str, target_window_id: int, boss: Bos
     # Check if the command is 'ssh' (or 'mosh', etc.)
     is_remote_session = False
     title = w.title.lower()
-    
-    # Common SSH patterns in window titles
+    child_cmd = getattr(w.child, 'cmdline', [])
+
     ssh_indicators = [
         'ssh:', 'ssh@', 'ssh -', 
         'mosh:', 'mosh@',
@@ -35,15 +35,20 @@ def handle_result(args: list[str], answer: str, target_window_id: int, boss: Bos
             break
     
     # Also check for user@hostname pattern
-    if re.search(r'[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+', w.title):
+    user_host_match = None
+    user_host_regex = r'[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+'
+    if re.search(user_host_regex, child_cmd[-1]):
         is_remote_session = True
+        user_host_match = re.search(user_host_regex, child_cmd[-1])
+    elif re.search(user_host_regex, w.title):
+        is_remote_session = True
+        user_host_match = re.search(user_host_regex, w.title)
 
     launch_args = []
     
     if is_remote_session:
-        user_host_match = re.search(r'([a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+)', w.title)
         if user_host_match:
-            user_host = user_host_match.group(1)
+            user_host = user_host_match.group(0)
             ssh_command = ['ssh', user_host]
             
             if launch_action == 'tab':
