@@ -16,7 +16,7 @@
     line-numbers = true
     side-by-side = false
     dark = true
-    features = cyberdream
+    features = base16
     navigate = true
 [pager]
     blame  = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
