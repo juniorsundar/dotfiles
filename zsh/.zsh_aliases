@@ -7,7 +7,7 @@ fi
 
 alias vim="nvim"
 alias cat="bat"
-alias cd="z"
+# eval "$(zoxide init zsh --cmd cd)"
 alias du="dust"
 alias grep="rg"
 alias "ls"="eza"
