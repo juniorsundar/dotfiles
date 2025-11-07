@@ -24,39 +24,68 @@ style = "Light"
 [env]
 TERM = "xterm-256color"
 
-# AstroTheme Alacritty Colors
-# Default colors
 [colors.primary]
-background = '#1A1D23'
-foreground = '#9B9FA9'
+background = "#282c34"
+foreground = "#bbc2cf"
+dim_foreground = "#5b6268"
+bright_foreground = "#bbc2cf"
 
-# Normal colors
+[colors.cursor]
+text = "#282c34"
+cursor = "#a9a1e1"
+
+[colors.vi_mode_cursor]
+text = "#282c34"
+cursor = "#b7bdf8"
+
+[colors.search.matches]
+foreground = "#282c34"
+background = "#73797e"
+
+[colors.search.focused_match]
+foreground = "#282c34"
+background = "#98be65"
+
+[colors.footer_bar]
+foreground = "#282c34"
+background = "#73797e"
+
+[colors.hints.start]
+foreground = "#282c34"
+background = "#ecbe7b"
+
+[colors.hints.end]
+foreground = "#282c34"
+background = "#73797e"
+
+[colors.selection]
+text = "#282c34"
+background = "#a9a1e1"
+
 [colors.normal]
-black = '#111317'
-red = '#FF838B'
-green = '#87C05F'
-yellow = '#DFAB25'
-blue = '#5EB7FF'
-magenta = '#DD97F1'
-cyan = '#4AC2B8'
-white = '#9B9FA9'
+black = "#5b6268"
+red = "#ff6c6b"
+green = "#98be65"
+yellow = "#ecbe7b"
+blue = "#51afef"
+magenta = "#c678dd"
+cyan = "#4db5bd"
+white = "#9ca0a4"
 
-# Bright colors
 [colors.bright]
-black = '#34363A'
-red = '#FFA6AE'
-green = '#AAE382'
-yellow = '#FFCE48'
-blue = '#81DAFF'
-magenta = '#FFBAFF'
-cyan = '#6DE5DB'
-white = '#D0D3DE'
+black = "#73797e"
+red = "#ff6c6b"
+green = "#98be65"
+yellow = "#ecbe7b"
+blue = "#51afef"
+magenta = "#c678dd"
+cyan = "#4db5bd"
+white = "#73797e"
 
-# Indexed Colors
 [[colors.indexed_colors]]
 index = 16
-color = '#EB8332'
+color = "#da8548"
 
 [[colors.indexed_colors]]
 index = 17
-color = '#F8747E'
+color = "#a9a1e1"
