@@ -1,0 +1,9 @@
+[[plugin.deps]]
+use = "yazi-rs/plugins:git"
+rev = "2301ff8"
+hash = "27ca02f49fd236b5cc7bf03c243859fe"
+
+[[flavor.deps]]
+use = "BennyOe/onedark"
+rev = "668d71d"
+hash = "5e616226586a2af1ecaf116e08e9a8ec"
