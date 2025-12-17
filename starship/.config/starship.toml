@@ -1,6 +1,6 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-palette = "catppuccin_cyberdream"
+# palette = "catppuccin_cyberdream"
 
 add_newline = true
 # Set the main prompt format
@@ -8,7 +8,7 @@ format = """\
 (bright-black)$directory$git_branch$git_status\
 $line_break\
 (bright-black)$character"""
-right_format = """$nix_shell$jobs$cmd_duration$username$hostname"""
+right_format = """$nix_shell$jobs$cmd_duration$username$hostname$time"""
 # Disable modules shown in the main format by default if they are empty
 # format = """$all$line_break$character""" # Alternative simpler format
 
@@ -92,6 +92,13 @@ symbol = " "  # Nerd Font NixOS icon (nf-dev-nixos)
 style = "blue"      # Or any color you prefer for the Nix indicator
 format = '[$symbol$state( \($name\))]($style) '
 disabled = false    # Make sure the module is enabled
+
+[time]
+disabled = false
+format = "[ $time]($style)"
+time_format = "%R"
+utc_time_offset = "local"
+style = "italic dimmed white"
 
 [palettes.catppuccin_cyberdream]
 base = "#16181a"
