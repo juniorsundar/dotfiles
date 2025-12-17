@@ -1,9 +1,9 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-# palette = "catppuccin_cyberdream"
+palette = "catppuccin_cyberdream"
 
 add_newline = true
-# Set the main prompt format
+
 format = """\
 (bright-black)$directory$git_branch$git_status\
 $line_break\
@@ -70,7 +70,7 @@ deleted = " ${count}" # Standard x for deleted
 [cmd_duration]
 min_time = 1000 # Only show if command takes > 1 second
 style = "yellow"
-format = "[took  $duration]($style) " # Nerd Font clock icon
+format = "[took   $duration]($style) " # Nerd Font clock icon
 
 # Jobs: Show background job count with icon
 [jobs]
@@ -98,7 +98,7 @@ disabled = false
 format = "[ $time]($style)"
 time_format = "%R"
 utc_time_offset = "local"
-style = "italic dimmed white"
+style = "dimmed white"
 
 [palettes.catppuccin_cyberdream]
 base = "#16181a"
