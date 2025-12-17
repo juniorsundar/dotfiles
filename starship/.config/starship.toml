@@ -1,7 +1,6 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 palette = "doom"
-# palette = "catppuccin_cyberdream"
 
 add_newline = true
 
@@ -18,87 +17,72 @@ disabled = false
 
 # --- Module Configurations ---
 
-# Username: Show only when root or in SSH
 [username]
 style_user = "teal"
 style_root = "red"
 format = "[$user]($style)@"
 show_always = false
 
-# Hostname: Show only in SSH, use SSH icon
 [hostname]
 style = "teal"
 ssh_only = true
 format = "[$hostname]($style) "
-trim_at = "." # Show short hostname
+trim_at = "."
 disabled = false
 
-# Directory: Show truncated path with folder icon
 [directory]
 style = "blue"
 truncation_length = 0
 truncate_to_repo = false
 # truncation_length = 3
 # truncation_symbol = "../"
-fish_style_pwd_dir_length = 1 # Use this instead of truncation_length for just the last dir
-read_only = " 󰌾" # Nerd Font lock icon
+fish_style_pwd_dir_length = 1
+read_only = " 󰌾"
 read_only_style = "red"
-format = "[$path]($style)[$read_only]($read_only_style) " # Nerd Font folder icon
+format = "[$path]($style)[$read_only]($read_only_style) "
 
-# Git Branch: Show branch with git icon
 [git_branch]
-symbol = " " # Nerd Font git branch icon
+symbol = " "
 style = "green"
 format = "[$symbol$branch]($style)"
 
-# Git Status: Show status symbols (dirty, ahead, behind, etc.) using Nerd Font icons
 [git_status]
-style = "red" # Color for the status symbols themselves
-format = '([$all_status$ahead_behind]($style))' # Format to show icons
-# Nerd Font symbols for different states
-conflicted = " 󱢿" # Conflicted icon
-ahead = " 󰁝${count}" # Ahead icon
-behind = " 󰁅${count}" # Behind icon
-diverged = " 󰁬-󰁝${ahead_count}-󰁅${behind_count}" # Diverged icon
-untracked = " ?${count}" # Standard ? for untracked
-stashed = " 󰏖" # Stashed icon
-modified = " !${count}" # Standard ! for modified
-staged = " +${count}" # Standard + for staged (can use Nerd Font if preferred, e.g., " ")
-renamed = " »${count}" # Standard >> for renamed
-deleted = " ${count}" # Standard x for deleted
+style = "red"
+format = '([$all_status$ahead_behind]($style))'
+conflicted = " 󱢿"
+ahead = " 󰁝${count}"
+behind = " 󰁅${count}"
+diverged = " 󰁬-󰁝${ahead_count}-󰁅${behind_count}"
+untracked = " ?${count}"
+stashed = " 󰏖"
+modified = " !${count}"
+staged = " +${count}"
+renamed = " »${count}"
+deleted = " ${count}"
 
-# Command Duration: Show duration for long commands
 [cmd_duration]
-min_time = 1000 # Only show if command takes > 1 second
+min_time = 1000
 style = "yellow"
-format = "[took   $duration]($style) " # Nerd Font clock icon
+format = "[took   $duration]($style) "
 
-# Jobs: Show background job count with icon
 [jobs]
-symbol = "󰑐" # Nerd Font jobs/process icon
+symbol = "󰑐"
 style = "blue"
 threshold = 1
 format = "[$symbol $number]($style) "
 
 [character]
-success_symbol = "[❯](violet)" # Prompt character for success
-error_symbol = "[❯](red)"     # Prompt character for error
-vimcmd_symbol = "[❮](green)"    # Prompt character in Vim normal mode
-vimcmd_visual_symbol = "[❮](yellow)" # Prompt character in Vim visual mode
-vimcmd_replace_symbol = "[❮](violet)" # Prompt character in Vim replace mode
-# Prompt Character: Use different symbols/colors for success/error
-# [character]
-# success_symbol = "[❯](mauve)" # Prompt character for success
-# error_symbol = "[❯](red)"     # Prompt character for error
-# vimcmd_symbol = "[❮](green)"    # Prompt character in Vim normal mode
-# vimcmd_visual_symbol = "[❮](yellow)" # Prompt character in Vim visual mode
-# vimcmd_replace_symbol = "[❮](mauve)" # Prompt character in Vim replace mode
+success_symbol = "[❯](magenta)"
+error_symbol = "[❯](red)"
+vimcmd_symbol = "[❮](green)"
+vimcmd_visual_symbol = "[❮](yellow)"
+vimcmd_replace_symbol = "[❮](violet)"
 
 [nix_shell]
-symbol = " "  # Nerd Font NixOS icon (nf-dev-nixos)
-style = "blue"      # Or any color you prefer for the Nix indicator
+symbol = " "
+style = "blue"
 format = '[$symbol$state( \($name\))]($style) '
-disabled = false    # Make sure the module is enabled
+disabled = false
 
 [time]
 disabled = false
@@ -106,34 +90,6 @@ format = "[ $time]($style)"
 time_format = "%R"
 utc_time_offset = "local"
 style = "dimmed white"
-
-[palettes.catppuccin_cyberdream]
-base = "#16181a"
-blue = "#5ea1ff"
-crust = "#3c4048"
-flamingo = "#ff9f9f"
-green = "#5eff6c"
-lavender = "#ff5ef1"
-mantle = "#1e2124"
-maroon = "#d96666"
-mauve = "#bd5eff"
-overlay0 = "#474a55"
-overlay1 = "#5a5e6b"
-overlay2 = "#6e7280"
-peach = "#ffbd5e"
-pink = "#ff5ea0"
-red = "#ff6e5e"
-rosewater = "#ffd1dc"
-sapphire = "#4a90e2"
-sky = "#5ef1ff"
-subtext0 = "#8a8e99"
-subtext1 = "#a0a4b8"
-surface0 = "#26282e"
-surface1 = "#2e3138"
-surface2 = "#363940"
-teal = "#64d8cb"
-text = "#ffffff"
-yellow = "#f1ff5e"
 
 [palettes.doom]
 grey = "#3f444a"
