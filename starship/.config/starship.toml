@@ -5,7 +5,7 @@ palette = "doom"
 add_newline = true
 
 format = """\
-(bright-black)$directory$git_branch$git_status\
+(bright-black)$directory$git_branch$git_status$fill\
 $line_break\
 (bright-black)$character"""
 right_format = """$nix_shell$jobs$cmd_duration$username$hostname$time"""
@@ -16,6 +16,10 @@ right_format = """$nix_shell$jobs$cmd_duration$username$hostname$time"""
 disabled = false
 
 # --- Module Configurations ---
+[fill]
+symbol = " "
+style = "bright-black"
+disabled = false
 
 [username]
 style_user = "teal"
