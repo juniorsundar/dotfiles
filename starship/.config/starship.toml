@@ -1,6 +1,7 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-palette = "catppuccin_cyberdream"
+palette = "doom"
+# palette = "catppuccin_cyberdream"
 
 add_newline = true
 
@@ -79,13 +80,19 @@ style = "blue"
 threshold = 1
 format = "[$symbol $number]($style) "
 
-# Prompt Character: Use different symbols/colors for success/error
 [character]
-success_symbol = "[❯](mauve)" # Prompt character for success
+success_symbol = "[❯](violet)" # Prompt character for success
 error_symbol = "[❯](red)"     # Prompt character for error
 vimcmd_symbol = "[❮](green)"    # Prompt character in Vim normal mode
 vimcmd_visual_symbol = "[❮](yellow)" # Prompt character in Vim visual mode
-vimcmd_replace_symbol = "[❮](mauve)" # Prompt character in Vim replace mode
+vimcmd_replace_symbol = "[❮](violet)" # Prompt character in Vim replace mode
+# Prompt Character: Use different symbols/colors for success/error
+# [character]
+# success_symbol = "[❯](mauve)" # Prompt character for success
+# error_symbol = "[❯](red)"     # Prompt character for error
+# vimcmd_symbol = "[❮](green)"    # Prompt character in Vim normal mode
+# vimcmd_visual_symbol = "[❮](yellow)" # Prompt character in Vim visual mode
+# vimcmd_replace_symbol = "[❮](mauve)" # Prompt character in Vim replace mode
 
 [nix_shell]
 symbol = " "  # Nerd Font NixOS icon (nf-dev-nixos)
@@ -127,4 +134,18 @@ surface2 = "#363940"
 teal = "#64d8cb"
 text = "#ffffff"
 yellow = "#f1ff5e"
+
+[palettes.doom]
+grey = "#3f444a"
+red = "#ff6c6b"
+orange = "#da8548"
+green = "#98be65"
+teal = "#4db5bd"
+yellow = "#ecbe7b"
+blue = "#51afef"
+dark_blue = "#2257a0"
+magenta = "#c678dd"
+violet = "#a9a1e1"
+cyan = "#46d9ff"
+dark_cyan = "#5699af"
 
