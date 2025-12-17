@@ -5,10 +5,10 @@ palette = "doom"
 add_newline = true
 
 format = """\
-(bright-black)$directory$git_branch$git_status$fill\
+(bright-black)$directory$git_branch$git_status$fill$nix_shell$jobs$cmd_duration$username$hostname$time\
 $line_break\
 (bright-black)$character"""
-right_format = """$nix_shell$jobs$cmd_duration$username$hostname$time"""
+# right_format = """$nix_shell$jobs$cmd_duration$username$hostname$time"""
 # Disable modules shown in the main format by default if they are empty
 # format = """$all$line_break$character""" # Alternative simpler format
 
