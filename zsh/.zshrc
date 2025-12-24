@@ -140,7 +140,7 @@ alias ISAACSIM="${ISAACSIM_PATH}/isaac-sim.sh"
 
 # bindkey -v
 
-export PATH=$PATH:$HOME/.local/bin
+export PATH=$PATH:$HOME/.local/bin:/usr/bin
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
