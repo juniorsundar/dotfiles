@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+session_name=$(basename "$PWD")
+
+if [ -n "$TMUX" ]; then
+    nvim "$@"
+else
+    tmux new-session -A -s "$session_name" nvim "$@"
+fi
