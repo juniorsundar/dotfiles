@@ -6,10 +6,10 @@
 [gui]
 	recentrepo = /home/juniorsundar/Dropbox/neorg
 [core]
-    pager = delta
+    pager = delta --dark --paging=always --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
     editor = nvim
 [interactive]
-    diffFilter = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    diffFilter = delta --color-only
 [delta]
     line-numbers = true
     side-by-side = false
