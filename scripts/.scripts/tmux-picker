@@ -28,7 +28,7 @@ if ! tmux has-session 2>/dev/null; then
     exit 0
 fi
 
-SESSION=$((echo "[new]"; tmux list-sessions -F '#S') | _pick)
+SESSION=$((tmux list-sessions -F '#S'; echo "[new]") | _pick)
 
 if [[ -z "$SESSION" ]]; then
     exit 0
