@@ -14,7 +14,7 @@ else
         read -p "Enter new session name: " NAME
         echo "$NAME"
     }
-    _pick() { fzf --exit-0; }
+    _pick() { fzf --height 40% --reverse --exit-0; }
 fi
 
 if ! tmux has-session 2>/dev/null; then
