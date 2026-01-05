@@ -38,7 +38,7 @@ _arguments "${_arguments_options[@]}" : \
 _arguments "${_arguments_options[@]}" : \
 '-h[Print help]' \
 '--help[Print help]' \
-':shell:(bash elvish fish nushell power-shell zsh)' \
+':shell:(bash elvish fish nushell powershell zsh)' \
 && ret=0
 ;;
 (config)
