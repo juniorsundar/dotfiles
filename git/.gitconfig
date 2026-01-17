@@ -9,7 +9,7 @@
     pager = delta
     editor = nvim
 [interactive]
-    diffFilter = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    diffFilter = delta --dark --paging=never --line-numbers --hyperlinks
 [delta]
     line-numbers = true
     side-by-side = false
@@ -18,10 +18,10 @@
     ; features = 'Visual Studio Dark+'
     navigate = true
 [pager]
-    blame  = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
-    diff   = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
-    reflog = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
-    show   = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    blame  = delta --dark --paging=never --line-numbers --hyperlinks
+    diff   = delta --dark --paging=never --line-numbers --hyperlinks
+    reflog = delta --dark --paging=never --line-numbers --hyperlinks
+    show   = delta --dark --paging=never --line-numbers --hyperlinks
 [merge]
     conflictstyle = zdiff3
 [diff]
