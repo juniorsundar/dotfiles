@@ -6,7 +6,7 @@
 [gui]
 	recentrepo = /home/juniorsundar/Dropbox/neorg
 [core]
-    pager = delta --dark --paging=always --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    pager = delta --dark --paging=always --line-numbers --hyperlinks
     editor = nvim
 [interactive]
     diffFilter = delta --color-only
@@ -17,10 +17,10 @@
     features = colibri
     navigate = true
 [pager]
-    blame  = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
-    diff   = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
-    reflog = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
-    show   = delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    blame  = delta --dark --paging=never --line-numbers --hyperlinks
+    diff   = delta --dark --paging=never --line-numbers --hyperlinks
+    reflog = delta --dark --paging=never --line-numbers --hyperlinks
+    show   = delta --dark --paging=never --line-numbers --hyperlinks
 [merge]
     conflictstyle = diff3
 [diff]
