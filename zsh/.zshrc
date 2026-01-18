@@ -6,12 +6,12 @@
 #   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 # fi
 if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init zsh)"
+    eval "$(starship init zsh)"
 else
-  echo "[Shell Setup] Starship command not found." >&2
-  echo "[Shell Setup] Please install Starship using your preferred method and restart your shell." >&2
-  echo "[Shell Setup] Visit: https://starship.rs" >&2
-  PS1="[%n@%m %c]%# "
+    echo "[Shell Setup] Starship command not found." >&2
+    echo "[Shell Setup] Please install Starship using your preferred method and restart your shell." >&2
+    echo "[Shell Setup] Visit: https://starship.rs" >&2
+    PS1="[%n@%m %c]%# "
 fi
 
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -80,21 +80,6 @@ zstyle ':fzf-tab:*' switch-group '<' '>'
 zstyle ':fzf-tab:*' fzf-flags --color=fg:1,fg+:2
 zstyle ':fzf-tab:*' use-fzf-default-opts yes
 
-# Sourcing ROS 2 (lazy load)
-_lazy_load_ros() {
-  source /opt/ros/humble/setup.zsh
-  eval "$(register-python-argcomplete3 ros2)"
-  alias ros2='ros2'  # Ensure the alias persists after first run
-  ros2 "$@"         # Pass arguments to ros2 if the alias is used with arguments
-}
-
-alias ros2=_lazy_load_ros
-export CC=clang
-export CXX=clang++
-export CLANG_BASE="--build-base build --install-base install"
-export BUILD_ARGS="--symlink-install ${CLANG_BASE} --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
-alias cb="colcon build ${BUILD_ARGS}"
-
 # Preferred editor for local and remote sessions
 export EDITOR='nvim'
 export VISUAL='nvim'
@@ -145,5 +130,31 @@ export PATH=$PATH:$HOME/.local/bin:/usr/bin
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 if command -v direnv >/dev/null 2>&1; then
-  eval "$(direnv hook zsh)"
+    eval "$(direnv hook zsh)"
+    autoload -Uz add-zsh-hook
+
+    _source_project_zsh() {
+        local current_conf=""
+        if [[ -n "$DIRENV_DIR" ]]; then
+            local clean_dir="${DIRENV_DIR#-}"
+            if [[ -f "$clean_dir/.env_local" ]]; then
+                current_conf="$clean_dir/.env_local"
+            fi
+        fi
+
+        if [[ "$current_conf" != "$_LAST_PROJECT_ZSH" ]]; then
+
+            if [[ -n "$_PROJECT_CLEANUP" ]]; then
+                eval "$_PROJECT_CLEANUP"
+                unset _PROJECT_CLEANUP
+            fi
+
+            if [[ -n "$current_conf" ]]; then
+                source "$current_conf"
+            fi
+            export _LAST_PROJECT_ZSH="$current_conf"
+        fi
+    }
+
+add-zsh-hook precmd _source_project_zsh
 fi
