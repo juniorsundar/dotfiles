@@ -1,13 +1,13 @@
-font-family = Aporetic Sans Mono
+font-family = Lilex
 
-font-family-bold = Aporetic Sans Mono
-font-family-italic = Aporetic Sans Mono
-font-family-bold-italic = Aporetic Sans Mono
+font-family-bold = Lilex
+font-family-italic = Lilex
+font-family-bold-italic = Lilex
 
 gtk-titlebar = false
 gtk-toolbar-style = flat
 window-decoration = server
-font-size = 13
+font-size = 12
 
 foreground = #bbc2cf
 background = #282c34
@@ -37,6 +37,8 @@ keybind = ctrl+shift+v=paste_from_clipboard
 keybind = ctrl+equal=increase_font_size:1
 keybind = ctrl+minus=decrease_font_size:1
 keybind = ctrl+shift+t=new_tab
+keybind = ctrl+shift+w=close_tab
+keybind = ctrl+shift+c=close_surface
 keybind = ctrl+tab=next_tab
 keybind = ctrl+shift+tab=previous_tab
 keybind = ctrl+shift+|=new_split:right
@@ -50,8 +52,8 @@ keybind = ctrl+shift+alt+down=resize_split:down,10
 keybind = ctrl+shift+alt+left=resize_split:left,10
 keybind = ctrl+shift+alt+up=resize_split:up,10
 keybind = ctrl+shift+p=toggle_command_palette
-keybind = ctrl+shift+j=write_screen_file:paste
 keybind = ctrl+shift+,=reload_config
+keybind = ctrl+shift+h=write_screen_file:open
 
 window-padding-balance = true
 window-padding-x = 5
