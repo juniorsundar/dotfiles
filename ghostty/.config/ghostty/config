@@ -1,8 +1,8 @@
-font-family = Lilex
+font-family = Lilex Nerd Font
 
-font-family-bold = Lilex
-font-family-italic = Lilex
-font-family-bold-italic = Lilex
+font-family-bold = Lilex Nerd Font
+font-family-italic = Lilex Nerd Font
+font-family-bold-italic = Lilex Nerd Font
 
 gtk-titlebar = false
 gtk-toolbar-style = flat
@@ -38,7 +38,7 @@ keybind = ctrl+equal=increase_font_size:1
 keybind = ctrl+minus=decrease_font_size:1
 keybind = ctrl+shift+t=new_tab
 keybind = ctrl+shift+w=close_tab
-keybind = ctrl+shift+c=close_surface
+keybind = ctrl+shift+d=close_surface
 keybind = ctrl+tab=next_tab
 keybind = ctrl+shift+tab=previous_tab
 keybind = ctrl+shift+|=new_split:right
