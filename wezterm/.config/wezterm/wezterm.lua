@@ -11,7 +11,7 @@ if wezterm.config_builder then
     config = wezterm.config_builder()
 end
 
-local font_function = require "fonts.iosevka"
+local font_function = require "fonts.lilex"
 font_function.apply_font(config, wezterm)
 config.font_size = 13
 
@@ -36,8 +36,8 @@ config.hide_tab_bar_if_only_one_tab = true
 config.window_padding = {
     -- 	left = 2.5,
     -- 	right = 2.5,
-    top = '0.0cell',
-    bottom = '0.0cell',
+    top = '0.0',
+    bottom = '0.0',
 }
 
 config.keys = {
