@@ -7,6 +7,3 @@
 [submodule "fonts"]
 	path = fonts/.local/share/fonts
 	url = https://github.com/juniorsundar/fonts
-[submodule "cling.nvim"]
-	path = nvim/.config/nvim_plugins/cling.nvim
-	url = https://github.com/juniorsundar/cling.nvim
