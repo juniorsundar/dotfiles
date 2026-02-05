@@ -19,9 +19,6 @@
             "models": {
                 "kimi-k2.5:cloud": {
                     "name": "kimi-k2.5:cloud"
-                },
-                "gemini-3-pro-preview": {
-                    "name": "gemini-3-pro-preview"
                 }
             }
         }
