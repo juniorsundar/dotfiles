@@ -17,8 +17,8 @@
                 "baseURL": "http://localhost:11434/v1"
             },
             "models": {
-                "kimi-k2.5:cloud": {
-                    "name": "kimi-k2.5:cloud"
+                "qwen3-coder-next:cloud": {
+                    "name": "qwen3-coder-next:cloud"
                 }
             }
         }
