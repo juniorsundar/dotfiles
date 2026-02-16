@@ -36,8 +36,8 @@ config.hide_tab_bar_if_only_one_tab = true
 config.window_padding = {
     -- 	left = 2.5,
     -- 	right = 2.5,
-    top = '0.0',
-    bottom = '0.0',
+    top = '0.0cell',
+    bottom = '0.0cell',
 }
 
 config.keys = {
