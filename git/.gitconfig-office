@@ -22,7 +22,8 @@
     reflog = delta --dark --paging=never --line-numbers --hyperlinks
     show   = delta --dark --paging=never --line-numbers --hyperlinks
 [merge]
-    conflictstyle = diff3
+    conflictstyle = zdiff3
+    tool = nvimdiff
 [diff]
     colorMoved = default
 [safe]

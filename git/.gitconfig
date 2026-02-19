@@ -24,6 +24,7 @@
     show   = delta --dark --paging=never --line-numbers --hyperlinks
 [merge]
     conflictstyle = zdiff3
+    tool = nvimdiff
 [diff]
     colorMoved = default
 [safe]
