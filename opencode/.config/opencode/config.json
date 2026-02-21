@@ -19,7 +19,94 @@
             "models": {
                 "qwen3-coder-next:cloud": {
                     "name": "qwen3-coder-next:cloud"
+                },
+                "kimi-k2.5:cloud": {
+                    "name": "kimi-k2.5:cloud"
                 }
+            }
+        }
+    },
+    "agent": {
+        "build": {
+            "description": "Primary agent for writing code, implementing features, and making direct file modifications.",
+            "mode": "primary"
+        },
+        "plan": {
+            "description": "Primary agent for analyzing code, breaking down tasks, and orchestrating subagents without making file changes.",
+            "mode": "primary"
+        },
+        "architect": {
+            "description": "Primary agent for designing high-level system architecture and researching patterns.",
+            "mode": "primary",
+            "prompt": "You are a software architect. Plan system interactions, component structures, and high-level design patterns. Use webfetch to research best practices if needed. Do not write implementation code, but you may outline interfaces.",
+            "tools": {
+                "write": false,
+                "edit": false,
+                "webfetch": true
+            }
+        },
+        "deep-research": {
+            "description": "Use this subagent when you need to search the web, analyze external documentation, or solve complex logic problems.",
+            "mode": "subagent",
+            "prompt": "You are a deep research agent. Analyze external documentation, explore architectural trade-offs, and solve complex logic issues. Decompose tasks effectively. Use webfetch to gather information.",
+            "tools": {
+                "write": false,
+                "edit": false,
+                "webfetch": true
+            }
+        },
+        "safety-check": {
+            "description": "Use this subagent to review written code for security vulnerabilities, memory leaks, and concurrency issues.",
+            "mode": "subagent",
+            "prompt": "You are a strict code reviewer. Focus heavily on security vulnerabilities, memory leaks, concurrency issues, and overall code safety and best practices.",
+            "tools": {
+                "write": false,
+                "edit": false,
+                "bash": false
+            }
+        },
+        "explore": {
+            "description": "Use this subagent when you need to trace execution flows, find file references, or map out codebase dependencies.",
+            "mode": "subagent",
+            "prompt": "You are a codebase explorer assisting a primary agent. Trace execution flows, find references, and analyze dependencies. Prioritize using standard Linux tools like grep and find for your analysis. Use LSP tools only as a fallback. Output your findings as clear, structured text summaries.",
+            "tools": {
+                "write": false,
+                "edit": false,
+                "bash": true,
+                "lsp": true
+            }
+        },
+        "document": {
+            "description": "Use this subagent to generate or update inline code comments, docstrings, or README files.",
+            "mode": "subagent",
+            "prompt": "You are a technical documentation assistant. Read the provided code and generate clear, concise inline comments, docstrings, and README files. Explain the core logic and usage instructions. Follow standard documentation practices for the target language.",
+            "tools": {
+                "write": true,
+                "edit": true,
+                "bash": false,
+                "lsp": false
+            }
+        },
+        "quality-check": {
+            "description": "Use this subagent to write unit or integration tests, execute test suites, or verify code coverage.",
+            "mode": "subagent",
+            "prompt": "You are a QA automation engineer. Write comprehensive unit and integration tests. Ensure code coverage is high and edge cases are handled. You can use bash to run tests and verify results.",
+            "tools": {
+                "write": true,
+                "edit": true,
+                "bash": true,
+                "lsp": false
+            }
+        },
+        "refactor": {
+            "description": "Use this subagent to optimize existing code, apply design patterns, or improve readability without altering core logic.",
+            "mode": "subagent",
+            "prompt": "You are a code refactoring expert. Improve code quality, readability, and performance without changing behavior. strictly follow SOLID principles and design patterns. Do not change the logic.",
+            "tools": {
+                "write": true,
+                "edit": true,
+                "bash": false,
+                "lsp": true
             }
         }
     }
