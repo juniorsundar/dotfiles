@@ -29,11 +29,19 @@
     "agent": {
         "build": {
             "description": "Primary agent for writing code, implementing features, and making direct file modifications.",
-            "mode": "primary"
+            "mode": "primary",
+            "prompt": "You are the primary execution agent. Write and modify code. For research, exploring the codebase, or reviewing safety, you MUST delegate to the appropriate subagents (@deep-research, @explore, @safety-check) rather than attempting it yourself."
         },
         "plan": {
             "description": "Primary agent for analyzing code, breaking down tasks, and orchestrating subagents without making file changes.",
-            "mode": "primary"
+            "mode": "primary",
+            "prompt": "You are a master orchestrator. Break down the user's request into steps. You do not have direct file access. You MUST delegate exploration to @explore, research to @deep-research, and system design to @architect. Wait for their structured summaries before finalizing your plan.",
+            "tools": {
+                "write": false,
+                "edit": false,
+                "bash": false,
+                "lsp": false
+            }
         },
         "architect": {
             "description": "Primary agent for designing high-level system architecture and researching patterns.",
@@ -42,13 +50,15 @@
             "tools": {
                 "write": false,
                 "edit": false,
+                "bash": false,
+                "lsp": false,
                 "webfetch": true
             }
         },
         "deep-research": {
             "description": "Use this subagent when you need to search the web, analyze external documentation, or solve complex logic problems.",
             "mode": "subagent",
-            "prompt": "You are a deep research agent. Analyze external documentation, explore architectural trade-offs, and solve complex logic issues. Decompose tasks effectively. Use webfetch to gather information.",
+            "prompt": "You are a deep research agent. Analyze documentation and solve complex logic issues. You MUST return your findings strictly in JSON format with the following keys: 'summary' (string), 'key_findings' (array of strings), 'sources' (array of strings), and 'recommended_action' (string). Do not include greetings, explanations, or any text outside the JSON object.",
             "tools": {
                 "write": false,
                 "edit": false,
@@ -58,7 +68,7 @@
         "safety-check": {
             "description": "Use this subagent to review written code for security vulnerabilities, memory leaks, and concurrency issues.",
             "mode": "subagent",
-            "prompt": "You are a strict code reviewer. Focus heavily on security vulnerabilities, memory leaks, concurrency issues, and overall code safety and best practices.",
+            "prompt": "You are a strict code reviewer. Focus on security vulnerabilities, memory leaks, and concurrency issues. Output ONLY a structured Markdown summary using exactly these headers: '### Vulnerabilities Found', '### Memory Safety Issues', '### Concurrency Risks', and '### Required Fixes'. Do not include any conversational filler.",
             "tools": {
                 "write": false,
                 "edit": false,
@@ -68,7 +78,7 @@
         "explore": {
             "description": "Use this subagent when you need to trace execution flows, find file references, or map out codebase dependencies.",
             "mode": "subagent",
-            "prompt": "You are a codebase explorer assisting a primary agent. Trace execution flows, find references, and analyze dependencies. Prioritize using standard Linux tools like grep and find for your analysis. Use LSP tools only as a fallback. Output your findings as clear, structured text summaries.",
+            "prompt": "You are a codebase explorer. Trace execution flows and analyze dependencies using grep and find. You MUST return your findings using this exact Markdown template:\n\n### Files Analyzed\n- [file paths]\n### Dependencies\n- [list of dependencies]\n### Execution Flow\n[brief step-by-step flow]\n\nDo not output any other text.",
             "tools": {
                 "write": false,
                 "edit": false,
@@ -108,6 +118,27 @@
                 "bash": false,
                 "lsp": true
             }
+        },
+        "devops": {
+            "description": "Use this subagent to manage containerized environments, write CI/CD pipelines, monitor logs, and automate infrastructure tasks.",
+            "mode": "subagent",
+            "prompt": "You are a DevOps and systems engineering assistant. Your tasks include managing Docker containers, inspecting system logs, troubleshooting infrastructure deployments, and writing CI/CD pipeline configurations. Prioritize system stability, secure configurations, and automation best practices. Output clear, actionable terminal commands or configuration files.",
+            "tools": {
+                "write": true,
+                "edit": true,
+                "bash": true,
+                "lsp": false
+            }
+        }
+    },
+    "mcp": {
+        "docker": {
+            "type": "local",
+            "command": [
+                "npx",
+                "-y",
+                "@alisaitteke/docker-mcp"
+            ]
         }
     }
 }
