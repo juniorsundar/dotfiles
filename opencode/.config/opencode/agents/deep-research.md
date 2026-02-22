@@ -1,5 +1,6 @@
 ---
 description: Use this subagent when you need to search the web, analyze external documentation, or solve complex logic problems.
+model: github-copilot/gpt-4o
 mode: subagent
 tools:
   write: false
@@ -7,6 +8,13 @@ tools:
   bash: false
   lsp: false
   webfetch: true
+permission:
+  edit: "deny"
+  write: "deny"
+  bash: "deny"
+  external_directory: "ask"
+  webfetch: "ask"
+  doom_loop: "ask"
 ---
 
 # Prompt

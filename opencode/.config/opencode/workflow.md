@@ -16,52 +16,38 @@ It routes tasks to a **Primary Agent** and ensures subagent delegation is used a
 ### 1) Orchestrator (Primary)
 **Responsibilities**
 - First responder to all requests.
-- Routes the task to Plan, Build, or Architect.
+- Routes the task to Plan, Build, or Executor.
 - Requests clarification if the user request is ambiguous.
 
 **Routing Rules**
-- **Straightforward implementation** → Build
-- **Multi-step or ambiguous tasks** → Plan
-- **Large-scale system design** → Architect
+- **Straightforward/Significant implementation** → Build
+- **Multi-step, ambiguous, or architecture tasks** → Plan
+- **Lightweight/simple implementation** → Executor
 
 ---
 
-### 2) Plan (Primary)
-**Responsibilities**
-- Decompose tasks and define execution steps.
-- Must not modify files or run implementation commands.
-
-**Delegation**
-- **Explore** for codebase mapping or dependency tracing.
-- **Deep‑Research** for external research or references.
-- **Architect** for system design input.
-
----
-
-### 3) Build (Primary)
+### 2) Build (Primary)
 **Responsibilities**
 - Implement changes and modify files.
 - Execute tasks and produce deliverables.
 
 **Delegation**
-- **Quality‑Check** for tests and coverage.
-- **Safety‑Check** for security / risk review.
-- **Refactor** for structure / readability improvements.
-- **Document** for docs or comments.
-- **DevOps** for infra / CI / container tasks.
+- For codebase mapping or dependency tracing -> Explore
+- For external research or references -> Deep-Research
+- For multi-step, ambiguous, or architecture tasks → Plan
 
 ---
 
-### 4) Architect (Primary)
+### 3) Plan (Primary)
 **Responsibilities**
 - High-level system design and architectural guidance.
-- Must not implement code directly.
+- Decompose tasks and define execution steps.
+- Must not modify files or run implementation commands.
 
 **Delegation**
-- **Deep‑Research** for best practices or external references.
-- **Explore** for dependency mapping or execution flow.
-
----
+- For codebase mapping or dependency tracing -> Explore
+- For external research or references -> Deep-Research
+- Lightweight/simple implementation → Executor
 
 ## Subagents (Delegation Rules)
 
@@ -72,21 +58,28 @@ Each subagent must define:
 - **Tool metadata** (separate from prompt)
 - **Clear delegation triggers**
 
-Examples:
-- **Explore** → codebase tracing and dependency mapping
-- **Deep‑Research** → external documentation and logic analysis
-- **Safety‑Check** → security or stability review
-- **Quality‑Check** → tests and validation
-- **Refactor** → cleanup or structure improvement
-- **Document** → docs or comments
-- **DevOps** → infra, CI/CD, containers
+### 2) Executor (Subagent)
+**Responsibilities**
+- Handle simple, straightforward implementation tasks.
+- Execute tasks quickly and efficiently.
+- Must not plan or design.
+
+### 3) Explore (Subagent)
+**Responsibilities**
+- Codebase tracing and dependency mapping.
+- Execution flow analysis.
+
+### 4) Deep-Research (Subagent)
+**Responsibilities**
+- External documentation and logic analysis.
+- Solve complex logic issues.
 
 ---
 
 ## Standard Flow (Summary)
 
 1. **Orchestrator receives request**
-2. **Routes to Plan / Build / Architect**
+2. **Routes to Plan / Build / Executor**
 3. **Primary agent delegates to subagents if needed**
 4. **Primary consolidates results**
 5. **Orchestrator returns final response**
@@ -94,6 +87,5 @@ Examples:
 ---
 
 ## Notes
-- Direct Build is allowed for clear implementation tasks.
-- Plan is preferred when scope or requirements are unclear.
-- Architect is used for major system design decisions.
+- Direct Build/Executor is allowed for clear implementation tasks.
+- Plan is preferred when scope, requirements, or architecture are unclear.
