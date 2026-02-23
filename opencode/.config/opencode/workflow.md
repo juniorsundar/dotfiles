@@ -20,9 +20,10 @@ It routes tasks to a **Primary Agent** and ensures subagent delegation is used a
 - Requests clarification if the user request is ambiguous.
 
 **Routing Rules**
-- **Straightforward/Significant implementation** → Build
-- **Multi-step, ambiguous, or architecture tasks** → Plan
-- **Lightweight/simple implementation** → Executor
+- Straightforward/Significant implementation → Executor
+- Multi-step, ambiguous, or architecture tasks → Planner
+- For codebase mapping or dependency tracing -> Explore
+- For external research or references -> Deep-Research
 
 ---
 
@@ -34,7 +35,7 @@ It routes tasks to a **Primary Agent** and ensures subagent delegation is used a
 **Delegation**
 - For codebase mapping or dependency tracing -> Explore
 - For external research or references -> Deep-Research
-- For multi-step, ambiguous, or architecture tasks → Plan
+- For multi-step, ambiguous, or architecture tasks → Planner (subagent)
 
 ---
 
@@ -58,18 +59,24 @@ Each subagent must define:
 - **Tool metadata** (separate from prompt)
 - **Clear delegation triggers**
 
-### 2) Executor (Subagent)
+### 2) Planner (Subagent)
+**Responsibilities**
+- High-level system design and architectural guidance when called by another primary agent.
+- Decompose tasks and define execution steps for the Build agent.
+- Must not modify files or run implementation commands.
+
+### 3) Executor (Subagent)
 **Responsibilities**
 - Handle simple, straightforward implementation tasks.
 - Execute tasks quickly and efficiently.
 - Must not plan or design.
 
-### 3) Explore (Subagent)
+### 4) Explore (Subagent)
 **Responsibilities**
 - Codebase tracing and dependency mapping.
 - Execution flow analysis.
 
-### 4) Deep-Research (Subagent)
+### 5) Deep-Research (Subagent)
 **Responsibilities**
 - External documentation and logic analysis.
 - Solve complex logic issues.
@@ -79,7 +86,7 @@ Each subagent must define:
 ## Standard Flow (Summary)
 
 1. **Orchestrator receives request**
-2. **Routes to Plan / Build / Executor**
+2. **Routes to Planner / Executor / Explore / Deep-Research**
 3. **Primary agent delegates to subagents if needed**
 4. **Primary consolidates results**
 5. **Orchestrator returns final response**
@@ -89,3 +96,4 @@ Each subagent must define:
 ## Notes
 - Direct Build/Executor is allowed for clear implementation tasks.
 - Plan is preferred when scope, requirements, or architecture are unclear.
+- Build can delegate to Planner (subagent) when mid-task planning is needed without escalating back to the Orchestrator.
