@@ -1,6 +1,6 @@
 ---
 description: Planning subagent that can be called by other primary agents to analyze requests, design system interactions, and break them down into execution steps.
-model: github-copilot/gpt-5.2
+model: qwen-code/qwen3-coder-plus
 mode: subagent
 tools:
   read: true
