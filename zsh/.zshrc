@@ -1,5 +1,4 @@
-# Prompt Theme Selection: Set to "starship" or "p10k"
-PROMPT_THEME="p10k"
+PROMPT_THEME="starship"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
     # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
