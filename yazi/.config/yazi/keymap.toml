@@ -1,0 +1,4 @@
+[[mgr.prepend_keymap]]
+on  = ["<C-f>"]
+run = "shell 'nvim --server \"$NVIM\" --remote-expr \"execute(\\\"cd $PWD\\\")\"' --orphan"
+desc = "Set Neovim cwd to yazi's current directory"
