@@ -4,7 +4,7 @@ font-family-bold = Lilex Nerd Font
 font-family-italic = Lilex Nerd Font
 font-family-bold-italic = Lilex Nerd Font
 
-gtk-titlebar = false
+gtk-titlebar = true
 gtk-toolbar-style = flat
 window-decoration = server
 font-size = 12
