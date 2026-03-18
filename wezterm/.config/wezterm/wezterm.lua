@@ -1,37 +1,38 @@
 -- Pull in the wezterm API
 local wezterm = require "wezterm"
 local act = wezterm.action
+local io = require 'io'
+local os = require 'os'
 
--- This table will hold the configuration.
 local config = {}
 
--- In newer versions of wezterm, use the config_builder which will
--- help provide clearer error messages
 if wezterm.config_builder then
     config = wezterm.config_builder()
 end
 
 local font_function = require "fonts.lilex"
 font_function.apply_font(config, wezterm)
-config.font_size = 13
+config.font_size = 12
 
 local palette = require "themes.doomone"
 config.colors = palette
 
-config.use_fancy_tab_bar = false
+config.use_fancy_tab_bar = true
 config.tab_bar_at_bottom = false
 config.window_frame = {
-    font = wezterm.font { family = "Iosevka Aile", weight = "Bold" },
+    font = wezterm.font { family = "IBM Plex Sans", weight = "Bold" },
     font_size = 12.0,
     active_titlebar_bg = palette.background,
     inactive_titlebar_bg = palette.background,
-    border_bottom_height = '0.25cell',
-    border_top_height = '0.25cell',
+    border_bottom_height = '0.0cell',
+    border_top_height = '0.0cell',
 }
 
 config.force_reverse_video_cursor = true
 config.warn_about_missing_glyphs = false
-config.hide_tab_bar_if_only_one_tab = true
+config.hide_tab_bar_if_only_one_tab = false
+-- config.window_decorations = "INTEGRATED_BUTTONS | RESIZE"
+-- config.integrated_title_button_style = "Gnome"
 
 config.window_padding = {
     -- 	left = 2.5,
@@ -39,6 +40,31 @@ config.window_padding = {
     top = '0.0cell',
     bottom = '0.0cell',
 }
+
+wezterm.on('trigger-nvim-with-scrollback', function(window, pane)
+    local text = pane:get_lines_as_escapes(pane:get_dimensions().scrollback_rows)
+    text = "\x1b[0m" .. text
+
+    local name = os.tmpname()
+    local f = io.open(name, 'w+')
+    f:write(text)
+    f:flush()
+    f:close()
+
+    window:perform_action(
+        act.SpawnCommandInNewTab {
+            args = { 
+                'nvim', 
+                '+lua require("config.utils.colorise").colorise()', 
+                name 
+            },
+        },
+        pane
+    )
+
+    wezterm.sleep_ms(1000)
+    os.remove(name)
+end)
 
 config.keys = {
     {
@@ -67,6 +93,11 @@ config.keys = {
         action = wezterm.action.CloseCurrentTab { confirm = true },
     },
     { key = "l", mods = "ALT", action = wezterm.action.ShowLauncher },
+    {
+        key = 'h',
+        mods = 'CTRL|SHIFT',
+        action = act.EmitEvent 'trigger-nvim-with-scrollback',
+    },
 }
 
 config.unix_domains = {
@@ -93,12 +124,8 @@ wezterm.on('open-uri', function(window, pane, uri)
     local editor = 'nvim'
 
     if uri:find '^file:' == 1 and not pane:is_alt_screen_active() then
-        -- We're processing an hyperlink and the uri format should be: file://[HOSTNAME]/PATH[#linenr]
-        -- Also the pane is not in an alternate screen (an editor, less, etc)
         local url = wezterm.url.parse(uri)
         if is_shell(pane:get_foreground_process_name()) then
-            -- A shell has been detected. Wezterm can check the file type directly
-            -- figure out what kind of file we're dealing with
             local success, stdout, _ = wezterm.run_child_process {
                 'file',
                 '--brief',
@@ -135,7 +162,6 @@ wezterm.on('open-uri', function(window, pane, uri)
                 end
             end
         else
-            -- No shell detected, we're probably connected with SSH, use fallback command
             local edit_cmd = url.fragment
                 and editor .. ' +' .. url.fragment .. ' "$_f"'
                 or editor .. ' "$_f"'
@@ -150,9 +176,7 @@ wezterm.on('open-uri', function(window, pane, uri)
         end
     end
 
-    -- without a return value, we allow default actions
 end)
 
 
--- and finally, return the configuration to wezterm
 return config
