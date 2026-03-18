@@ -17,8 +17,9 @@ config.font_size = 12
 local palette = require "themes.doomone"
 config.colors = palette
 
-config.use_fancy_tab_bar = true
-config.tab_bar_at_bottom = false
+config.use_fancy_tab_bar = false
+config.tab_bar_at_bottom = true
+config.hide_tab_bar_if_only_one_tab = true
 config.window_frame = {
     font = wezterm.font { family = "IBM Plex Sans", weight = "Bold" },
     font_size = 12.0,
@@ -30,20 +31,21 @@ config.window_frame = {
 
 config.force_reverse_video_cursor = true
 config.warn_about_missing_glyphs = false
-config.hide_tab_bar_if_only_one_tab = false
--- config.window_decorations = "INTEGRATED_BUTTONS | RESIZE"
--- config.integrated_title_button_style = "Gnome"
 
 config.window_padding = {
     -- 	left = 2.5,
     -- 	right = 2.5,
-    top = '0.0cell',
+    top = '0.5cell',
     bottom = '0.0cell',
 }
 
 wezterm.on('trigger-nvim-with-scrollback', function(window, pane)
     local text = pane:get_lines_as_escapes(pane:get_dimensions().scrollback_rows)
-    text = "\x1b[0m" .. text
+    text = text:gsub("\x1b%[4[0-7]m", "")
+    text = text:gsub("\x1b%[10[0-7]m", "")
+    text = text:gsub("\x1b%[48;[0-9;]-m", "")
+
+    text = "\x1b[0m" .. text .. "\x1b[0m"
 
     local name = os.tmpname()
     local f = io.open(name, 'w+')
@@ -52,7 +54,7 @@ wezterm.on('trigger-nvim-with-scrollback', function(window, pane)
     f:close()
 
     window:perform_action(
-        act.SpawnCommandInNewTab {
+        act.SpawnCommandInNewWindow {
             args = { 
                 'nvim', 
                 '+lua require("config.utils.colorise").colorise()', 
@@ -111,7 +113,7 @@ config.exec_domains = require("extras.docker").docker_exec_domain(wezterm)
 local function is_shell(foreground_process_name)
     local shell_names = { 'bash', 'zsh', 'fish', 'sh', 'ksh', 'dash' }
     local process = string.match(foreground_process_name, '[^/\\]+$')
-        or foreground_process_name
+    or foreground_process_name
     for _, shell in ipairs(shell_names) do
         if process == shell then
             return true
@@ -119,64 +121,5 @@ local function is_shell(foreground_process_name)
     end
     return false
 end
-
-wezterm.on('open-uri', function(window, pane, uri)
-    local editor = 'nvim'
-
-    if uri:find '^file:' == 1 and not pane:is_alt_screen_active() then
-        local url = wezterm.url.parse(uri)
-        if is_shell(pane:get_foreground_process_name()) then
-            local success, stdout, _ = wezterm.run_child_process {
-                'file',
-                '--brief',
-                '--mime-type',
-                url.file_path,
-            }
-            if success then
-                if stdout:find 'directory' then
-                    pane:send_text(
-                        wezterm.shell_join_args { 'cd', url.file_path } .. '\r'
-                    )
-                    pane:send_text(wezterm.shell_join_args {
-                        'ls',
-                        '-a',
-                        '-p',
-                        '--group-directories-first',
-                    } .. '\r')
-                    return false
-                end
-
-                if stdout:find 'text' then
-                    if url.fragment then
-                        pane:send_text(wezterm.shell_join_args {
-                            editor,
-                            '+' .. url.fragment,
-                            url.file_path,
-                        } .. '\r')
-                    else
-                        pane:send_text(
-                            wezterm.shell_join_args { editor, url.file_path } .. '\r'
-                        )
-                    end
-                    return false
-                end
-            end
-        else
-            local edit_cmd = url.fragment
-                and editor .. ' +' .. url.fragment .. ' "$_f"'
-                or editor .. ' "$_f"'
-            local cmd = '_f="'
-                .. url.file_path
-                .. '"; { test -d "$_f" && { cd "$_f" ; ls -a -p --hyperlink --group-directories-first; }; } '
-                .. '|| { test "$(file --brief --mime-type "$_f" | cut -d/ -f1 || true)" = "text" && '
-                .. edit_cmd
-                .. '; }; echo'
-            pane:send_text(cmd .. '\r')
-            return false
-        end
-    end
-
-end)
-
 
 return config
