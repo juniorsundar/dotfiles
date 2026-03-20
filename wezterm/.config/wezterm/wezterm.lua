@@ -12,7 +12,7 @@ end
 
 local font_function = require "fonts.lilex"
 font_function.apply_font(config, wezterm)
-config.font_size = 12
+config.font_size = 11.5
 
 local palette = require "themes.doomone"
 config.colors = palette
