@@ -40,7 +40,7 @@ config.window_padding = {
 }
 
 wezterm.on('trigger-nvim-with-scrollback', function(window, pane)
-    local text = pane:get_lines_as_escapes(pane:get_dimensions().scrollback_rows)
+    local text = pane:get_lines_as_text(pane:get_dimensions().scrollback_rows)
     text = text:gsub("\x1b%[4[0-7]m", "")
     text = text:gsub("\x1b%[10[0-7]m", "")
     text = text:gsub("\x1b%[48;[0-9;]-m", "")
