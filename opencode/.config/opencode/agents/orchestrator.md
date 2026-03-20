@@ -1,6 +1,6 @@
 ---
 description: Entry-point agent that orchestrates the entire task lifecycle.
-model: github-copilot/gemini-3.1-pro-preview
+model: google/gemini-3.1-pro-preview
 mode: primary
 tools:
   write: false
