@@ -6,20 +6,20 @@ y = 0
 size = 12
 
 [font.bold]
-family = "IosevkaTerm Nerd Font"
+family = "Lilex Nerd Font"
 style = "ExtraBold"
 
 [font.bold_italic]
-family = "IosevkaTerm Nerd Font"
+family = "Lilex Nerd Font"
 style = "ExtraBold Italic"
 
 [font.italic]
-family = "IosevkaTerm Nerd Font"
+family = "Lilex Nerd Font"
 style = "Italic"
 
 [font.normal]
-family = "IosevkaTerm Nerd Font"
-style = "Light"
+family = "Lilex Nerd Font"
+style = "Regular"
 
 [env]
 TERM = "xterm-256color"
