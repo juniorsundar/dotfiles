@@ -12,7 +12,7 @@ tools:
   lsp: true
   webfetch: false
 permission:
-  edit: "ask"
+  edit: "allow"
   write: "ask"
   bash: "ask"
   external_directory: "ask"
