@@ -6,3 +6,4 @@ fonts/.local/share/fonts/.uuid
 tmux/.tmux/plugins/tmux-sensible
 **.DS_Store
 ssh/.ssh/authorized_keys
+/ssh/.ssh/config
