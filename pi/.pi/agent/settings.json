@@ -1,0 +1,6 @@
+{
+  "lastChangelogVersion": "0.64.0",
+  "packages": [
+    "git:github.com/mrexodia/kilo-pi-provider"
+  ]
+}
