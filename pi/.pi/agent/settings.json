@@ -2,5 +2,9 @@
   "lastChangelogVersion": "0.64.0",
   "packages": [
     "git:github.com/mrexodia/kilo-pi-provider"
-  ]
+  ],
+  "defaultProvider": "github-copilot",
+  "defaultModel": "gpt-5.3-codex",
+  "defaultThinkingLevel": "medium",
+  "hideThinkingBlock": false
 }
