@@ -14,7 +14,34 @@ else
         read -p "Enter new session name: " NAME
         echo "$NAME"
     }
-    _pick() { fzf --height 40% --reverse --exit-0; }
+    _pick() {
+        if command -v fzf >/dev/null 2>&1; then
+            fzf --height 50% --reverse --exit-0 \
+                --preview 'bash -c '\''
+                  if [ "$1" = "[new]" ]; then
+                    echo "Create a new session"
+                  else
+                    LC_ALL=en_US.UTF-8 TMUX= tmux capture-pane -p -e -t "$1:0.0" 2>/dev/null || echo "Preview unavailable"
+                  fi
+                '\'' _ {}'
+        else
+            local items=()
+            while IFS= read -r line; do
+                items+=("$line")
+            done
+            
+            for i in "${!items[@]}"; do
+                echo "$((i+1))) ${items[$i]}" >&2
+            done
+            
+            local choice
+            read -p "Select an option (1-${#items[@]}): " choice < /dev/tty >&2
+            
+            if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#items[@]}" ]; then
+                echo "${items[$((choice-1))]}"
+            fi
+        fi
+    }
 fi
 
 if ! tmux has-session 2>/dev/null; then
