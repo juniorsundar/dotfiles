@@ -13,6 +13,11 @@ use = "yazi-rs/plugins:chmod"
 rev = "babfd0f"
 hash = "f0c8c378184d5f8abd1b095a443d336d"
 
+[[plugin.deps]]
+use = "llanosrocas/yaziline"
+rev = "cc0314c"
+hash = "b937c5c8e2d9fa314d4532489176814e"
+
 [[flavor.deps]]
 use = "BennyOe/onedark"
 rev = "668d71d"
