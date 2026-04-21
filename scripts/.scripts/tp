@@ -17,6 +17,7 @@ else
     _pick() {
         if command -v fzf >/dev/null 2>&1; then
             fzf --height 50% --reverse --exit-0 \
+                --preview-window 'down,70%'\
                 --preview 'bash -c '\''
                   if [ "$1" = "[new]" ]; then
                     echo "Create a new session"
