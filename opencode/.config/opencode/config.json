@@ -1,6 +1,6 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "plugin": ["opencode-gemini-auth@latest", "opencode-qwencode-auth@latest"],
+    "plugin": ["opencode-gemini-auth@latest", "opencode-qwencode-auth@latest", "@slkiser/opencode-quota"],
     "permission": {
         "edit": "ask",
         "write": "ask",
@@ -13,6 +13,11 @@
     "instructions": [
         "workflow.md"
     ],
+    "experimental": {
+        "quotaToast": {
+            "enableToast": false,
+        },
+    },
     "mcp": {
         "docker": {
             "type": "local",
