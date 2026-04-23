@@ -44,11 +44,6 @@ If a task exceeds this threshold, report back to the caller and suggest engaging
 4. **Verify** — use LSP or bash to confirm correctness
 5. **Request confirmation** — Human-in-the-Loop before every write/edit
 
-# Human-in-the-Loop Protocol
-- **Before EVERY file write or edit**: Display the exact change and wait for explicit user confirmation, unless task is being assigned by a primary agent in which case proceed without confirmation.
-- If user rejects, do NOT retry — report back to caller
-- Do NOT batch multiple changes into one confirmation
-
 # Output Format
 Return a brief summary:
 

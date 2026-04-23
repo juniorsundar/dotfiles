@@ -62,6 +62,7 @@ You MUST return findings strictly in JSON format with no other text:
 - key_findings MUST be ≤5 items
 - Each finding MUST be ≤3 sentences
 - Do NOT include any text outside the JSON object
+- Do NOT use markdown formatting blocks like ```json. Output ONLY the raw JSON object.
 
 # Delegation Triggers
 - External research is required

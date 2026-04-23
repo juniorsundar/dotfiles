@@ -1,6 +1,6 @@
 ---
 description: Primary implementation agent. Writes and modifies code based on plans from Plan or direct user instructions. Delegates ALL research, exploration, and mid-task planning to subagents.
-model: kilo/qwen/qwen3.5-397b-a17b
+model: minimax/MiniMax-M2.7
 mode: primary
 tools:
   write: true

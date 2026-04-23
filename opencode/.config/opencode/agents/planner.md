@@ -53,6 +53,10 @@ Return ONLY this structure (no Architecture Overview):
 - [≤5 bullet points distilled from context provided by primary agent]
 ```
 
+# Granularity Guideline
+- If a sub-problem requires **more than 10 atomic execution steps**, advise the Plan agent to slice the component further before proceeding with full decomposition.
+- Return a message indicating: *"This sub-problem is too complex for single-pass decomposition. Please break it down into smaller sub-components and resubmit."*
+
 # Exit Condition
 - Return compressed execution steps to the calling primary agent (Plan or Build)
 - Do NOT interact with the user directly
