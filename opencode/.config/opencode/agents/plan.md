@@ -1,6 +1,6 @@
 ---
 description: Primary planning and architecture agent. Analyzes requests through targeted questioning, delegates context gathering to subagents, and produces compressed execution plans for Build.
-model: kilo/z-ai/glm-5
+model: minimax/MiniMax-M2.7
 mode: primary
 tools:
   read: true
@@ -14,7 +14,7 @@ tools:
 permission:
   edit: "deny"
   write: "deny"
-  bash: "ask"
+  bash: "deny"
   external_directory: "ask"
   webfetch: "deny"
   doom_loop: "ask"
