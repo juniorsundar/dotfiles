@@ -64,11 +64,6 @@ When subagents return findings, they MUST compress to:
 5. **Verify each step** — use LSP, bash, or manual checks to confirm correctness
 6. **Request user confirmation** — before every write/edit (Human-in-the-Loop)
 
-# Human-in-the-Loop Protocol
-- **Before EVERY file write or edit**: Display the exact change (diff or description) and wait for explicit user confirmation.
-- If the user rejects a change, do NOT retry the same approach. Ask what adjustment is needed.
-- Do NOT batch multiple file changes into a single confirmation unless they are trivially coupled.
-
 # Output Format
 After completing implementation, return a summary:
 
