@@ -9,3 +9,5 @@ ssh/.ssh/authorized_keys
 /ssh/.ssh/config
 /pi/.pi/agent/auth.json
 /pi/.pi/agent/sessions/*
+/pi/.pi/agent/cache/ollama-cloud/*
+/pi/.pi/agent/run-history.jsonl
