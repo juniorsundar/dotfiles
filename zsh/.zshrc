@@ -105,6 +105,18 @@ export PATH=$PATH:~/.cargo/bin
 # Go
 export PATH=$PATH:~/.odin
 
+# NPM
+if command -v npm >/dev/null 2>&1; then
+    export NPM_CONFIG_PREFIX="$HOME/.local/share/npm-global"
+    export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
+
+    mkdir -p "$NPM_CONFIG_PREFIX"
+
+    if [ "$(npm config get prefix 2>/dev/null)" != "$NPM_CONFIG_PREFIX" ]; then
+        npm config set prefix "$NPM_CONFIG_PREFIX" >/dev/null
+    fi
+fi
+
 # LaTeX
 export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux
 export INFOPATH=$INFOPATH:/usr/local/texlive/2023/texmf-dist/doc/info

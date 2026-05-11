@@ -1,10 +1,12 @@
 {
-  "lastChangelogVersion": "0.64.0",
-  "packages": [
-    "git:github.com/mrexodia/kilo-pi-provider"
-  ],
-  "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.3-codex",
+  "defaultModel": "deepseek-v4-pro",
+  "defaultProvider": "ollama-cloud",
   "defaultThinkingLevel": "medium",
-  "hideThinkingBlock": false
+  "hideThinkingBlock": false,
+  "lastChangelogVersion": "0.74.0",
+  "packages": [
+    "git:github.com/mrexodia/kilo-pi-provider",
+    "git:github.com/nicobailon/pi-subagents",
+    "git:github.com/mario-gc/pi-ollama-cloud-provider"
+  ]
 }
