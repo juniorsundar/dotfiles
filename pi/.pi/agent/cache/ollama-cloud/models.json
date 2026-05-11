@@ -1,48 +1,152 @@
 {
-  "timestamp": 1778484972016,
+  "timestamp": 1778488968190,
   "models": [
     {
-      "id": "cogito-2.1:671b",
+      "id": "glm-4.7",
       "show": {
         "details": {
-          "parent_model": "cogito-2.1:671b",
+          "parent_model": "glm-4.7",
           "format": "",
-          "family": "deepseek2",
+          "family": "glm4",
           "families": null,
-          "parameter_size": "671000000000",
+          "parameter_size": "357000000000",
           "quantization_level": "FP8"
         },
         "model_info": {
-          "deepseek2.context_length": 163840,
-          "deepseek2.embedding_length": 7168,
-          "general.architecture": "deepseek2",
-          "general.parameter_count": 671000000000
+          "general.architecture": "glm4",
+          "general.parameter_count": 357000000000,
+          "glm4.context_length": 202752,
+          "glm4.embedding_length": 2048
         },
         "capabilities": [
           "thinking",
           "completion",
           "tools"
         ],
-        "modified_at": "2025-11-19T00:00:00Z"
+        "modified_at": "2025-12-22T00:00:00Z"
       },
       "source": "ollama"
     },
     {
-      "id": "ministral-3:14b",
+      "id": "glm-5.1",
       "show": {
         "details": {
-          "parent_model": "ministral-3:14b",
+          "parent_model": "glm-5.1",
+          "format": "",
+          "family": "glm5.1",
+          "families": null,
+          "parameter_size": "756162687872",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "glm5.1",
+          "general.parameter_count": 756162687872,
+          "glm5.1.context_length": 202752,
+          "glm5.1.embedding_length": 6144
+        },
+        "capabilities": [
+          "thinking",
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2026-04-07T08:00:00-08:00"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "kimi-k2.5",
+      "show": {
+        "details": {
+          "parent_model": "kimi-k2.5",
+          "format": "",
+          "family": "kimi-k2",
+          "families": null,
+          "parameter_size": "1042000000000",
+          "quantization_level": "INT4"
+        },
+        "model_info": {
+          "general.architecture": "kimi-k2",
+          "general.parameter_count": 1042000000000,
+          "kimi-k2.context_length": 262144,
+          "kimi-k2.embedding_length": 2048
+        },
+        "capabilities": [
+          "vision",
+          "thinking",
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2026-01-26T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "nemotron-3-nano:30b",
+      "show": {
+        "details": {
+          "parent_model": "nemotron-3-nano:30b",
+          "format": "",
+          "family": "nemotron-3-nano",
+          "families": null,
+          "parameter_size": "32000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "nemotron-3-nano",
+          "general.parameter_count": 32000000000,
+          "nemotron-3-nano.context_length": 262144,
+          "nemotron-3-nano.embedding_length": 2880
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "thinking"
+        ],
+        "modified_at": "2025-12-15T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "minimax-m2",
+      "show": {
+        "details": {
+          "parent_model": "minimax-m2",
+          "format": "",
+          "family": "minimax-m2",
+          "families": null,
+          "parameter_size": "230000000000",
+          "quantization_level": ""
+        },
+        "model_info": {
+          "general.architecture": "minimax-m2",
+          "general.parameter_count": 230000000000,
+          "minimax-m2.context_length": 204800,
+          "minimax-m2.embedding_length": 3072
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2025-10-27T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "ministral-3:8b",
+      "show": {
+        "details": {
+          "parent_model": "ministral-3:8b",
           "format": "",
           "family": "mistral3",
           "families": null,
-          "parameter_size": "14000000000",
+          "parameter_size": "8000000000",
           "quantization_level": "FP8"
         },
         "model_info": {
           "general.architecture": "mistral3",
-          "general.parameter_count": 14000000000,
+          "general.parameter_count": 8000000000,
           "mistral3.context_length": 262144,
-          "mistral3.embedding_length": 5120
+          "mistral3.embedding_length": 4096
         },
         "capabilities": [
           "completion",
@@ -80,98 +184,21 @@
       "source": "ollama"
     },
     {
-      "id": "gemma3:4b",
+      "id": "gemma4:31b",
       "show": {
         "details": {
-          "parent_model": "gemma3:4b",
+          "parent_model": "gemma4:31b",
           "format": "",
-          "family": "gemma3",
+          "family": "gemma4",
           "families": null,
-          "parameter_size": "4000000000",
+          "parameter_size": "32682372656",
           "quantization_level": "BF16"
         },
         "model_info": {
-          "gemma3.context_length": 131072,
-          "gemma3.embedding_length": 2560,
-          "general.architecture": "gemma3",
-          "general.parameter_count": 4000000000
-        },
-        "capabilities": [
-          "completion",
-          "vision"
-        ],
-        "modified_at": "2025-03-12T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "gpt-oss:120b",
-      "show": {
-        "details": {
-          "parent_model": "gpt-oss:120b",
-          "format": "",
-          "family": "gptoss",
-          "families": null,
-          "parameter_size": "116829156672",
-          "quantization_level": "MXFP4"
-        },
-        "model_info": {
-          "general.architecture": "gptoss",
-          "general.parameter_count": 116829156672,
-          "gptoss.context_length": 131072,
-          "gptoss.embedding_length": 2880
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "thinking"
-        ],
-        "modified_at": "2025-08-05T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "nemotron-3-nano:30b",
-      "show": {
-        "details": {
-          "parent_model": "nemotron-3-nano:30b",
-          "format": "",
-          "family": "nemotron-3-nano",
-          "families": null,
-          "parameter_size": "32000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "nemotron-3-nano",
-          "general.parameter_count": 32000000000,
-          "nemotron-3-nano.context_length": 262144,
-          "nemotron-3-nano.embedding_length": 2880
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "thinking"
-        ],
-        "modified_at": "2025-12-15T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "qwen3.5:397b",
-      "show": {
-        "details": {
-          "parent_model": "qwen3.5:397b",
-          "format": "",
-          "family": "qwen3.5",
-          "families": null,
-          "parameter_size": "397000000000",
-          "quantization_level": "BF16"
-        },
-        "model_info": {
-          "general.architecture": "qwen3.5",
-          "general.parameter_count": 397000000000,
-          "qwen3.5.context_length": 262144,
-          "qwen3.5.embedding_length": 4096
+          "gemma4.context_length": 262144,
+          "gemma4.embedding_length": 5376,
+          "general.architecture": "gemma4",
+          "general.parameter_count": 32682372656
         },
         "capabilities": [
           "completion",
@@ -179,252 +206,46 @@
           "tools",
           "vision"
         ],
-        "modified_at": "2026-02-16T00:00:00Z"
+        "modified_at": "2026-04-02T09:00:00-08:00"
       },
       "source": "ollama"
     },
     {
-      "id": "nemotron-3-super",
+      "id": "cogito-2.1:671b",
       "show": {
         "details": {
-          "parent_model": "nemotron-3-super",
+          "parent_model": "cogito-2.1:671b",
           "format": "",
-          "family": "nemotron_h_moe",
+          "family": "deepseek2",
           "families": null,
-          "parameter_size": "120000000000",
-          "quantization_level": "NVFP4"
-        },
-        "model_info": {
-          "general.architecture": "nemotron_h_moe",
-          "general.parameter_count": 120000000000,
-          "nemotron_h_moe.context_length": 262144,
-          "nemotron_h_moe.embedding_length": 4096
-        },
-        "capabilities": [
-          "completion",
-          "thinking",
-          "tools"
-        ],
-        "modified_at": "2026-03-11T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "glm-5.1",
-      "show": {
-        "details": {
-          "parent_model": "glm-5.1",
-          "format": "",
-          "family": "glm5.1",
-          "families": null,
-          "parameter_size": "756162687872",
+          "parameter_size": "671000000000",
           "quantization_level": "FP8"
         },
         "model_info": {
-          "general.architecture": "glm5.1",
-          "general.parameter_count": 756162687872,
-          "glm5.1.context_length": 202752,
-          "glm5.1.embedding_length": 6144
+          "deepseek2.context_length": 163840,
+          "deepseek2.embedding_length": 7168,
+          "general.architecture": "deepseek2",
+          "general.parameter_count": 671000000000
         },
         "capabilities": [
           "thinking",
           "completion",
           "tools"
         ],
-        "modified_at": "2026-04-07T08:00:00-08:00"
+        "modified_at": "2025-11-19T00:00:00Z"
       },
       "source": "ollama"
     },
     {
-      "id": "qwen3-coder:480b",
+      "id": "kimi-k2:1t",
       "show": {
         "details": {
-          "parent_model": "qwen3-coder:480b",
-          "format": "",
-          "family": "qwen3moe",
-          "families": null,
-          "parameter_size": "480000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "qwen3moe",
-          "general.parameter_count": 480000000000,
-          "qwen3moe.context_length": 262144,
-          "qwen3moe.embedding_length": 2048
-        },
-        "capabilities": [
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2025-07-22T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "qwen3-next:80b",
-      "show": {
-        "details": {
-          "parent_model": "qwen3-next:80b",
-          "format": "",
-          "family": "qwen3next",
-          "families": null,
-          "parameter_size": "80000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "qwen3next",
-          "general.parameter_count": 80000000000,
-          "qwen3next.context_length": 262144,
-          "qwen3next.embedding_length": 2048
-        },
-        "capabilities": [
-          "completion",
-          "thinking",
-          "tools"
-        ],
-        "modified_at": "2025-09-10T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "deepseek-v4-flash",
-      "show": {
-        "details": {
-          "parent_model": "deepseek-v4-flash",
-          "format": "",
-          "family": "deepseek4",
-          "families": null,
-          "parameter_size": "158000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "deepseek4.context_length": 1048576,
-          "deepseek4.embedding_length": 4096,
-          "general.architecture": "deepseek4",
-          "general.parameter_count": 158000000000
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "thinking"
-        ],
-        "modified_at": "2026-04-24T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "ministral-3:3b",
-      "show": {
-        "details": {
-          "parent_model": "ministral-3:3b",
-          "format": "",
-          "family": "mistral3",
-          "families": null,
-          "parameter_size": "3000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "mistral3",
-          "general.parameter_count": 3000000000,
-          "mistral3.context_length": 262144,
-          "mistral3.embedding_length": 4096
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "vision"
-        ],
-        "modified_at": "2025-12-02T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "mistral-large-3:675b",
-      "show": {
-        "details": {
-          "parent_model": "mistral-large-3:675b",
-          "format": "",
-          "family": "mistral3",
-          "families": null,
-          "parameter_size": "675000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "mistral3",
-          "general.parameter_count": 675000000000,
-          "mistral3.context_length": 262144,
-          "mistral3.embedding_length": 7168
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "vision"
-        ],
-        "modified_at": "2025-12-02T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "devstral-2:123b",
-      "show": {
-        "details": {
-          "parent_model": "devstral-2:123b",
-          "format": "",
-          "family": "mistral3",
-          "families": null,
-          "parameter_size": "123000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "mistral3",
-          "general.parameter_count": 123000000000,
-          "mistral3.context_length": 262144,
-          "mistral3.embedding_length": 12288
-        },
-        "capabilities": [
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2025-12-08T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "glm-4.7",
-      "show": {
-        "details": {
-          "parent_model": "glm-4.7",
-          "format": "",
-          "family": "glm4",
-          "families": null,
-          "parameter_size": "357000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "glm4",
-          "general.parameter_count": 357000000000,
-          "glm4.context_length": 202752,
-          "glm4.embedding_length": 2048
-        },
-        "capabilities": [
-          "thinking",
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2025-12-22T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "kimi-k2.5",
-      "show": {
-        "details": {
-          "parent_model": "kimi-k2.5",
+          "parent_model": "kimi-k2:1t",
           "format": "",
           "family": "kimi-k2",
           "families": null,
           "parameter_size": "1042000000000",
-          "quantization_level": "INT4"
+          "quantization_level": "FP8"
         },
         "model_info": {
           "general.architecture": "kimi-k2",
@@ -433,12 +254,10 @@
           "kimi-k2.embedding_length": 2048
         },
         "capabilities": [
-          "vision",
-          "thinking",
           "completion",
           "tools"
         ],
-        "modified_at": "2026-01-26T00:00:00Z"
+        "modified_at": "2025-09-05T00:00:00Z"
       },
       "source": "ollama"
     },
@@ -463,6 +282,136 @@
           "completion",
           "tools",
           "thinking"
+        ],
+        "modified_at": "2025-12-02T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "gpt-oss:20b",
+      "show": {
+        "details": {
+          "parent_model": "gpt-oss:20b",
+          "format": "",
+          "family": "gptoss",
+          "families": null,
+          "parameter_size": "20914757184",
+          "quantization_level": "MXFP4"
+        },
+        "model_info": {
+          "general.architecture": "gptoss",
+          "general.parameter_count": 20914757184,
+          "gptoss.context_length": 131072,
+          "gptoss.embedding_length": 2880
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "thinking"
+        ],
+        "modified_at": "2025-08-05T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "qwen3-vl:235b-instruct",
+      "show": {
+        "details": {
+          "parent_model": "qwen3-vl:235b-instruct",
+          "format": "",
+          "family": "qwen3vlmoe",
+          "families": null,
+          "parameter_size": "235000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "qwen3vlmoe",
+          "general.parameter_count": 235000000000,
+          "qwen3vlmoe.context_length": 262144,
+          "qwen3vlmoe.embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "vision"
+        ],
+        "modified_at": "2025-09-22T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "minimax-m2.7",
+      "show": {
+        "details": {
+          "parent_model": "minimax-m2.7",
+          "format": "",
+          "family": "minimax-m2",
+          "families": null,
+          "parameter_size": "0",
+          "quantization_level": ""
+        },
+        "model_info": {
+          "general.architecture": "minimax-m2",
+          "general.parameter_count": 0,
+          "minimax-m2.context_length": 196608,
+          "minimax-m2.embedding_length": 3072
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "thinking"
+        ],
+        "modified_at": "2026-03-18T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "minimax-m2.5",
+      "show": {
+        "details": {
+          "parent_model": "minimax-m2.5",
+          "format": "",
+          "family": "minimax-m2",
+          "families": null,
+          "parameter_size": "230000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "minimax-m2",
+          "general.parameter_count": 230000000000,
+          "minimax-m2.context_length": 196608,
+          "minimax-m2.embedding_length": 3072
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "thinking"
+        ],
+        "modified_at": "2026-02-12T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "ministral-3:3b",
+      "show": {
+        "details": {
+          "parent_model": "ministral-3:3b",
+          "format": "",
+          "family": "mistral3",
+          "families": null,
+          "parameter_size": "3000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "mistral3",
+          "general.parameter_count": 3000000000,
+          "mistral3.context_length": 262144,
+          "mistral3.embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "vision"
         ],
         "modified_at": "2025-12-02T00:00:00Z"
       },
@@ -521,141 +470,62 @@
       "source": "ollama"
     },
     {
-      "id": "minimax-m2.5",
+      "id": "gemma3:12b",
       "show": {
         "details": {
-          "parent_model": "minimax-m2.5",
+          "parent_model": "gemma3:12b",
           "format": "",
-          "family": "minimax-m2",
+          "family": "gemma3",
           "families": null,
-          "parameter_size": "230000000000",
-          "quantization_level": "FP8"
+          "parameter_size": "12000000000",
+          "quantization_level": "BF16"
         },
         "model_info": {
-          "general.architecture": "minimax-m2",
-          "general.parameter_count": 230000000000,
-          "minimax-m2.context_length": 196608,
-          "minimax-m2.embedding_length": 3072
+          "gemma3.context_length": 131072,
+          "gemma3.embedding_length": 3840,
+          "general.architecture": "gemma3",
+          "general.parameter_count": 12000000000
         },
         "capabilities": [
           "completion",
-          "tools",
-          "thinking"
+          "vision"
         ],
-        "modified_at": "2026-02-12T00:00:00Z"
+        "modified_at": "2025-03-12T00:00:00Z"
       },
       "source": "ollama"
     },
     {
-      "id": "ministral-3:8b",
+      "id": "qwen3.5:397b",
       "show": {
         "details": {
-          "parent_model": "ministral-3:8b",
+          "parent_model": "qwen3.5:397b",
           "format": "",
-          "family": "mistral3",
+          "family": "qwen3.5",
           "families": null,
-          "parameter_size": "8000000000",
-          "quantization_level": "FP8"
+          "parameter_size": "397000000000",
+          "quantization_level": "BF16"
         },
         "model_info": {
-          "general.architecture": "mistral3",
-          "general.parameter_count": 8000000000,
-          "mistral3.context_length": 262144,
-          "mistral3.embedding_length": 4096
+          "general.architecture": "qwen3.5",
+          "general.parameter_count": 397000000000,
+          "qwen3.5.context_length": 262144,
+          "qwen3.5.embedding_length": 4096
         },
         "capabilities": [
           "completion",
+          "thinking",
           "tools",
           "vision"
         ],
-        "modified_at": "2025-12-02T00:00:00Z"
+        "modified_at": "2026-02-16T00:00:00Z"
       },
       "source": "ollama"
     },
     {
-      "id": "glm-4.6",
+      "id": "qwen3-next:80b",
       "show": {
         "details": {
-          "parent_model": "glm-4.6",
-          "format": "",
-          "family": "glm4",
-          "families": null,
-          "parameter_size": "357000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "glm4",
-          "general.parameter_count": 357000000000,
-          "glm4.context_length": 202752,
-          "glm4.embedding_length": 2048
-        },
-        "capabilities": [
-          "thinking",
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2025-09-29T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "kimi-k2.6",
-      "show": {
-        "details": {
-          "parent_model": "kimi-k2.6",
-          "format": "",
-          "family": "kimi-k2",
-          "families": null,
-          "parameter_size": "1042000000000",
-          "quantization_level": "INT4"
-        },
-        "model_info": {
-          "general.architecture": "kimi-k2",
-          "general.parameter_count": 1042000000000,
-          "kimi-k2.context_length": 262144,
-          "kimi-k2.embedding_length": 2048
-        },
-        "capabilities": [
-          "vision",
-          "thinking",
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2026-03-31T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "kimi-k2-thinking",
-      "show": {
-        "details": {
-          "parent_model": "kimi-k2-thinking",
-          "format": "",
-          "family": "kimi-k2",
-          "families": null,
-          "parameter_size": "1042000000000",
-          "quantization_level": "INT4"
-        },
-        "model_info": {
-          "general.architecture": "kimi-k2",
-          "general.parameter_count": 1042000000000,
-          "kimi-k2.context_length": 262144,
-          "kimi-k2.embedding_length": 2048
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "thinking"
-        ],
-        "modified_at": "2025-11-06T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "qwen3-coder-next",
-      "show": {
-        "details": {
-          "parent_model": "qwen3-coder-next",
+          "parent_model": "qwen3-next:80b",
           "format": "",
           "family": "qwen3next",
           "families": null,
@@ -670,266 +540,62 @@
         },
         "capabilities": [
           "completion",
-          "tools"
-        ],
-        "modified_at": "2025-02-04T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "minimax-m2",
-      "show": {
-        "details": {
-          "parent_model": "minimax-m2",
-          "format": "",
-          "family": "minimax-m2",
-          "families": null,
-          "parameter_size": "230000000000",
-          "quantization_level": ""
-        },
-        "model_info": {
-          "general.architecture": "minimax-m2",
-          "general.parameter_count": 230000000000,
-          "minimax-m2.context_length": 204800,
-          "minimax-m2.embedding_length": 3072
-        },
-        "capabilities": [
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2025-10-27T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "glm-5",
-      "show": {
-        "details": {
-          "parent_model": "glm-5",
-          "format": "",
-          "family": "glm5",
-          "families": null,
-          "parameter_size": "756162687872",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "glm5",
-          "general.parameter_count": 756162687872,
-          "glm5.context_length": 202752,
-          "glm5.embedding_length": 2048
-        },
-        "capabilities": [
           "thinking",
-          "completion",
           "tools"
         ],
-        "modified_at": "2026-02-11T00:00:00Z"
+        "modified_at": "2025-09-10T00:00:00Z"
       },
       "source": "ollama"
     },
     {
-      "id": "gpt-oss:20b",
+      "id": "deepseek-v4-flash",
       "show": {
         "details": {
-          "parent_model": "gpt-oss:20b",
+          "parent_model": "deepseek-v4-flash",
           "format": "",
-          "family": "gptoss",
+          "family": "deepseek4",
           "families": null,
-          "parameter_size": "20914757184",
-          "quantization_level": "MXFP4"
+          "parameter_size": "158000000000",
+          "quantization_level": "FP8"
         },
         "model_info": {
-          "general.architecture": "gptoss",
-          "general.parameter_count": 20914757184,
-          "gptoss.context_length": 131072,
-          "gptoss.embedding_length": 2880
+          "deepseek4.context_length": 1048576,
+          "deepseek4.embedding_length": 4096,
+          "general.architecture": "deepseek4",
+          "general.parameter_count": 158000000000
         },
         "capabilities": [
           "completion",
           "tools",
           "thinking"
         ],
-        "modified_at": "2025-08-05T00:00:00Z"
+        "modified_at": "2026-04-24T00:00:00Z"
       },
       "source": "ollama"
     },
     {
-      "id": "qwen3-vl:235b",
+      "id": "ministral-3:14b",
       "show": {
         "details": {
-          "parent_model": "qwen3-vl:235b",
+          "parent_model": "ministral-3:14b",
           "format": "",
-          "family": "qwen3vlmoe",
+          "family": "mistral3",
           "families": null,
-          "parameter_size": "235000000000",
-          "quantization_level": "BF16"
-        },
-        "model_info": {
-          "general.architecture": "qwen3vlmoe",
-          "general.parameter_count": 235000000000,
-          "qwen3vlmoe.context_length": 262144,
-          "qwen3vlmoe.embedding_length": 4096
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "thinking",
-          "vision"
-        ],
-        "modified_at": "2025-09-22T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "minimax-m2.7",
-      "show": {
-        "details": {
-          "parent_model": "minimax-m2.7",
-          "format": "",
-          "family": "minimax-m2",
-          "families": null,
-          "parameter_size": "0",
-          "quantization_level": ""
-        },
-        "model_info": {
-          "general.architecture": "minimax-m2",
-          "general.parameter_count": 0,
-          "minimax-m2.context_length": 196608,
-          "minimax-m2.embedding_length": 3072
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "thinking"
-        ],
-        "modified_at": "2026-03-18T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "rnj-1:8b",
-      "show": {
-        "details": {
-          "parent_model": "rnj-1:8b",
-          "format": "",
-          "family": "gemma3",
-          "families": null,
-          "parameter_size": "8000000000",
-          "quantization_level": "FP16"
-        },
-        "model_info": {
-          "gemma3.context_length": 32768,
-          "gemma3.embedding_length": 4096,
-          "general.architecture": "gemma3",
-          "general.parameter_count": 8000000000
-        },
-        "capabilities": [
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2025-12-09T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "deepseek-v3.1:671b",
-      "show": {
-        "details": {
-          "parent_model": "deepseek-v3.1:671b",
-          "format": "",
-          "family": "deepseek2",
-          "families": null,
-          "parameter_size": "671000000000",
+          "parameter_size": "14000000000",
           "quantization_level": "FP8"
         },
         "model_info": {
-          "deepseek2.context_length": 163840,
-          "deepseek2.embedding_length": 7168,
-          "general.architecture": "deepseek2",
-          "general.parameter_count": 671000000000
-        },
-        "capabilities": [
-          "completion",
-          "tools",
-          "thinking"
-        ],
-        "modified_at": "2025-11-20T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "gemma3:27b",
-      "show": {
-        "details": {
-          "parent_model": "gemma3:27b",
-          "format": "",
-          "family": "gemma3",
-          "families": null,
-          "parameter_size": "27000000000",
-          "quantization_level": "BF16"
-        },
-        "model_info": {
-          "gemma3.context_length": 131072,
-          "gemma3.embedding_length": 5376,
-          "general.architecture": "gemma3",
-          "general.parameter_count": 27000000000
-        },
-        "capabilities": [
-          "completion",
-          "vision"
-        ],
-        "modified_at": "2025-03-12T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "kimi-k2:1t",
-      "show": {
-        "details": {
-          "parent_model": "kimi-k2:1t",
-          "format": "",
-          "family": "kimi-k2",
-          "families": null,
-          "parameter_size": "1042000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "kimi-k2",
-          "general.parameter_count": 1042000000000,
-          "kimi-k2.context_length": 262144,
-          "kimi-k2.embedding_length": 2048
-        },
-        "capabilities": [
-          "completion",
-          "tools"
-        ],
-        "modified_at": "2025-09-05T00:00:00Z"
-      },
-      "source": "ollama"
-    },
-    {
-      "id": "qwen3-vl:235b-instruct",
-      "show": {
-        "details": {
-          "parent_model": "qwen3-vl:235b-instruct",
-          "format": "",
-          "family": "qwen3vlmoe",
-          "families": null,
-          "parameter_size": "235000000000",
-          "quantization_level": "FP8"
-        },
-        "model_info": {
-          "general.architecture": "qwen3vlmoe",
-          "general.parameter_count": 235000000000,
-          "qwen3vlmoe.context_length": 262144,
-          "qwen3vlmoe.embedding_length": 4096
+          "general.architecture": "mistral3",
+          "general.parameter_count": 14000000000,
+          "mistral3.context_length": 262144,
+          "mistral3.embedding_length": 5120
         },
         "capabilities": [
           "completion",
           "tools",
           "vision"
         ],
-        "modified_at": "2025-09-22T00:00:00Z"
+        "modified_at": "2025-12-02T00:00:00Z"
       },
       "source": "ollama"
     },
@@ -961,21 +627,151 @@
       "source": "ollama"
     },
     {
-      "id": "gemma3:12b",
+      "id": "nemotron-3-super",
       "show": {
         "details": {
-          "parent_model": "gemma3:12b",
+          "parent_model": "nemotron-3-super",
+          "format": "",
+          "family": "nemotron_h_moe",
+          "families": null,
+          "parameter_size": "120000000000",
+          "quantization_level": "NVFP4"
+        },
+        "model_info": {
+          "general.architecture": "nemotron_h_moe",
+          "general.parameter_count": 120000000000,
+          "nemotron_h_moe.context_length": 262144,
+          "nemotron_h_moe.embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "thinking",
+          "tools"
+        ],
+        "modified_at": "2026-03-11T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "glm-4.6",
+      "show": {
+        "details": {
+          "parent_model": "glm-4.6",
+          "format": "",
+          "family": "glm4",
+          "families": null,
+          "parameter_size": "357000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "glm4",
+          "general.parameter_count": 357000000000,
+          "glm4.context_length": 202752,
+          "glm4.embedding_length": 2048
+        },
+        "capabilities": [
+          "thinking",
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2025-09-29T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "kimi-k2-thinking",
+      "show": {
+        "details": {
+          "parent_model": "kimi-k2-thinking",
+          "format": "",
+          "family": "kimi-k2",
+          "families": null,
+          "parameter_size": "1042000000000",
+          "quantization_level": "INT4"
+        },
+        "model_info": {
+          "general.architecture": "kimi-k2",
+          "general.parameter_count": 1042000000000,
+          "kimi-k2.context_length": 262144,
+          "kimi-k2.embedding_length": 2048
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "thinking"
+        ],
+        "modified_at": "2025-11-06T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "deepseek-v3.1:671b",
+      "show": {
+        "details": {
+          "parent_model": "deepseek-v3.1:671b",
+          "format": "",
+          "family": "deepseek2",
+          "families": null,
+          "parameter_size": "671000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "deepseek2.context_length": 163840,
+          "deepseek2.embedding_length": 7168,
+          "general.architecture": "deepseek2",
+          "general.parameter_count": 671000000000
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "thinking"
+        ],
+        "modified_at": "2025-11-20T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "gpt-oss:120b",
+      "show": {
+        "details": {
+          "parent_model": "gpt-oss:120b",
+          "format": "",
+          "family": "gptoss",
+          "families": null,
+          "parameter_size": "116829156672",
+          "quantization_level": "MXFP4"
+        },
+        "model_info": {
+          "general.architecture": "gptoss",
+          "general.parameter_count": 116829156672,
+          "gptoss.context_length": 131072,
+          "gptoss.embedding_length": 2880
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "thinking"
+        ],
+        "modified_at": "2025-08-05T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "gemma3:27b",
+      "show": {
+        "details": {
+          "parent_model": "gemma3:27b",
           "format": "",
           "family": "gemma3",
           "families": null,
-          "parameter_size": "12000000000",
+          "parameter_size": "27000000000",
           "quantization_level": "BF16"
         },
         "model_info": {
           "gemma3.context_length": 131072,
-          "gemma3.embedding_length": 3840,
+          "gemma3.embedding_length": 5376,
           "general.architecture": "gemma3",
-          "general.parameter_count": 12000000000
+          "general.parameter_count": 27000000000
         },
         "capabilities": [
           "completion",
@@ -986,29 +782,233 @@
       "source": "ollama"
     },
     {
-      "id": "gemma4:31b",
+      "id": "kimi-k2.6",
       "show": {
         "details": {
-          "parent_model": "gemma4:31b",
+          "parent_model": "kimi-k2.6",
           "format": "",
-          "family": "gemma4",
+          "family": "kimi-k2",
           "families": null,
-          "parameter_size": "32682372656",
-          "quantization_level": "BF16"
+          "parameter_size": "1042000000000",
+          "quantization_level": "INT4"
         },
         "model_info": {
-          "gemma4.context_length": 262144,
-          "gemma4.embedding_length": 5376,
-          "general.architecture": "gemma4",
-          "general.parameter_count": 32682372656
+          "general.architecture": "kimi-k2",
+          "general.parameter_count": 1042000000000,
+          "kimi-k2.context_length": 262144,
+          "kimi-k2.embedding_length": 2048
+        },
+        "capabilities": [
+          "vision",
+          "thinking",
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2026-03-31T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "qwen3-coder:480b",
+      "show": {
+        "details": {
+          "parent_model": "qwen3-coder:480b",
+          "format": "",
+          "family": "qwen3moe",
+          "families": null,
+          "parameter_size": "480000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "qwen3moe",
+          "general.parameter_count": 480000000000,
+          "qwen3moe.context_length": 262144,
+          "qwen3moe.embedding_length": 2048
         },
         "capabilities": [
           "completion",
+          "tools"
+        ],
+        "modified_at": "2025-07-22T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "qwen3-vl:235b",
+      "show": {
+        "details": {
+          "parent_model": "qwen3-vl:235b",
+          "format": "",
+          "family": "qwen3vlmoe",
+          "families": null,
+          "parameter_size": "235000000000",
+          "quantization_level": "BF16"
+        },
+        "model_info": {
+          "general.architecture": "qwen3vlmoe",
+          "general.parameter_count": 235000000000,
+          "qwen3vlmoe.context_length": 262144,
+          "qwen3vlmoe.embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "tools",
           "thinking",
+          "vision"
+        ],
+        "modified_at": "2025-09-22T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "mistral-large-3:675b",
+      "show": {
+        "details": {
+          "parent_model": "mistral-large-3:675b",
+          "format": "",
+          "family": "mistral3",
+          "families": null,
+          "parameter_size": "675000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "mistral3",
+          "general.parameter_count": 675000000000,
+          "mistral3.context_length": 262144,
+          "mistral3.embedding_length": 7168
+        },
+        "capabilities": [
+          "completion",
           "tools",
           "vision"
         ],
-        "modified_at": "2026-04-02T09:00:00-08:00"
+        "modified_at": "2025-12-02T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "gemma3:4b",
+      "show": {
+        "details": {
+          "parent_model": "gemma3:4b",
+          "format": "",
+          "family": "gemma3",
+          "families": null,
+          "parameter_size": "4000000000",
+          "quantization_level": "BF16"
+        },
+        "model_info": {
+          "gemma3.context_length": 131072,
+          "gemma3.embedding_length": 2560,
+          "general.architecture": "gemma3",
+          "general.parameter_count": 4000000000
+        },
+        "capabilities": [
+          "completion",
+          "vision"
+        ],
+        "modified_at": "2025-03-12T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "glm-5",
+      "show": {
+        "details": {
+          "parent_model": "glm-5",
+          "format": "",
+          "family": "glm5",
+          "families": null,
+          "parameter_size": "756162687872",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "glm5",
+          "general.parameter_count": 756162687872,
+          "glm5.context_length": 202752,
+          "glm5.embedding_length": 2048
+        },
+        "capabilities": [
+          "thinking",
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2026-02-11T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "devstral-2:123b",
+      "show": {
+        "details": {
+          "parent_model": "devstral-2:123b",
+          "format": "",
+          "family": "mistral3",
+          "families": null,
+          "parameter_size": "123000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "mistral3",
+          "general.parameter_count": 123000000000,
+          "mistral3.context_length": 262144,
+          "mistral3.embedding_length": 12288
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2025-12-08T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "rnj-1:8b",
+      "show": {
+        "details": {
+          "parent_model": "rnj-1:8b",
+          "format": "",
+          "family": "gemma3",
+          "families": null,
+          "parameter_size": "8000000000",
+          "quantization_level": "FP16"
+        },
+        "model_info": {
+          "gemma3.context_length": 32768,
+          "gemma3.embedding_length": 4096,
+          "general.architecture": "gemma3",
+          "general.parameter_count": 8000000000
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2025-12-09T00:00:00Z"
+      },
+      "source": "ollama"
+    },
+    {
+      "id": "qwen3-coder-next",
+      "show": {
+        "details": {
+          "parent_model": "qwen3-coder-next",
+          "format": "",
+          "family": "qwen3next",
+          "families": null,
+          "parameter_size": "80000000000",
+          "quantization_level": "FP8"
+        },
+        "model_info": {
+          "general.architecture": "qwen3next",
+          "general.parameter_count": 80000000000,
+          "qwen3next.context_length": 262144,
+          "qwen3next.embedding_length": 2048
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ],
+        "modified_at": "2025-02-04T00:00:00Z"
       },
       "source": "ollama"
     }
