@@ -161,8 +161,14 @@ async function approveFileChangeWithNeovim(
 		metadata,
 	});
 
-	if (result.decision === "approve" && toolName === "write" && typeof result.approvedContent === "string") {
-		input.content = result.approvedContent;
+	if (result.decision === "approve" && typeof result.approvedContent === "string") {
+		if (toolName === "write") {
+			input.content = result.approvedContent;
+		} else if (result.approvedContent !== afterContent && before.content.length > 0) {
+			// If the user edits the preview, make the approved content authoritative.
+			// The real edit tool will still verify the full original content matches.
+			input.edits = [{ oldText: before.content, newText: result.approvedContent }];
+		}
 		diffStats = computeLineDiffStats(before.content, result.approvedContent);
 	}
 
@@ -233,7 +239,7 @@ async function runNeovimDiffApproval(
 		});
 
 		const decision = readFileSync(decisionPath, "utf8").trim() === "approve" ? "approve" : "deny";
-		const approvedContent = decision === "approve" && request.toolName === "write" ? readFileSync(afterPath, "utf8") : undefined;
+		const approvedContent = decision === "approve" ? readFileSync(afterPath, "utf8") : undefined;
 		return { decision, approvedContent };
 	} finally {
 		rmSync(tempDir, { recursive: true, force: true });
@@ -247,7 +253,7 @@ function buildApprovalLua(
 ): string {
 	const escapedDecisionPath = JSON.stringify(decisionPath);
 	const escapedAfterPath = JSON.stringify(afterPath);
-	const editableAfter = request.toolName === "write";
+	const editableAfter = true;
 	const statusText = `Pi Approval | ${request.toolName} | ${request.targetPath} | :Approve :Deny`;
 	const escapedStatus = JSON.stringify(statusText);
 	const escapedEcho = JSON.stringify(`${statusText} | ${request.metadata.map(([k, v]) => `${k}: ${v}`).join(" | ")}`);
@@ -257,6 +263,10 @@ vim.opt.relativenumber = false
 vim.opt.cursorline = true
 vim.opt.wrap = false
 vim.opt.termguicolors = true
+-- Avoid narrow-terminal hit-enter prompts from long status/messages while the
+-- diff UI is still settling.
+pcall(function() vim.opt.shortmess:append('T') end)
+vim.opt.more = false
 pcall(function() vim.opt.diffopt:append('algorithm:histogram') end)
 pcall(function() vim.opt.diffopt:append('indent-heuristic') end)
 
@@ -267,6 +277,16 @@ local editable_after = ${editableAfter ? "true" : "false"}
 local status_text = ${escapedStatus}
 local echo_text = ${escapedEcho}
 local display_text = status_text:gsub('%%', '%%%%')
+local function focus_after_buffer()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local bufnr = vim.api.nvim_win_get_buf(win)
+    if vim.api.nvim_buf_get_name(bufnr) == after_file then
+      vim.api.nvim_set_current_win(win)
+      return win, bufnr
+    end
+  end
+  return nil, nil
+end
 local function decide(value)
   if value == 'approve' and editable_after then
     pcall(function()
@@ -286,25 +306,39 @@ end
 
 vim.api.nvim_create_user_command('Approve', function() decide('approve') end, {})
 vim.api.nvim_create_user_command('Deny', function() decide('deny') end, {})
+
+local function apply_smart_layout()
+  -- Prefer side-by-side diffs when there is enough width, but rotate to a
+  -- horizontal/top-bottom diff in narrow terminals or tmux panes.
+  local columns = vim.o.columns
+  local lines = vim.o.lines
+  local use_vertical = columns >= 120 or (columns >= 100 and lines < 32)
+  if use_vertical then
+    pcall(function() vim.cmd('wincmd H') end)
+  else
+    pcall(function() vim.cmd('wincmd K') end)
+  end
+  vim.cmd('wincmd =')
+  return use_vertical and 'vertical' or 'horizontal'
+end
+
 vim.defer_fn(function()
   vim.opt.laststatus = 2
   vim.o.statusline = display_text
   pcall(function() vim.wo.winbar = display_text end)
+  local layout = apply_smart_layout()
   vim.cmd('windo setlocal readonly nomodifiable nowrap')
-  if editable_after then
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-      local bufnr = vim.api.nvim_win_get_buf(win)
-      if vim.api.nvim_buf_get_name(bufnr) == after_file then
-        vim.api.nvim_win_call(win, function()
-          vim.cmd('setlocal noreadonly modifiable')
-        end)
-      end
-    end
+  local after_win = focus_after_buffer()
+  if editable_after and after_win then
+    vim.api.nvim_win_call(after_win, function()
+      vim.cmd('setlocal noreadonly modifiable')
+    end)
   end
   vim.cmd('windo diffthis')
   vim.cmd('wincmd =')
+  focus_after_buffer()
   pcall(function() vim.cmd('normal! ]c') end)
-  vim.cmd('echo ' .. string.format('%q', echo_text))
+  vim.api.nvim_echo({{ 'Pi Approval: :Approve or :Deny | layout: ' .. layout, 'None' }}, false, {})
 end, 100)
 `;
 }
