@@ -1,0 +1,10 @@
+[project]
+name = "pi-web-search"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "ddgs>=9.0.0",
+]
+
+[tool.uv]
+# Ensures uv creates a managed venv automatically.
