@@ -8,6 +8,9 @@
     "git:github.com/mrexodia/kilo-pi-provider",
     "git:github.com/nicobailon/pi-subagents",
     "git:github.com/mario-gc/pi-ollama-cloud-provider",
+    "git:github.com/juicesharp/rpiv-mono",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@sherif-fanous/pi-atom-one"
   ],
   "enabledModels": [
