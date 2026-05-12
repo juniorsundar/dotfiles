@@ -40,8 +40,8 @@ Related idea: 15
 
 In the generated approval Lua:
 
-- Force vertical diff layout where practical.
-- Equalize split widths.
+- Use vertical diff layout where practical, but switch to horizontal/top-bottom in narrow terminals or tmux panes.
+- Equalize split widths/heights.
 - Jump to the first diff hunk.
 - Enable useful diff options:
   - `diffopt+=algorithm:histogram`
@@ -50,7 +50,8 @@ In the generated approval Lua:
 - Keep user's colorscheme/theme loaded first.
 
 Acceptance check:
-- `/nvim-diff-demo`-style approval opens in a clean side-by-side diff.
+- `/nvim-diff-demo`-style approval opens in a clean side-by-side diff when there is enough width.
+- Narrow tmux panes use a readable horizontal/top-bottom diff.
 - Cursor starts near the first change.
 
 ## 4. Add persistent Neovim metadata/status display — DONE

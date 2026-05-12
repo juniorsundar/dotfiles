@@ -219,7 +219,7 @@ async function runNeovimDiffApproval(
 	writeFileSync(beforePath, request.beforeContent, "utf8");
 	writeFileSync(afterPath, request.afterContent, "utf8");
 	writeFileSync(decisionPath, "deny\n", "utf8");
-	writeFileSync(approvalPath, buildApprovalLua(decisionPath, afterPath, request), "utf8");
+	writeFileSync(approvalPath, buildApprovalLua(decisionPath, beforePath, afterPath, request), "utf8");
 
 	try {
 		await ctx.ui.custom<number | null>((tui, _theme, _kb, done) => {
@@ -248,14 +248,18 @@ async function runNeovimDiffApproval(
 
 function buildApprovalLua(
 	decisionPath: string,
+	beforePath: string,
 	afterPath: string,
 	request: { toolName: "edit" | "write"; targetPath: string; metadata: Array<[string, string]> },
 ): string {
 	const escapedDecisionPath = JSON.stringify(decisionPath);
+	const escapedBeforePath = JSON.stringify(beforePath);
 	const escapedAfterPath = JSON.stringify(afterPath);
 	const editableAfter = true;
-	const statusText = `Pi Approval | ${request.toolName} | ${request.targetPath} | :Approve :Deny`;
+	const statusText = `Pi Approval | ${request.toolName} | ${request.targetPath}`;
 	const escapedStatus = JSON.stringify(statusText);
+	const escapedToolName = JSON.stringify(request.toolName);
+	const escapedTargetPath = JSON.stringify(request.targetPath);
 	const escapedEcho = JSON.stringify(`${statusText} | ${request.metadata.map(([k, v]) => `${k}: ${v}`).join(" | ")}`);
 	return `
 vim.opt.number = true
@@ -263,6 +267,8 @@ vim.opt.relativenumber = false
 vim.opt.cursorline = true
 vim.opt.wrap = false
 vim.opt.termguicolors = true
+vim.opt.scrolloff = 1
+vim.g.micro_statusline = false
 -- Avoid narrow-terminal hit-enter prompts from long status/messages while the
 -- diff UI is still settling.
 pcall(function() vim.opt.shortmess:append('T') end)
@@ -272,11 +278,31 @@ pcall(function() vim.opt.diffopt:append('indent-heuristic') end)
 
 -- Loaded after the user's normal Neovim config so their theme is preserved.
 local decision_file = ${escapedDecisionPath}
+local before_file = ${escapedBeforePath}
 local after_file = ${escapedAfterPath}
 local editable_after = ${editableAfter ? "true" : "false"}
 local status_text = ${escapedStatus}
+local tool_name = ${escapedToolName}
+local target_path = ${escapedTargetPath}
 local echo_text = ${escapedEcho}
 local display_text = status_text:gsub('%%', '%%%%')
+vim.api.nvim_set_hl(0, 'PiApprovalBefore', { bg = '#ffd6d6', fg = '#202020', bold = true })
+vim.api.nvim_set_hl(0, 'PiApprovalAfter', { bg = '#d6ffd6', fg = '#202020', bold = true })
+local function set_window_label(win, access, highlight)
+  local label_text = (' Pi Approval | %s [%s] | %s '):format(tool_name, access, target_path):gsub('%%', '%%%%')
+  local text = ('%%#%s#%s%%*'):format(highlight, label_text)
+  pcall(function() vim.api.nvim_win_set_option(win, 'statusline', text) end)
+end
+local function label_diff_windows()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local name = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win))
+    if name == before_file then
+      set_window_label(win, 'RO', 'PiApprovalBefore')
+    elseif name == after_file then
+      set_window_label(win, editable_after and 'W' or 'RO', 'PiApprovalAfter')
+    end
+  end
+end
 local function focus_after_buffer()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local bufnr = vim.api.nvim_win_get_buf(win)
@@ -324,9 +350,9 @@ end
 
 vim.defer_fn(function()
   vim.opt.laststatus = 2
-  vim.o.statusline = display_text
-  pcall(function() vim.wo.winbar = display_text end)
+  vim.opt.statusline = display_text
   local layout = apply_smart_layout()
+  label_diff_windows()
   vim.cmd('windo setlocal readonly nomodifiable nowrap')
   local after_win = focus_after_buffer()
   if editable_after and after_win then
@@ -336,6 +362,7 @@ vim.defer_fn(function()
   end
   vim.cmd('windo diffthis')
   vim.cmd('wincmd =')
+  label_diff_windows()
   focus_after_buffer()
   pcall(function() vim.cmd('normal! ]c') end)
   vim.api.nvim_echo({{ 'Pi Approval: :Approve or :Deny | layout: ' .. layout, 'None' }}, false, {})
