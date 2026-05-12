@@ -8,7 +8,9 @@
     "git:github.com/mrexodia/kilo-pi-provider",
     "git:github.com/nicobailon/pi-subagents",
     "git:github.com/mario-gc/pi-ollama-cloud-provider",
-    "npm:@sherif-fanous/pi-atom-one"
+    "npm:@sherif-fanous/pi-atom-one",
+    "git:github.com/juicesharp/rpiv-mono",
+    "npm:@juicesharp/rpiv-todo"
   ],
   "enabledModels": [
     "openai-codex/gpt-5.5",
