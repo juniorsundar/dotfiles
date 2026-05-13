@@ -1,6 +1,6 @@
 {
-  "defaultModel": "MiniMax-M2.7",
-  "defaultProvider": "minimax",
+  "defaultModel": "gpt-5.5",
+  "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.74.0",
@@ -17,7 +17,8 @@
     "ollama-cloud/kimi-k2.6",
     "ollama-cloud/deepseek-v4-pro",
     "ollama-cloud/glm-5.1",
-    "github-copilot/claude-sonnet-4.6"
+    "github-copilot/claude-sonnet-4.6",
+    "minimax/MiniMax-M2.7"
   ],
   "theme": "atom-one-dark",
   "enableInstallTelemetry": false,

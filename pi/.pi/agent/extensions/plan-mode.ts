@@ -8,6 +8,7 @@
  * - /plan command or Ctrl+Alt+P to toggle
  * - /todos command to show plan progress
  * - Bash restricted to allowlisted read-only commands
+ * - Controlled PLAN.md persistence via the plan_file tool
  * - Extracts numbered plan steps from "Plan:" sections
  * - [DONE:n] markers to complete steps during execution
  * - Progress tracking widget during execution
@@ -15,9 +16,12 @@
  * - Session persistence: state survives restarts and resumes
  */
 
-import type { AssistantMessage, TextContent } from "@earendil-works/pi-ai";
+import { StringEnum, type AssistantMessage, type TextContent } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Key } from "@earendil-works/pi-tui";
+import { appendFileSync, existsSync, lstatSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { Type } from "typebox";
 
 // ── Bash command filtering ───────────────────────────────────────────────────
 
@@ -199,6 +203,19 @@ function getTextContent(message: AssistantMessage): string {
 
 // ── Tool set discovery ──────────────────────────────────────────────────────
 
+const PLAN_FILE_NAME = "PLAN.md";
+const PLAN_FILE_TOOL = "plan_file";
+const PLAN_FILE_ACTIONS = ["read", "write", "append"] as const;
+
+const PLAN_FILE_PARAMS = Type.Object({
+	action: StringEnum(PLAN_FILE_ACTIONS, {
+		description: "Operation to perform on ./PLAN.md.",
+	}),
+	content: Type.Optional(
+		Type.String({ description: "Markdown content to write or append. Required for write and append." }),
+	),
+});
+
 // Core tools allowed in plan mode. bash is included but individual commands
 // are filtered by isSafeCommand() in the tool_call handler.
 const PLAN_CORE_TOOLS = new Set([
@@ -209,6 +226,7 @@ const PLAN_CORE_TOOLS = new Set([
 	"ls",
 	"web_search",
 	"web_fetch",
+	PLAN_FILE_TOOL,
 	"questionnaire",
 	"ask_user_question",
 ]);
@@ -229,9 +247,110 @@ function availablePlanModeTools(pi: ExtensionAPI): string[] {
 		);
 }
 
+function getPlanFilePath(cwd: string): string {
+	return join(cwd, PLAN_FILE_NAME);
+}
+
+function assertSafePlanFile(filePath: string): void {
+	if (existsSync(filePath) && lstatSync(filePath).isSymbolicLink()) {
+		throw new Error(`Refusing to write ${PLAN_FILE_NAME}: symbolic links are not allowed in plan mode.`);
+	}
+}
+
+function requirePlanFileContent(action: "write" | "append", content: string | undefined): string {
+	if (typeof content !== "string") {
+		throw new Error(`${action} requires a content string.`);
+	}
+	return content;
+}
+
+function registerPlanFileTool(pi: ExtensionAPI): void {
+	pi.registerTool({
+		name: PLAN_FILE_TOOL,
+		label: "Plan File",
+		description:
+			"Read, create, replace, or append to ./PLAN.md only. Use this in plan mode to preserve planning context across reloads.",
+		promptSnippet: "Read or update only ./PLAN.md for persistent plan context",
+		promptGuidelines: [
+			"Use plan_file in plan mode to create or update ./PLAN.md when a plan is created or refined so context survives reloads.",
+			"The plan_file tool is scoped only to ./PLAN.md; do not use it for general file edits.",
+		],
+		parameters: PLAN_FILE_PARAMS,
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			const filePath = getPlanFilePath(ctx.cwd);
+			assertSafePlanFile(filePath);
+
+			const existedBefore = existsSync(filePath);
+
+			if (params.action === "read") {
+				if (!existedBefore) {
+					return {
+						content: [{ type: "text", text: `${PLAN_FILE_NAME} does not exist yet.` }],
+						details: { action: params.action, path: PLAN_FILE_NAME, exists: false },
+					};
+				}
+
+				const content = readFileSync(filePath, "utf8");
+				return {
+					content: [{ type: "text", text: `${PLAN_FILE_NAME}:\n\n${content}` }],
+					details: {
+						action: params.action,
+						path: PLAN_FILE_NAME,
+						exists: true,
+						bytes: Buffer.byteLength(content, "utf8"),
+					},
+				};
+			}
+
+			if (params.action === "write") {
+				const content = requirePlanFileContent(params.action, params.content);
+				writeFileSync(filePath, content, "utf8");
+				return {
+					content: [
+						{
+							type: "text",
+							text: `${existedBefore ? "Updated" : "Created"} ${PLAN_FILE_NAME} (${Buffer.byteLength(content, "utf8")} bytes).`,
+						},
+					],
+					details: {
+						action: params.action,
+						path: PLAN_FILE_NAME,
+						created: !existedBefore,
+						bytes: Buffer.byteLength(content, "utf8"),
+					},
+				};
+			}
+
+			const content = requirePlanFileContent(params.action, params.content);
+			const needsSeparator =
+				existedBefore &&
+				readFileSync(filePath, "utf8").length > 0 &&
+				content.length > 0 &&
+				!content.startsWith("\n");
+			const appended = `${needsSeparator ? "\n" : ""}${content}`;
+			appendFileSync(filePath, appended, "utf8");
+			return {
+				content: [
+					{
+						type: "text",
+						text: `${existedBefore ? "Appended to" : "Created"} ${PLAN_FILE_NAME} (${Buffer.byteLength(appended, "utf8")} bytes appended).`,
+					},
+				],
+				details: {
+					action: params.action,
+					path: PLAN_FILE_NAME,
+					created: !existedBefore,
+					bytesAppended: Buffer.byteLength(appended, "utf8"),
+				},
+			};
+		},
+	});
+}
+
 // ── Extension ───────────────────────────────────────────────────────────────
 
 export default function planModeExtension(pi: ExtensionAPI): void {
+	registerPlanFileTool(pi);
 	// ---- `--plan` CLI flag ----------------------------------------------------
 	pi.registerFlag("plan", {
 		description: "Start in plan mode (read-only exploration)",
@@ -299,7 +418,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 
 		if (planModeEnabled) {
 			setPlanTools();
-			ctx.ui.notify("Plan mode enabled. Read-only tools + safe bash commands only.");
+			ctx.ui.notify("Plan mode enabled. Read-only tools + safe bash + PLAN.md persistence only.");
 		} else {
 			restorePreviousTools();
 			ctx.ui.notify("Plan mode disabled. Full access restored.");
@@ -369,8 +488,9 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 		};
 	});
 
-	pi.on("before_agent_start", async () => {
+	pi.on("before_agent_start", async (_event, ctx) => {
 		if (planModeEnabled) {
+			const planFileStatus = existsSync(getPlanFilePath(ctx.cwd)) ? "exists" : "does not exist yet";
 			return {
 				message: {
 					customType: "plan-mode-context",
@@ -378,9 +498,14 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 You are in plan mode - a read-only exploration mode for safe code analysis.
 
 Restrictions:
-- You can only use: read, bash, grep, find, ls, questionnaire-style tools, and read-only extension tools
-- You CANNOT use: edit, write (file modifications are disabled)
+- You can only use: read, bash, grep, find, ls, questionnaire-style tools, read-only extension tools, and plan_file for ./PLAN.md
+- You CANNOT use: edit, write (general file modifications are disabled)
 - Bash is restricted to an allowlist of read-only commands (cat, ls, git status, etc.)
+- The only allowed write in plan mode is via plan_file, scoped to ./PLAN.md
+
+Plan persistence:
+- ./PLAN.md status: ${planFileStatus}
+- Use plan_file to read, create, replace, or append to ./PLAN.md when a plan is created or refined so context survives /reload or a restart.
 
 Create a detailed numbered plan under a "Plan:" header:
 
