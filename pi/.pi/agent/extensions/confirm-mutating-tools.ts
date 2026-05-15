@@ -332,6 +332,8 @@ end
 
 vim.api.nvim_create_user_command('Approve', function() decide('approve') end, {})
 vim.api.nvim_create_user_command('Deny', function() decide('deny') end, {})
+vim.api.nvim_set_keymap('n', '<leader><leader>A', ':Approve<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader><leader>D', ':Deny<CR>', { noremap = true, silent = true })
 
 local function apply_smart_layout()
   -- Prefer side-by-side diffs when there is enough width, but rotate to a
