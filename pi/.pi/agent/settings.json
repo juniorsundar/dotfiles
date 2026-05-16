@@ -1,6 +1,6 @@
 {
-  "defaultModel": "MiniMax-M2.7",
-  "defaultProvider": "minimax",
+  "defaultModel": "gpt-5.5",
+  "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.74.0",
@@ -22,5 +22,6 @@
   ],
   "theme": "atom-one-dark",
   "enableInstallTelemetry": false,
+  "shellCommandPrefix": "if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash)\"; fi",
   "doubleEscapeAction": "tree"
 }
