@@ -1,4 +1,7 @@
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import {
+  highlightCode,
+  type ExtensionAPI,
+} from "@earendil-works/pi-coding-agent";
 import { spawnSync } from "node:child_process";
 import {
   chmodSync,
@@ -504,7 +507,7 @@ function formatBashPermissionRequest(
         ],
         ["Timeout", timeout],
       ]),
-      section("Command", truncate(command || "<empty command>", 3000)),
+      section("Command", highlightBashCommand(command)),
     ]),
   };
 }
@@ -717,6 +720,15 @@ function getCommandPath(command: string): string | null {
 
 function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function highlightBashCommand(command: string): string {
+  const displayCommand = truncate(command || "<empty command>", 3000);
+  try {
+    return highlightCode(displayCommand, "bash").join("\n");
+  } catch {
+    return displayCommand;
+  }
 }
 
 function detectBashRisks(command: string): string[] {
