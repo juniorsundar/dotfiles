@@ -134,7 +134,10 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 		parameters: WebSearchParams,
 
 		async execute(_toolCallId, params, signal, onUpdate) {
-			onUpdate?.({ content: [{ type: "text", text: `Searching web for: ${params.query}` }] });
+			onUpdate?.({
+				content: [{ type: "text", text: `Searching web for: ${params.query}` }],
+				details: { query: params.query },
+			});
 
 			const results = await runSearch(pi, {
 				query: params.query,
@@ -171,7 +174,7 @@ export default function webSearchExtension(pi: ExtensionAPI) {
 			pi.sendMessage(
 				{
 					customType: "web-search-results",
-					content: `### Web search results for: \"${query}\"\n\n${text}`,
+					content: `### Web search results for: "${query}"\n\n${text}`,
 					display: true,
 					details: { query, resultCount: results.results?.length ?? 0, raw: results },
 				},

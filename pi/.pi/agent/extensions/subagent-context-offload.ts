@@ -23,7 +23,7 @@ Good subagent prompt shape:
 "Inspect <area>. Return at most 8 findings, 10 relevant paths, 3 risks, and 3 recommended next steps. Do not paste large code blocks."`;
 
 export default function subagentContextOffload(pi: ExtensionAPI) {
-	pi.on("before_agent_start", async (event) => ({
-		systemPrompt: `${event.systemPrompt}\n\n${POLICY}\n`,
-	}));
+  pi.on("before_agent_start", async (event) => ({
+    systemPrompt: `${event.systemPrompt}\n\n${POLICY}\n`,
+  }));
 }
