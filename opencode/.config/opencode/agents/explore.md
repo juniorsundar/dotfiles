@@ -1,6 +1,6 @@
 ---
 description: Codebase exploration subagent. Traces execution flows, maps dependencies, and analyzes file structures. Gathers FULL context, returns COMPRESSED findings.
-model: github-copilot/gpt-5.4
+model: minimax/MiniMax-M2.7
 mode: subagent
 tools:
   write: false

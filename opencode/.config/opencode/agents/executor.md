@@ -1,6 +1,6 @@
 ---
 description: Lightweight execution subagent for simple, bounded tasks. Implements direct changes without planning overhead.
-model: github-copilot/claude-sonnet-4.6
+model: minimax/MiniMax-M2.7
 mode: subagent
 tools:
   read: true

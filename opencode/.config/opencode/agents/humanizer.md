@@ -1,6 +1,6 @@
 ---
 description: Writing editor that identifies and removes AI-generated text patterns to make writing sound natural and human.
-model: github-copilot/claude-sonnet-4.6
+model: minimax/MiniMax-M2.7
 mode: subagent
 tools:
   read: true

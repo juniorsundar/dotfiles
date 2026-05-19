@@ -1,6 +1,6 @@
 ---
 description: Task decomposition subagent. Called by Plan or Build to break down complex sub-problems into execution steps. Does NOT do full architecture - focuses only on decomposition.
-model: github-copilot/claude-sonnet-4.6
+model: google/gemini-3.1-pro-preview
 mode: subagent
 tools:
   read: true

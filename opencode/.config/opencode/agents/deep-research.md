@@ -1,6 +1,6 @@
 ---
 description: External research subagent. Searches the web, analyzes documentation, and solves complex logic problems. Gathers FULL context, returns COMPRESSED JSON findings.
-model: github-copilot/gpt-4o
+model: google/gemini-3.1-pro-preview
 mode: subagent
 tools:
   write: false
