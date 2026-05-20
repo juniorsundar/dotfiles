@@ -3,7 +3,7 @@
   "defaultProvider": "minimax",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.74.1",
+  "lastChangelogVersion": "0.75.3",
   "packages": [
     "git:github.com/mrexodia/kilo-pi-provider",
     "git:github.com/mario-gc/pi-ollama-cloud-provider",

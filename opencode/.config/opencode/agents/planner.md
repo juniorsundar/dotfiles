@@ -1,6 +1,6 @@
 ---
 description: Task decomposition subagent. Called by Plan or Build to break down complex sub-problems into execution steps. Does NOT do full architecture - focuses only on decomposition.
-model: google/gemini-3.5-flash
+model: minimax/MiniMax-M2.7
 mode: subagent
 tools:
   read: true

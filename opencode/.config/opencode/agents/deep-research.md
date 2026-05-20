@@ -1,6 +1,6 @@
 ---
 description: External research subagent. Searches the web, analyzes documentation, and solves complex logic problems. Gathers FULL context, returns COMPRESSED JSON findings.
-model: google/gemini-3.5-flash
+model: minimax/MiniMax-M2.7
 mode: subagent
 tools:
   write: false
