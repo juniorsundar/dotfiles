@@ -31,7 +31,7 @@ keybind = ctrl+shift+alt+right=resize_split:right,10
 keybind = ctrl+shift+alt+down=resize_split:down,10
 keybind = ctrl+shift+alt+left=resize_split:left,10
 keybind = ctrl+shift+alt+up=resize_split:up,10
-keybind = ctrl+shift+p=toggle_command_palette
+keybind = ctrl+shift+/=toggle_command_palette
 keybind = ctrl+shift+,=reload_config
 keybind = ctrl+shift+h=write_screen_file:open,vt
 

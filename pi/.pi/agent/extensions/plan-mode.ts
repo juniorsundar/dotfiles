@@ -504,26 +504,6 @@ export default function planModeExtension(pi: ExtensionAPI): void {
     },
   });
 
-  pi.registerCommand("todos", {
-    description: "Show current plan progress",
-    handler: async (_args, ctx) => {
-      if (todoItems.length === 0) {
-        ctx.ui.notify(
-          "No plan steps tracked yet. Enable /plan and ask for a numbered Plan: first.",
-          "info",
-        );
-        return;
-      }
-      const list = todoItems
-        .map(
-          (item, index) =>
-            `${index + 1}. ${item.completed ? "✓" : "○"} ${item.text}`,
-        )
-        .join("\n");
-      ctx.ui.notify(`Plan Progress:\n${list}`, "info");
-    },
-  });
-
   pi.registerShortcut(Key.ctrlAlt("p"), {
     description: "Toggle plan mode",
     handler: async (ctx) => {

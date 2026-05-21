@@ -68,6 +68,10 @@ function formatDiagnostic(diagnostic: Diagnostic): string {
   ].join("\n");
 }
 
+function diagnosticCommandName(kind: string): string {
+  return kind === "build" ? "run-build" : kind;
+}
+
 export default function diagnosticsExtension(pi: ExtensionAPI) {
   let lastDiagnostic: Diagnostic | undefined;
 
@@ -80,7 +84,7 @@ export default function diagnosticsExtension(pi: ExtensionAPI) {
     const resolved = command?.trim() || detectCommand(ctx.cwd, kind);
     if (!resolved) {
       ctx.ui.notify(
-        `No ${kind} command detected. Pass one explicitly, e.g. /${kind} npm test`,
+        `No ${kind} command detected. Pass one explicitly, e.g. /${diagnosticCommandName(kind)} npm test`,
         "warning",
       );
       return;
@@ -120,8 +124,9 @@ export default function diagnosticsExtension(pi: ExtensionAPI) {
   }
 
   for (const kind of ["test", "lint", "typecheck", "build"] as const) {
-    pi.registerCommand(kind, {
-      description: `Run detected or explicit ${kind} command. Usage: /${kind} [command]`,
+    const commandName = diagnosticCommandName(kind);
+    pi.registerCommand(commandName, {
+      description: `Run detected or explicit ${kind} command. Usage: /${commandName} [command]`,
       handler: async (args, ctx) => runDiagnostic(kind, args, ctx, false),
     });
   }
@@ -132,7 +137,7 @@ export default function diagnosticsExtension(pi: ExtensionAPI) {
     handler: async (_args, ctx) => {
       if (!lastDiagnostic) {
         ctx.ui.notify(
-          "No diagnostic result recorded yet. Run /test, /lint, /typecheck, or /build first.",
+          "No diagnostic result recorded yet. Run /test, /lint, /typecheck, or /run-build first.",
           "warning",
         );
         return;
