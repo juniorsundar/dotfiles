@@ -32,6 +32,10 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx) => {
     if (!gatedTools.has(event.toolName)) return undefined;
 
+    if (isTmpFileMutation(event.toolName, event.input, ctx.cwd)) {
+      return undefined;
+    }
+
     if (!ctx.hasUI) {
       return {
         block: true,
@@ -987,6 +991,18 @@ function getPath(input: Record<string, unknown>): string {
   return typeof input.path === "string" && input.path.trim()
     ? input.path
     : "unknown-file.txt";
+}
+
+function isTmpFileMutation(
+  toolName: string,
+  input: unknown,
+  cwd: string,
+): boolean {
+  if (toolName !== "edit" && toolName !== "write") return false;
+  if (!isRecord(input)) return false;
+
+  const absolutePath = resolve(cwd, getPath(input));
+  return absolutePath === "/tmp" || absolutePath.startsWith("/tmp/");
 }
 
 function safePreviewBasename(targetPath: string): string {
