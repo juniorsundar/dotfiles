@@ -21,10 +21,15 @@ import { createHash } from "node:crypto";
  *
  * edit/write: opens Neovim diff approval when available; inside tmux it
  * opens the diff in a new window in the same session.
- * bash: uses Pi's built-in confirmation dialog with a structured summary.
+ * bash: uses Pi's built-in confirmation dialog with a structured summary,
+ * with an optional modifiable Neovim buffer for command edits.
  *
- * In non-interactive modes where no UI is available, these tools are blocked
- * by default.
+ * Child subagents are allowed through without an interactive confirmation gate:
+ * subagent child processes inherit global extensions but run without a UI, and
+ * the parent session's subagent launch is treated as the approval boundary.
+ *
+ * In other non-interactive modes where no UI is available, these tools are
+ * blocked by default.
  */
 export default function (pi: ExtensionAPI) {
   const gatedTools = new Set(["edit", "write", "bash"]);
@@ -33,6 +38,10 @@ export default function (pi: ExtensionAPI) {
     if (!gatedTools.has(event.toolName)) return undefined;
 
     if (isTmpFileMutation(event.toolName, event.input, ctx.cwd)) {
+      return undefined;
+    }
+
+    if (isSubagentChild()) {
       return undefined;
     }
 
@@ -115,7 +124,13 @@ type NeovimApprovalResult = {
   approvedContent?: string;
 };
 
-type BashNeovimApprovalResult = "approve" | "deny" | "undecided";
+type BashNeovimApprovalResult = {
+  decision: "approve" | "deny" | "undecided";
+  approvedCommand?: string;
+};
+
+const BASH_COMMAND_MARKER =
+  "# --- Command below this line will run when approved ---";
 
 let approvalQueue: Promise<unknown> = Promise.resolve();
 
@@ -404,10 +419,16 @@ async function runNeovimBashApproval(
       return { render: () => [], invalidate: () => {} };
     });
 
-    const decision = readFileSync(decisionPath, "utf8").trim();
-    return decision === "approve" || decision === "deny"
-      ? decision
-      : "undecided";
+    const decisionText = readFileSync(decisionPath, "utf8").trim();
+    const decision =
+      decisionText === "approve" || decisionText === "deny"
+        ? decisionText
+        : "undecided";
+    const approvedCommand =
+      decision === "approve"
+        ? extractCommandFromBashApprovalScript(readFileSync(scriptPath, "utf8"))
+        : undefined;
+    return { decision, approvedCommand };
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -419,16 +440,28 @@ function buildBashInspectionScript(
 ): string {
   const header = [
     "#!/usr/bin/env bash",
-    "# Pi bash approval inspection buffer.",
-    "# This temporary file is for read-only inspection; it is not executed.",
+    "# Pi bash approval command buffer.",
+    "# Edit the command below, then approve to run the edited version.",
     "#",
     "# Decide with :Approve / :Deny or <leader><leader>A / <leader><leader>D.",
     "# Quitting without a decision returns to the approval prompt.",
     "#",
     ...metadata.map(([label, value]) => `# ${label}: ${value}`),
+    BASH_COMMAND_MARKER,
     "",
   ];
   return `${header.join("\n")}${command || "# <empty command>"}\n`;
+}
+
+function extractCommandFromBashApprovalScript(script: string): string {
+  const markerIndex = script.indexOf(BASH_COMMAND_MARKER);
+  if (markerIndex === -1) return script;
+  const commandStart = script.indexOf("\n", markerIndex);
+  if (commandStart === -1) return "";
+  return script
+    .slice(commandStart + 1)
+    .replace(/^\n/, "")
+    .replace(/\n$/, "");
 }
 
 function buildBashApprovalLua(
@@ -446,16 +479,28 @@ vim.opt.termguicolors = true
 vim.opt.scrolloff = 3
 vim.g.micro_statusline = false
 vim.opt.more = false
-vim.opt.modifiable = false
-vim.opt.readonly = true
+vim.opt.modifiable = true
+vim.opt.readonly = false
 vim.opt.filetype = 'sh'
 vim.opt.laststatus = 2
-vim.opt.statusline = ' Pi Approval | bash inspection | :Approve or :Deny '
+vim.opt.statusline = ' Pi Approval | edit bash command | :Approve or :Deny '
 pcall(function() vim.opt.shortmess:append('T') end)
 
 local decision_file = ${escapedDecisionPath}
 local script_file = ${escapedScriptPath}
 local function decide(value)
+  if value == 'approve' then
+    pcall(function()
+      for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_get_name(bufnr) == script_file then
+          vim.api.nvim_buf_call(bufnr, function()
+            vim.cmd('silent write')
+          end)
+          break
+        end
+      end
+    end)
+  end
   vim.fn.writefile({ value }, decision_file)
   vim.cmd('qa!')
 end
@@ -469,11 +514,11 @@ vim.defer_fn(function()
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_get_name(bufnr) == script_file then
       vim.api.nvim_buf_call(bufnr, function()
-        vim.cmd('setlocal readonly nomodifiable filetype=sh nowrap')
+        vim.cmd('setlocal noreadonly modifiable filetype=sh nowrap')
       end)
     end
   end
-  vim.api.nvim_echo({{ 'Pi Approval: inspect full bash command, then :Approve or :Deny', 'None' }}, false, {})
+  vim.api.nvim_echo({{ 'Pi Approval: edit bash command if needed, then :Approve or :Deny', 'None' }}, false, {})
 end, 50)
 `;
 }
@@ -619,7 +664,7 @@ async function approveBashCommand(
     const choice = await ctx.ui.select(request.title, [
       "Approve",
       "Deny",
-      "Inspect in Neovim",
+      "Inspect/Edit in Neovim",
     ]);
 
     if (choice === "Approve") {
@@ -627,18 +672,35 @@ async function approveBashCommand(
       return true;
     }
 
-    if (choice === "Inspect in Neovim") {
+    if (choice === "Inspect/Edit in Neovim") {
       if (!commandExists("nvim")) {
         ctx.ui.notify("Neovim was not found; denying bash command.", "warning");
         return false;
       }
 
-      const decision = await runNeovimBashApproval(ctx, input);
-      if (decision === "approve") {
-        ctx.ui.notify("Approved bash", "info");
+      const result = await runNeovimBashApproval(ctx, input);
+      if (result.decision === "approve") {
+        if (typeof result.approvedCommand === "string" && isRecord(input)) {
+          const originalCommand = String(input.command ?? "");
+          input.command =
+            result.approvedCommand === originalCommand
+              ? result.approvedCommand
+              : withEditedBashCommandAudit(
+                  originalCommand,
+                  result.approvedCommand,
+                );
+          ctx.ui.notify(
+            result.approvedCommand === originalCommand
+              ? "Approved bash"
+              : "Approved edited bash command",
+            "info",
+          );
+        } else {
+          ctx.ui.notify("Approved bash", "info");
+        }
         return true;
       }
-      if (decision === "deny") {
+      if (result.decision === "deny") {
         ctx.ui.notify("Denied bash", "warning");
         return false;
       }
@@ -904,6 +966,23 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
+function withEditedBashCommandAudit(
+  originalCommand: string,
+  modifiedCommand: string,
+): string {
+  return [
+    "{",
+    "  printf '%s\\n' '--- Pi approval audit: bash command edited before execution ---'",
+    "  printf '%s\\n' 'Original command:'",
+    `  printf '%s\\n' ${shellQuote(originalCommand)}`,
+    "  printf '%s\\n' 'Modified command:'",
+    `  printf '%s\\n' ${shellQuote(modifiedCommand)}`,
+    "  printf '%s\\n' '--- Pi approval audit: running modified command ---'",
+    "} >&2",
+    modifiedCommand,
+  ].join("\n");
+}
+
 function buildBashMetadata(
   input: Record<string, unknown>,
   command: string,
@@ -991,6 +1070,10 @@ function getPath(input: Record<string, unknown>): string {
   return typeof input.path === "string" && input.path.trim()
     ? input.path
     : "unknown-file.txt";
+}
+
+function isSubagentChild(): boolean {
+  return process.env.PI_SUBAGENT_CHILD === "1";
 }
 
 function isTmpFileMutation(

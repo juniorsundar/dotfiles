@@ -43,6 +43,10 @@ function dangerousReasons(command: string): string[] {
   );
 }
 
+function isSubagentChild(): boolean {
+  return process.env.PI_SUBAGENT_CHILD === "1";
+}
+
 export default function permissionProfiles(pi: ExtensionAPI) {
   let profile: Profile = "ask";
 
@@ -110,12 +114,14 @@ export default function permissionProfiles(pi: ExtensionAPI) {
       };
 
     if (profile === "ask") {
-      if (!ctx.hasUI)
+      if (!ctx.hasUI) {
+        if (isSubagentChild()) return;
         return {
           block: true,
           reason:
             "Risky shell command blocked: no UI available for confirmation",
         };
+      }
       const ok = await ctx.ui.confirm(
         "Risky shell command",
         `Profile ask detected a risky command.\n\n${command}\n\nAllow?`,
