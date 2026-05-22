@@ -1,7 +1,4 @@
-import {
-  highlightCode,
-  type ExtensionAPI,
-} from "@earendil-works/pi-coding-agent";
+import { type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { spawnSync } from "node:child_process";
 import {
   chmodSync,
@@ -56,6 +53,12 @@ export default function (pi: ExtensionAPI) {
         return undefined;
       }
 
+      if (event.toolName === "bash") {
+        const approved = await approveBashCommand(event.input, ctx);
+        if (!approved) return { block: true, reason: "Blocked by user" };
+        return undefined;
+      }
+
       const request = formatBashPermissionRequest(event.toolName, event.input);
       const ok = await ctx.ui.confirm(request.title, request.body);
 
@@ -79,6 +82,7 @@ type UiContext = {
   cwd: string;
   ui: {
     confirm: (title: string, body: string) => Promise<boolean>;
+    select: (title: string, options: string[]) => Promise<string | undefined>;
     notify: (message: string, level?: "info" | "warning" | "error") => void;
     custom: <T>(
       factory: (tui: any, theme: any, kb: any, done: (value: T) => void) => any,
@@ -106,6 +110,8 @@ type NeovimApprovalResult = {
   decision: "approve" | "deny";
   approvedContent?: string;
 };
+
+type BashNeovimApprovalResult = "approve" | "deny" | "undecided";
 
 let approvalQueue: Promise<unknown> = Promise.resolve();
 
@@ -348,6 +354,126 @@ async function runNeovimDiffApproval(
   }
 }
 
+async function runNeovimBashApproval(
+  ctx: UiContext,
+  input: unknown,
+): Promise<BashNeovimApprovalResult> {
+  const command = isRecord(input) ? String(input.command ?? "").trim() : "";
+  const metadata = isRecord(input)
+    ? buildBashMetadata(input, command)
+    : ([
+        ["Tool", "bash"],
+        ["Input", "non-object"],
+      ] satisfies Array<[string, string]>);
+  const tempDir = mkdtempSync(join(tmpdir(), "pi-bash-approval-"));
+  const scriptPath = join(tempDir, "command.sh");
+  const decisionPath = join(tempDir, "decision.txt");
+  const approvalPath = join(tempDir, "bash-approval.lua");
+
+  writeFileSync(
+    scriptPath,
+    buildBashInspectionScript(command, metadata),
+    "utf8",
+  );
+  writeFileSync(decisionPath, "undecided\n", "utf8");
+  writeFileSync(
+    approvalPath,
+    buildBashApprovalLua(decisionPath, scriptPath),
+    "utf8",
+  );
+
+  try {
+    await ctx.ui.custom<number | null>((tui, _theme, _kb, done) => {
+      tui.stop();
+      process.stdout.write("\x1b[2J\x1b[H");
+
+      const result = runNeovimCommandApprovalProcess(
+        tempDir,
+        scriptPath,
+        approvalPath,
+      );
+
+      tui.start();
+      tui.requestRender(true);
+      done(result.status);
+
+      return { render: () => [], invalidate: () => {} };
+    });
+
+    const decision = readFileSync(decisionPath, "utf8").trim();
+    return decision === "approve" || decision === "deny"
+      ? decision
+      : "undecided";
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+function buildBashInspectionScript(
+  command: string,
+  metadata: Array<[string, string]>,
+): string {
+  const header = [
+    "#!/usr/bin/env bash",
+    "# Pi bash approval inspection buffer.",
+    "# This temporary file is for read-only inspection; it is not executed.",
+    "#",
+    "# Decide with :Approve / :Deny or <leader><leader>A / <leader><leader>D.",
+    "# Quitting without a decision returns to the approval prompt.",
+    "#",
+    ...metadata.map(([label, value]) => `# ${label}: ${value}`),
+    "",
+  ];
+  return `${header.join("\n")}${command || "# <empty command>"}\n`;
+}
+
+function buildBashApprovalLua(
+  decisionPath: string,
+  scriptPath: string,
+): string {
+  const escapedDecisionPath = JSON.stringify(decisionPath);
+  const escapedScriptPath = JSON.stringify(scriptPath);
+  return `
+vim.opt.number = true
+vim.opt.relativenumber = false
+vim.opt.cursorline = true
+vim.opt.wrap = false
+vim.opt.termguicolors = true
+vim.opt.scrolloff = 3
+vim.g.micro_statusline = false
+vim.opt.more = false
+vim.opt.modifiable = false
+vim.opt.readonly = true
+vim.opt.filetype = 'sh'
+vim.opt.laststatus = 2
+vim.opt.statusline = ' Pi Approval | bash inspection | :Approve or :Deny '
+pcall(function() vim.opt.shortmess:append('T') end)
+
+local decision_file = ${escapedDecisionPath}
+local script_file = ${escapedScriptPath}
+local function decide(value)
+  vim.fn.writefile({ value }, decision_file)
+  vim.cmd('qa!')
+end
+
+vim.api.nvim_create_user_command('Approve', function() decide('approve') end, {})
+vim.api.nvim_create_user_command('Deny', function() decide('deny') end, {})
+vim.api.nvim_set_keymap('n', '<leader><leader>A', ':Approve<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader><leader>D', ':Deny<CR>', { noremap = true, silent = true })
+
+vim.defer_fn(function()
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_name(bufnr) == script_file then
+      vim.api.nvim_buf_call(bufnr, function()
+        vim.cmd('setlocal readonly nomodifiable filetype=sh nowrap')
+      end)
+    end
+  end
+  vim.api.nvim_echo({{ 'Pi Approval: inspect full bash command, then :Approve or :Deny', 'None' }}, false, {})
+end, 50)
+`;
+}
+
 function buildApprovalLua(
   decisionPath: string,
   beforePath: string,
@@ -480,6 +606,51 @@ end, 100)
 `;
 }
 
+async function approveBashCommand(
+  input: unknown,
+  ctx: UiContext,
+): Promise<boolean> {
+  while (true) {
+    const request = formatBashPermissionRequest("bash", input);
+    const choice = await ctx.ui.select(request.title, [
+      "Approve",
+      "Deny",
+      "Inspect in Neovim",
+    ]);
+
+    if (choice === "Approve") {
+      ctx.ui.notify("Approved bash", "info");
+      return true;
+    }
+
+    if (choice === "Inspect in Neovim") {
+      if (!commandExists("nvim")) {
+        ctx.ui.notify("Neovim was not found; denying bash command.", "warning");
+        return false;
+      }
+
+      const decision = await runNeovimBashApproval(ctx, input);
+      if (decision === "approve") {
+        ctx.ui.notify("Approved bash", "info");
+        return true;
+      }
+      if (decision === "deny") {
+        ctx.ui.notify("Denied bash", "warning");
+        return false;
+      }
+
+      ctx.ui.notify(
+        "No Neovim decision; returning to bash approval prompt.",
+        "warning",
+      );
+      continue;
+    }
+
+    ctx.ui.notify("Denied bash", "warning");
+    return false;
+  }
+}
+
 function formatBashPermissionRequest(
   toolName: string,
   input: unknown,
@@ -492,22 +663,13 @@ function formatBashPermissionRequest(
   }
 
   const command = String(input.command ?? "").trim();
-  const risks = detectBashRisks(command);
-  const timeout =
-    typeof input.timeout === "number" ? `${input.timeout}s` : "default";
+  const metadata = buildBashMetadata(input, command);
 
   return {
-    title: `${risks.length ? "⚠️" : "🛠️"} Allow shell command?`,
+    title: `${detectBashRisks(command).length ? "⚠️" : "🛠️"} Allow shell command?`,
     body: joinSections([
-      fieldBlock([
-        ["Tool", "bash"],
-        [
-          "Risk",
-          risks.length ? risks.join(", ") : "Low / no obvious risky pattern",
-        ],
-        ["Timeout", timeout],
-      ]),
-      section("Command", highlightBashCommand(command)),
+      fieldBlock(metadata),
+      section("Command preview", previewBashCommand(command)),
     ]),
   };
 }
@@ -597,14 +759,30 @@ function runNeovimApprovalProcess(
   approvalPath: string,
   targetPath: string,
 ): { status: number | null } {
-  const nvimArgs = [
-    "-d",
-    beforePath,
-    afterPath,
-    "-c",
-    `luafile ${approvalPath}`,
-  ];
+  return runNeovimWithArgsProcess(
+    tempDir,
+    ["-d", beforePath, afterPath, "-c", `luafile ${approvalPath}`],
+    targetPath,
+  );
+}
 
+function runNeovimCommandApprovalProcess(
+  tempDir: string,
+  scriptPath: string,
+  approvalPath: string,
+): { status: number | null } {
+  return runNeovimWithArgsProcess(
+    tempDir,
+    [scriptPath, "-c", `luafile ${approvalPath}`],
+    "bash command",
+  );
+}
+
+function runNeovimWithArgsProcess(
+  tempDir: string,
+  nvimArgs: string[],
+  targetPath: string,
+): { status: number | null } {
   if (isInsideTmux() && commandExists("tmux")) {
     const tmuxResult = runNeovimApprovalInTmuxWindow(
       tempDir,
@@ -722,13 +900,65 @@ function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
-function highlightBashCommand(command: string): string {
-  const displayCommand = truncate(command || "<empty command>", 3000);
-  try {
-    return highlightCode(displayCommand, "bash").join("\n");
-  } catch {
-    return displayCommand;
+function buildBashMetadata(
+  input: Record<string, unknown>,
+  command: string,
+): Array<[string, string]> {
+  const risks = detectBashRisks(command);
+  const timeout =
+    typeof input.timeout === "number" ? `${input.timeout}s` : "default";
+  const cwd =
+    typeof input.cwd === "string" && input.cwd.trim() ? input.cwd : ".";
+  const lines = countLines(command);
+  const bytes = byteLength(command);
+  const chars = command.length;
+
+  return [
+    ["Tool", "bash"],
+    [
+      "Risk",
+      risks.length ? risks.join(", ") : "Low / no obvious risky pattern",
+    ],
+    ["Timeout", timeout],
+    ["Cwd", cwd],
+    ["Length", `${chars.toLocaleString()} char(s), ${formatBytes(bytes)}`],
+    ["Lines", lines.toLocaleString()],
+    ["SHA-256", hashText(command)],
+  ];
+}
+
+function previewBashCommand(command: string): string {
+  const source = command || "<empty command>";
+  const wrapped = wrapLines(source, 120);
+  const lines = wrapped.split("\n");
+  const clippedLines = lines.slice(0, 30);
+  let preview = clippedLines.join("\n");
+
+  if (preview.length > 1200) {
+    preview = preview.slice(0, 1200);
   }
+
+  const truncated =
+    lines.length > clippedLines.length || preview.length < wrapped.length;
+  return truncated
+    ? `${preview}\n\n… truncated; choose Inspect in Neovim for full command …`
+    : preview;
+}
+
+function wrapLines(text: string, width: number): string {
+  return text
+    .split("\n")
+    .map((line) => wrapLine(line, width))
+    .join("\n");
+}
+
+function wrapLine(line: string, width: number): string {
+  if (line.length <= width) return line;
+  const chunks: string[] = [];
+  for (let index = 0; index < line.length; index += width) {
+    chunks.push(line.slice(index, index + width));
+  }
+  return chunks.join("\n");
 }
 
 function detectBashRisks(command: string): string[] {
@@ -882,6 +1112,10 @@ function byteLength(text: string): number {
 
 function hashBuffer(buffer: Buffer): string {
   return createHash("sha256").update(buffer).digest("hex");
+}
+
+function hashText(text: string): string {
+  return createHash("sha256").update(text).digest("hex");
 }
 
 function formatBytes(bytes: number): string {

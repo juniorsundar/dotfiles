@@ -1,7 +1,7 @@
 {
   "defaultModel": "gpt-5.5",
   "defaultProvider": "openai-codex",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "low",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.75.4",
   "packages": [
@@ -25,7 +25,9 @@
       "reviewer": {
         "model": "openai-codex/gpt-5.5",
         "thinking": "high",
-        "fallbackModels": ["openai-codex/gpt-5.4"]
+        "fallbackModels": [
+          "openai-codex/gpt-5.4"
+        ]
       },
       "scout": {
         "model": "minimax/MiniMax-M2.7",
@@ -38,7 +40,9 @@
       "planner": {
         "model": "openai-codex/gpt-5.5",
         "thinking": "xhigh",
-        "fallbackModels": ["openai-codex/gpt-5.4"]
+        "fallbackModels": [
+          "openai-codex/gpt-5.4"
+        ]
       }
     }
   }
