@@ -8,6 +8,11 @@ GLOBAL_AGENTS_MD_LOADED
 
 You have access to subagents. One available subagent is named `local-worker`.
 
+**About local-worker:** It is a fast local model with a limited context window. It
+excels at tasks requiring reasoning and judgment across content — not just
+pattern-matching (which is better done with direct bash commands). Keep tasks
+small, focused, and self-contained.
+
 Default behavior:
 - Prefer spawning `local-worker` for bounded, low-context, one-off, repetitive, mechanical, or throwaway tasks.
 - Use the main agent for planning, architecture, debugging strategy, multi-step reasoning, and final synthesis.

@@ -1,5 +1,5 @@
 {
-  "defaultModel": "deepseek-v4-pro",
+  "defaultModel": "deepseek-v4-flash",
   "defaultProvider": "ollama-cloud",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
