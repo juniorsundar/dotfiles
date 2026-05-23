@@ -1,0 +1,23 @@
+{
+    "providers": {
+        "llama-cpp": {
+            "baseUrl": "http://100.64.0.3:8080/v1",
+            "api": "openai-completions",
+            "apiKey": "local",
+            "models": [{
+                "id": "qwen3.6-35b-a3b-local",
+                "name": "Qwen3.6 35B A3B Local",
+                "reasoning": true,
+                "input": ["text"],
+                "contextWindow": 98304,
+                "maxTokens": 4096,
+                "cost": {
+                    "input": 0,
+                    "output": 0,
+                    "cacheRead": 0,
+                    "cacheWrite": 0
+                }
+            }]
+        }
+    }
+}
