@@ -586,6 +586,16 @@ local function label_diff_windows()
     end
   end
 end
+local function focus_before_buffer()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local bufnr = vim.api.nvim_win_get_buf(win)
+    if vim.api.nvim_buf_get_name(bufnr) == before_file then
+      vim.api.nvim_set_current_win(win)
+      return win, bufnr
+    end
+  end
+  return nil, nil
+end
 local function focus_after_buffer()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local bufnr = vim.api.nvim_win_get_buf(win)
@@ -624,6 +634,11 @@ local function apply_smart_layout()
   local columns = vim.o.columns
   local lines = vim.o.lines
   local use_vertical = columns >= 120 or (columns >= 100 and lines < 32)
+  -- Ensure conventional diff order: before/original on the left or top,
+  -- after/modified on the right or bottom. Neovim's current window after
+  -- nvim -d before after can be the after buffer, so moving the current
+  -- window directly may invert the layout.
+  focus_before_buffer()
   if use_vertical then
     pcall(function() vim.cmd('wincmd H') end)
   else
