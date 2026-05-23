@@ -1,10 +1,17 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { homedir } from "node:os";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 
-type RuleFile = { path: string; label: string; content: string };
+type RuleFile = { path: string; label: string; content: string; origin: "project" | "global" };
 
 const ROOT_RULE_FILES = [
+  "AGENTS.md",
+  "CLAUDE.md",
+  "GEMINI.md",
+  "CONVENTIONS.md",
+];
+const GLOBAL_RULE_FILES = [
   "AGENTS.md",
   "CLAUDE.md",
   "GEMINI.md",
@@ -64,43 +71,62 @@ function walkMarkdown(dir: string, maxDepth = 3, depth = 0): string[] {
   return files;
 }
 
-function readRule(root: string, path: string): RuleFile | undefined {
+function readRule(root: string, path: string, origin: "project" | "global" = "project"): RuleFile | undefined {
   if (!isFile(path)) return undefined;
   const stat = statSync(path);
   const rel = relative(root, path) || path;
+  const label = origin === "global" ? `~/.pi/${rel}` : rel;
   if (stat.size > MAX_FILE_BYTES) {
     return {
       path: rel,
-      label: rel,
-      content: `[${rel} omitted: ${stat.size} bytes exceeds ${MAX_FILE_BYTES} byte limit]`,
+      label,
+      content: `[${label} omitted: ${stat.size} bytes exceeds ${MAX_FILE_BYTES} byte limit]`,
+      origin,
     };
   }
-  return { path: rel, label: rel, content: readFileSync(path, "utf8") };
+  return { path: rel, label, content: readFileSync(path, "utf8"), origin };
 }
 
 function loadRules(cwd: string): RuleFile[] {
   const root = findGitRoot(cwd);
-  const candidates = new Set<string>();
+  const home = homedir();
+  const candidates: { path: string; origin: "project" | "global"; root: string }[] = [];
 
-  for (const file of ROOT_RULE_FILES) candidates.add(join(root, file));
-  for (const file of CONFIG_FILES) candidates.add(join(root, file));
+  // Project-level rules (git root)
+  for (const file of ROOT_RULE_FILES)
+    candidates.push({ path: join(root, file), origin: "project", root });
+  for (const file of CONFIG_FILES)
+    candidates.push({ path: join(root, file), origin: "project", root });
   for (const dir of RULE_DIRS) {
     const absoluteDir = join(root, dir);
     if (isDir(absoluteDir))
-      for (const file of walkMarkdown(absoluteDir)) candidates.add(file);
+      for (const file of walkMarkdown(absoluteDir))
+        candidates.push({ path: file, origin: "project", root });
   }
 
+  // Global rules (~/.pi/)
+  const globalDir = join(home, ".pi");
+  if (isDir(globalDir) && globalDir !== root) {
+    for (const file of GLOBAL_RULE_FILES)
+      candidates.push({ path: join(globalDir, file), origin: "global", root: globalDir });
+  }
+
+  // Deduplicate by absolute path (project file that coincides with global file wins project scope)
+  const seen = new Set<string>();
   const rules: RuleFile[] = [];
   let total = 0;
-  for (const candidate of [...candidates].sort()) {
-    const rule = readRule(root, candidate);
+  for (const candidate of candidates) {
+    if (seen.has(candidate.path)) continue;
+    seen.add(candidate.path);
+    const rule = readRule(candidate.root, candidate.path, candidate.origin);
     if (!rule) continue;
     const bytes = Buffer.byteLength(rule.content, "utf8");
     if (total + bytes > MAX_TOTAL_BYTES) {
       rules.push({
         path: rule.path,
         label: rule.label,
-        content: `[${rule.path} omitted: total rules limit reached]`,
+        content: `[${rule.label} omitted: total rules limit reached]`,
+        origin: rule.origin,
       });
       continue;
     }
@@ -121,11 +147,17 @@ export default function opencodeRulesExtension(pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     rules = loadRules(ctx.cwd);
-    if (rules.length > 0 && ctx.hasUI)
+    if (rules.length > 0 && ctx.hasUI) {
+      const globalCount = rules.filter((r) => r.origin === "global").length;
+      const projectCount = rules.length - globalCount;
+      const parts: string[] = [];
+      if (projectCount > 0) parts.push(`${projectCount} project`);
+      if (globalCount > 0) parts.push(`${globalCount} global`);
       ctx.ui.notify(
-        `Loaded ${rules.length} opencode/Claude rule file(s)`,
+        `Loaded ${rules.length} rule file${rules.length === 1 ? "" : "s"} (${parts.join(" + ")})`,
         "info",
       );
+    }
   });
 
   pi.registerCommand("rules", {
@@ -134,14 +166,14 @@ export default function opencodeRulesExtension(pi: ExtensionAPI) {
       rules = loadRules(ctx.cwd);
       if (rules.length === 0) {
         ctx.ui.notify(
-          "No AGENTS.md, CLAUDE.md, .opencode, or .claude/rules files found.",
+          "No AGENTS.md, CLAUDE.md, .opencode, or .claude/rules files found (project or global).",
           "info",
         );
         return;
       }
       pi.sendMessage({
         customType: "opencode-rules",
-        content: `Loaded rule files:\n${rules.map((rule) => `- ${rule.path}`).join("\n")}`,
+        content: `Loaded rule files:\n${rules.map((rule) => `- ${rule.label}`).join("\n")}`,
         display: true,
       });
     },
@@ -149,8 +181,17 @@ export default function opencodeRulesExtension(pi: ExtensionAPI) {
 
   pi.on("before_agent_start", async (event) => {
     if (rules.length === 0) return;
+    const projectRules = rules.filter((r) => r.origin !== "global");
+    const globalRules = rules.filter((r) => r.origin === "global");
+    let section = "";
+    if (globalRules.length > 0) {
+      section += `## Global Rules (~/.pi/)\n\nThe following global rule files were loaded from the user's ~/.pi/ directory. These apply across all projects.\n\n${formatRules(globalRules)}\n\n`;
+    }
+    if (projectRules.length > 0) {
+      section += `## Project Rules\n\nThe following rule files were loaded from the repository. Follow them when relevant.\n\n${formatRules(projectRules)}\n`;
+    }
     return {
-      systemPrompt: `${event.systemPrompt}\n\n## Opencode / Claude-Compatible Project Rules\n\nThe following rule files were loaded from the repository. Follow them when relevant.\n\n${formatRules(rules)}\n`,
+      systemPrompt: `${event.systemPrompt}\n\n${section}`,
     };
   });
 }

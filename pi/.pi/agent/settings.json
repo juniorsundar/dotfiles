@@ -1,9 +1,9 @@
 {
   "defaultModel": "deepseek-v4-pro",
   "defaultProvider": "ollama-cloud",
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.75.4",
+  "lastChangelogVersion": "0.75.5",
   "packages": [
     "git:github.com/mrexodia/kilo-pi-provider",
     "git:github.com/juicesharp/rpiv-mono",
