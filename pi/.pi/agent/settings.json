@@ -37,7 +37,7 @@
                 ]
             },
             "delegate": {
-                "defaultProgress": true,
+                "defaultProgress": true
             },
             "local-worker": {
                 "model": "llama-cpp/qwen3.6-35b-a3b-local",
