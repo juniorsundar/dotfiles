@@ -1,22 +1,22 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "babfd0f"
-hash = "26db011a778f261d730d4f5f8bf24b3f"
+rev = "be524fb"
+hash = "88e56a64b7ce7c4314427452343fef17"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:piper"
-rev = "babfd0f"
+rev = "be524fb"
 hash = "384464b6df8cb807425c521f8cd790f3"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:chmod"
-rev = "babfd0f"
+rev = "be524fb"
 hash = "f0c8c378184d5f8abd1b095a443d336d"
 
 [[plugin.deps]]
 use = "llanosrocas/yaziline"
-rev = "cc0314c"
-hash = "b937c5c8e2d9fa314d4532489176814e"
+rev = "25161c1"
+hash = "5c7802a9ac249be88729978e3b9525bc"
 
 [[flavor.deps]]
 use = "BennyOe/onedark"
