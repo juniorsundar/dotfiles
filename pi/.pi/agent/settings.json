@@ -1,100 +1,107 @@
 {
-    "defaultModel": "gpt-5.5",
-    "defaultProvider": "openai-codex",
-    "defaultThinkingLevel": "high",
-    "hideThinkingBlock": false,
-    "lastChangelogVersion": "0.75.5",
-    "packages": [
-        "git:github.com/mrexodia/kilo-pi-provider",
-        "git:github.com/juicesharp/rpiv-mono",
-        "git:@github.com/nicobailon/pi-subagents",
-        "npm:@juicesharp/rpiv-todo",
-        "npm:@juicesharp/rpiv-ask-user-question",
-        "npm:@sherif-fanous/pi-atom-one",
-        "npm:pi-ollama-cloud-provider"
-    ],
-    "enabledModels": [
-        "llama-cpp/qwen3.6-35b-a3b-local",
-        "openai-codex/gpt-5.5",
-        "minimax/MiniMax-M2.7",
-        "ollama-cloud/deepseek-v4-pro",
-        "ollama-cloud/deepseek-v4-flash",
-        "ollama-cloud/glm-5.1",
-        "ollama-cloud/qwen3.5:397b"
-    ],
-    "theme": "atom-one-dark",
-    "enableInstallTelemetry": false,
-    "shellCommandPrefix": "if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash)\"; fi",
-    "doubleEscapeAction": "tree",
-    "subagents": {
-        "agentOverrides": {
-            "context-builder": {
-                "model": "ollama-cloud/deepseek-v4-pro",
-                "thinking": "medium",
-                "defaultProgress": true,
-                "fallbackModels": [
-                    "ollama-cloud/glm-5.1"
-                ]
-            },
-            "delegate": {
-                "defaultProgress": true
-            },
-            "local-worker": {
-                "model": "llama-cpp/qwen3.6-35b-a3b-local",
-                "thinking": "off",
-                "defaultProgress": true
-            },
-            "oracle": {
-                "model": "openai-codex/gpt-5.5",
-                "thinking": "xhigh",
-                "defaultProgress": true,
-                "fallbackModels": [
-                    "openai-codex/gpt-5.4"
-                ]
-            },
-            "planner": {
-                "model": "ollama-cloud/deepseek-v4-pro",
-                "thinking": "high",
-                "defaultProgress": true,
-                "fallbackModels": [
-                    "openai-codex/gpt-5.4"
-                ]
-            },
-            "researcher": {
-                "model": "ollama-cloud/glm-5.1",
-                "thinking": "medium",
-                "defaultProgress": true,
-                "fallbackModels": [
-                    "ollama-cloud/deepseek-v4-pro"
-                ]
-            },
-            "reviewer": {
-                "model": "openai-codex/gpt-5.5",
-                "thinking": "high",
-                "defaultProgress": true,
-                "fallbackModels": [
-                    "openai-codex/gpt-5.4"
-                ]
-            },
-            "scout": {
-                "model": "minimax/MiniMax-M2.7",
-                "thinking": "high",
-                "defaultProgress": true,
-                "fallbackModels": [
-                    "ollama-cloud/deepseek-v4-flash"
-                ]
-            },
-            "worker": {
-                "model": "ollama-cloud/deepseek-v4-pro",
-                "thinking": "high",
-                "defaultProgress": true,
-                "fallbackModels": [
-                    "minimax/MiniMax-M2.7"
-                ]
-            }
-        }
-    },
-    "images": {
-        "blockImages": false
+  "defaultModel": "qwen3.6-plus",
+  "defaultProvider": "opencode-go",
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": false,
+  "lastChangelogVersion": "0.75.5",
+  "packages": [
+    "git:github.com/mrexodia/kilo-pi-provider",
+    "git:github.com/juicesharp/rpiv-mono",
+    "git:@github.com/nicobailon/pi-subagents",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@sherif-fanous/pi-atom-one",
+    "npm:pi-ollama-cloud-provider",
+    "npm:pi-opencode-provider"
+  ],
+  "enabledModels": [
+    "llama-cpp/qwen3.6-35b-a3b-local",
+    "openai-codex/gpt-5.5",
+    "minimax/MiniMax-M2.7",
+    "ollama-cloud/deepseek-v4-pro",
+    "ollama-cloud/deepseek-v4-flash",
+    "ollama-cloud/glm-5.1",
+    "ollama-cloud/qwen3.5:397b",
+    "opencode-go/glm-5.1",
+    "opencode-go/kimi-k2.6",
+    "opencode-go/qwen3.6-plus",
+    "opencode-go/deepseek-v4-flash",
+    "opencode-go/deepseek-v4-pro",
+    "openai-codex/gpt-5.4"
+  ],
+  "theme": "atom-one-dark",
+  "enableInstallTelemetry": false,
+  "shellCommandPrefix": "if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash)\"; fi",
+  "doubleEscapeAction": "tree",
+  "subagents": {
+    "agentOverrides": {
+      "context-builder": {
+        "model": "ollama-cloud/deepseek-v4-pro",
+        "thinking": "medium",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "ollama-cloud/glm-5.1"
+        ]
+      },
+      "delegate": {
+        "defaultProgress": true
+      },
+      "local-worker": {
+        "model": "llama-cpp/qwen3.6-35b-a3b-local",
+        "thinking": "off",
+        "defaultProgress": true
+      },
+      "oracle": {
+        "model": "openai-codex/gpt-5.5",
+        "thinking": "xhigh",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "openai-codex/gpt-5.4"
+        ]
+      },
+      "planner": {
+        "model": "ollama-cloud/deepseek-v4-pro",
+        "thinking": "high",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "openai-codex/gpt-5.4"
+        ]
+      },
+      "researcher": {
+        "model": "ollama-cloud/glm-5.1",
+        "thinking": "medium",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "ollama-cloud/deepseek-v4-pro"
+        ]
+      },
+      "reviewer": {
+        "model": "openai-codex/gpt-5.5",
+        "thinking": "high",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "openai-codex/gpt-5.4"
+        ]
+      },
+      "scout": {
+        "model": "minimax/MiniMax-M2.7",
+        "thinking": "high",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "ollama-cloud/deepseek-v4-flash"
+        ]
+      },
+      "worker": {
+        "model": "ollama-cloud/deepseek-v4-pro",
+        "thinking": "high",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "minimax/MiniMax-M2.7"
+        ]
+      }
     }
+  },
+  "images": {
+    "blockImages": false
+  }
 }
