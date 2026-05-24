@@ -11,8 +11,7 @@
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@sherif-fanous/pi-atom-one",
-    "npm:pi-ollama-cloud-provider",
-    "npm:pi-opencode-provider"
+    "npm:pi-ollama-cloud-provider"
   ],
   "enabledModels": [
     "llama-cpp/qwen3.6-35b-a3b-local",
