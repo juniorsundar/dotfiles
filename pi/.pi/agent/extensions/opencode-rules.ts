@@ -104,8 +104,8 @@ function loadRules(cwd: string): RuleFile[] {
         candidates.push({ path: file, origin: "project", root });
   }
 
-  // Global rules (~/.pi/)
-  const globalDir = join(home, ".pi");
+  // Global rules (~/.pi/agent/)
+  const globalDir = join(home, ".pi", "agent");
   if (isDir(globalDir) && globalDir !== root) {
     for (const file of GLOBAL_RULE_FILES)
       candidates.push({ path: join(globalDir, file), origin: "global", root: globalDir });
