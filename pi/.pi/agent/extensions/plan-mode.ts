@@ -1,12 +1,28 @@
 /**
- * Plan Mode Extension
+ * Plan Mode Extension — v2
  *
- * Claude/opencode-style planning workflow for Pi:
- * - /plan or Ctrl+Alt+P enters a read-only planning mode
- * - the agent can inspect code, ask questions, and draft a numbered plan
- * - edits/writes/destructive shell commands are blocked while planning
- * - after a plan is produced, the UI asks whether to implement, refine, or stay planning
- * - implementation mode restores the previous tool set and tracks [DONE:n] markers
+ * A question-first, phased planning workflow for Pi:
+ *
+ * 1. /plan enters scoping mode — agent investigates and asks clarifying questions
+ * 2. Once all ambiguity is resolved, agent drafts a phased plan in PLAN.md
+ * 3. User reviews/approves the plan
+ * 4. Execution proceeds phase-by-phase with review verification between phases
+ *
+ * PLAN.md format:
+ *   # Plan: [Title]
+ *   > Status: scoping | ready | executing | complete
+ *
+ *   ## Decisions
+ *   - **Topic**: Decision
+ *
+ *   ## Phase 1: [Name] → `path/to/files`
+ *   - [1.1] Step description
+ *   - [1.2] Step description
+ *   🔍 **Review**: What to verify
+ *
+ * Progress markers:
+ *   [DONE:x.y]  — step x.y completed
+ *   [PHASE_DONE:x] — phase x fully completed and reviewed
  */
 
 import {
@@ -128,73 +144,243 @@ function isSafeCommand(command: string): boolean {
   return !isDestructive && isSafe;
 }
 
-// ── Plan step extraction ────────────────────────────────────────────────────
+// ── PLAN.md Parsing ──────────────────────────────────────────────────────────
 
-interface TodoItem {
+type PlanStatus = "scoping" | "ready" | "executing" | "complete";
+
+interface ParsedStep {
+  id: string; // e.g. "1.1", "2.3"
+  phase: number;
   step: number;
   text: string;
+}
+
+interface ParsedPhase {
+  number: number;
+  name: string;
+  locations: string[];
+  steps: ParsedStep[];
+  review: string;
+}
+
+interface ParsedPlan {
+  title: string;
+  status: PlanStatus;
+  decisions: string[];
+  phases: ParsedPhase[];
+  allSteps: ParsedStep[];
+}
+
+function parsePlanMd(content: string): ParsedPlan | null {
+  if (!content || content.trim().length === 0) return null;
+
+  const titleMatch = content.match(/^#\s+Plan:\s+(.+)$/m);
+  const statusMatch = content.match(/^>\s*Status:\s*(\w+)/m);
+
+  const title = titleMatch?.[1]?.trim() ?? "Untitled";
+  const status = (statusMatch?.[1]?.trim() as PlanStatus) ?? "scoping";
+
+  // Extract decisions from ## Decisions section
+  const decisions: string[] = [];
+  const decisionsMatch = content.match(
+    /##\s+Decisions\s*\n([\s\S]*?)(?=\n## |$)/,
+  );
+  if (decisionsMatch) {
+    for (const line of decisionsMatch[1].split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("-")) {
+        decisions.push(trimmed.replace(/^-\s*/, ""));
+      }
+    }
+  }
+
+  // Extract phases
+  const phases: ParsedPhase[] = [];
+  const allSteps: ParsedStep[] = [];
+  const phaseRegex =
+    /##\s+Phase\s+(\d+):\s+(.+?)(?:\s*[→→]\s*(.+?))?\s*$/gm;
+
+  let match: RegExpExecArray | null;
+  while ((match = phaseRegex.exec(content)) !== null) {
+    const phaseNum = parseInt(match[1]);
+    const phaseName = match[2].trim();
+    const locationStr = match[3] ?? "";
+    const locations = locationStr
+      .split(",")
+      .map((s: string) => s.trim().replace(/`/g, ""))
+      .filter((s: string) => s.length > 0);
+
+    // Find content from this phase header to the next ## header or end
+    const phaseStart = match.index + match[0].length;
+    const nextSection = content.indexOf("\n## ", phaseStart);
+    const phaseContent = content.slice(
+      phaseStart,
+      nextSection === -1 ? undefined : nextSection,
+    );
+
+    const steps: ParsedStep[] = [];
+    let review = "";
+
+    for (const line of phaseContent.split("\n")) {
+      const stepMatch = line.match(
+        /^\s*-\s*\[(\d+)\.(\d+)\]\s*(.+)$/,
+      );
+      if (stepMatch) {
+        const step: ParsedStep = {
+          id: `${stepMatch[1]}.${stepMatch[2]}`,
+          phase: parseInt(stepMatch[1]),
+          step: parseInt(stepMatch[2]),
+          text: stepMatch[3].trim(),
+        };
+        steps.push(step);
+        allSteps.push(step);
+      }
+      const reviewMatch = line.match(
+        /^\s*🔍\s*\*{0,2}Review\*{0,2}:\s*(.+)$/,
+      );
+      if (reviewMatch) {
+        review = reviewMatch[1].trim().replace(/\*{0,2}$/, "");
+      }
+    }
+
+    // Fallback: also parse old-style integer steps (e.g. "1." instead of "1.1")
+    if (steps.length === 0) {
+      for (const line of phaseContent.split("\n")) {
+        const oldStepMatch = line.match(/^\s*(\d+)[.)]\s+\*{0,2}([^\n]+)/);
+        if (oldStepMatch) {
+          const text = oldStepMatch[2].trim().replace(/\*{1,2}$/, "").trim();
+          if (text.length > 5) {
+            const step: ParsedStep = {
+              id: `${phaseNum}.${steps.length + 1}`,
+              phase: phaseNum,
+              step: steps.length + 1,
+              text,
+            };
+            steps.push(step);
+            allSteps.push(step);
+          }
+        }
+      }
+    }
+
+    phases.push({ number: phaseNum, name: phaseName, locations, steps, review });
+  }
+
+  // Fallback for old-style plans without phase headers
+  if (phases.length === 0) {
+    const headerMatch = content.match(/\*{0,2}Plan:\*{0,2}\s*\n/i);
+    if (headerMatch) {
+      const planSection = content.slice(
+        content.indexOf(headerMatch[0]) + headerMatch[0].length,
+      );
+      const numberedPattern = /^\s*(\d+)[.)]\s+\*{0,2}([^\n]+)/gm;
+      const steps: ParsedStep[] = [];
+      let numMatch: RegExpExecArray | null;
+      while ((numMatch = numberedPattern.exec(planSection)) !== null) {
+        const text = numMatch[2].trim().replace(/\*{1,2}$/, "").trim();
+        if (
+          text.length > 5 &&
+          !text.startsWith("`") &&
+          !text.startsWith("/") &&
+          !text.startsWith("-")
+        ) {
+          const step: ParsedStep = {
+            id: `1.${steps.length + 1}`,
+            phase: 1,
+            step: steps.length + 1,
+            text: text.length > 72 ? `${text.slice(0, 69)}...` : text,
+          };
+          steps.push(step);
+        }
+      }
+      if (steps.length > 0) {
+        phases.push({
+          number: 1,
+          name: "Implementation",
+          locations: [],
+          steps,
+          review: "",
+        });
+        allSteps.push(...steps);
+      }
+    }
+  }
+
+  return { title, status, decisions, phases, allSteps };
+}
+
+// ── Progress Tracking ────────────────────────────────────────────────────────
+
+interface StepProgress {
+  id: string;
   completed: boolean;
 }
 
-function cleanStepText(text: string): string {
-  let cleaned = text
-    .replace(/\*{1,2}([^*]+)\*{1,2}/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(
-      /^(Use|Run|Execute|Create|Write|Read|Check|Verify|Update|Modify|Add|Remove|Delete|Install)\s+(the\s+)?/i,
-      "",
-    )
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (cleaned.length > 0)
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-  if (cleaned.length > 72) cleaned = `${cleaned.slice(0, 69)}...`;
-  return cleaned;
+interface PhaseProgress {
+  number: number;
+  completed: boolean;
 }
 
-function extractTodoItems(message: string): TodoItem[] {
-  const items: TodoItem[] = [];
-  const headerMatch = message.match(/\*{0,2}Plan:\*{0,2}\s*\n/i);
-  if (!headerMatch) return items;
+interface PlanProgress {
+  steps: StepProgress[];
+  phases: PhaseProgress[];
+}
 
-  const planSection = message.slice(
-    message.indexOf(headerMatch[0]) + headerMatch[0].length,
-  );
-  const numberedPattern = /^\s*(\d+)[.)]\s+\*{0,2}([^\n]+)/gm;
-
-  for (const match of planSection.matchAll(numberedPattern)) {
-    const text = match[2]
-      .trim()
-      .replace(/\*{1,2}$/, "")
-      .trim();
-    if (
-      text.length > 5 &&
-      !text.startsWith("`") &&
-      !text.startsWith("/") &&
-      !text.startsWith("-")
-    ) {
-      const cleaned = cleanStepText(text);
-      if (cleaned.length > 3)
-        items.push({ step: items.length + 1, text: cleaned, completed: false });
+function markCompletedSteps(text: string, steps: StepProgress[]): number {
+  let completed = 0;
+  for (const match of text.matchAll(/\[DONE:(\d+\.\d+)\]/gi)) {
+    const id = match[1];
+    const step = steps.find((s) => s.id === id);
+    if (step && !step.completed) {
+      step.completed = true;
+      completed++;
     }
   }
-  return items;
-}
-
-function markCompletedSteps(text: string, items: TodoItem[]): number {
-  let completed = 0;
+  // Fallback: old-style [DONE:N] markers
   for (const match of text.matchAll(/\[DONE:(\d+)\]/gi)) {
-    const step = Number(match[1]);
-    const item = Number.isFinite(step)
-      ? items.find((candidate) => candidate.step === step)
-      : undefined;
-    if (item && !item.completed) {
-      item.completed = true;
+    const stepNum = parseInt(match[1]);
+    const step = steps.find(
+      (s) => s.phase === 1 && s.step === stepNum && !s.completed,
+    );
+    if (step) {
+      step.completed = true;
       completed++;
     }
   }
   return completed;
+}
+
+function markCompletedPhases(text: string, phases: PhaseProgress[]): number {
+  let completed = 0;
+  for (const match of text.matchAll(/\[PHASE_DONE:(\d+)\]/gi)) {
+    const phaseNum = parseInt(match[1]);
+    const phase = phases.find((p) => p.number === phaseNum);
+    if (phase && !phase.completed) {
+      phase.completed = true;
+      completed++;
+    }
+  }
+  return completed;
+}
+
+function getPhaseForStep(steps: ParsedStep[], stepId: string): number | null {
+  const step = steps.find((s) => s.id === stepId);
+  return step?.phase ?? null;
+}
+
+function isFirstUncompletedPhase(
+  phases: ParsedPhase[],
+  progress: PlanProgress,
+  phaseNum: number,
+): boolean {
+  for (const phase of phases) {
+    const progressPhase = progress.phases.find(
+      (p) => p.number === phase.number,
+    );
+    const completed = progressPhase?.completed ?? false;
+    if (!completed) return phase.number === phaseNum;
+  }
+  return false;
 }
 
 // ── Type guards ──────────────────────────────────────────────────────────────
@@ -234,7 +420,6 @@ const PLAN_FILE_PARAMS = Type.Object({
   ),
 });
 
-// bash is included, but individual commands are filtered by isSafeCommand().
 const PLAN_CORE_TOOLS = new Set([
   "read",
   "bash",
@@ -250,7 +435,7 @@ const PLAN_CORE_TOOLS = new Set([
   "get_subagent_result",
   "steer_subagent",
 ]);
-const READ_ONLY_SUBAGENTS = new Set(["explore", "plan", "scout"]);
+const READ_ONLY_SUBAGENTS = new Set(["explore", "plan", "scout", "reviewer"]);
 
 function isPlanToolName(name: string): boolean {
   return (
@@ -307,6 +492,7 @@ function registerPlanFileTool(pi: ExtensionAPI): void {
     promptGuidelines: [
       "Use plan_file in plan mode to create or update ./PLAN.md when a plan is created or refined so context survives reloads.",
       "The plan_file tool is scoped only to ./PLAN.md; do not use it for general file edits.",
+      `PLAN.md must follow this format:\n\n# Plan: [Title]\n> Status: scoping | ready | executing | complete\n\n## Decisions\n- **Topic**: Decision\n\n## Phase N: [Name] → \`path/to/files\`\n- [N.1] Step description\n- [N.2] Step description\n🔍 **Review**: Criteria to verify after this phase\n\nSet status to "scoping" while asking questions, "ready" when the plan is ready for approval, "executing" during implementation, and "complete" when done.`,
     ],
     parameters: PLAN_FILE_PARAMS,
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
@@ -319,7 +505,10 @@ function registerPlanFileTool(pi: ExtensionAPI): void {
         if (!existedBefore) {
           return {
             content: [
-              { type: "text", text: `${PLAN_FILE_NAME} does not exist yet.` },
+              {
+                type: "text",
+                text: `${PLAN_FILE_NAME} does not exist yet. Create it using plan_file with action=write.`,
+              },
             ],
             details: {
               action: params.action,
@@ -386,7 +575,133 @@ function registerPlanFileTool(pi: ExtensionAPI): void {
   });
 }
 
-// ── Extension ───────────────────────────────────────────────────────────────
+// ── System Prompts ───────────────────────────────────────────────────────────
+
+function scopingPrompt(tools: string, planFileStatus: string): string {
+  return `[PLAN MODE — SCOPING STAGE]
+You are in plan mode. Your PRIMARY job is to clarify scope BEFORE writing any implementation plan.
+
+## Mandatory Process
+
+### Step 1: Investigate
+Use read-only tools to understand the codebase, the request, and existing patterns.
+
+### Step 2: Ask exhaustively
+Use ask_user_question to ask clarifying questions. You MUST ask at least one round of questions before drafting a plan.
+
+Ask about:
+- **Scope boundaries**: What is explicitly in scope? What is out of scope?
+- **Edge cases**: How should errors and unusual inputs be handled?
+- **Style & patterns**: Are there existing patterns or conventions to follow?
+- **Priority & ordering**: Which aspects matter most? What should be done first?
+- **Performance & constraints**: Any performance requirements or constraints?
+- **Compatibility**: What must remain backward-compatible?
+- **Testing**: What level of test coverage is expected?
+
+Ask up to 4 questions at a time. Keep asking rounds until ALL ambiguity is resolved.
+
+### Step 3: Draft the plan
+Only when all questions are answered, write a structured phased plan to PLAN.md using plan_file.
+
+PLAN.md format:
+\`\`\`markdown
+# Plan: [Title]
+> Status: scoping
+
+## Decisions
+- **Scope**: [what's included/excluded and why]
+- **Approach**: [chosen implementation approach]
+- **Patterns**: [existing patterns to follow]
+- **Priority**: [ordering rationale]
+
+## Phase 1: [Descriptive Name] → \`path/to/file1.ts\`, \`path/to/file2.ts\`
+- [1.1] Concrete, actionable step
+- [1.2] Another step
+🔍 **Review**: [specific criteria to verify this phase is correct]
+
+## Phase N: Integration & Verification → \`path/to/test.ts\`
+- [N.1] Final integration steps
+🔍 **Review**: Run full test suite, verify all requirements met
+\`\`\`
+
+Each phase MUST:
+1. Specify WHERE changes will be made (file paths after →)
+2. Contain concrete, actionable steps with [N.M] numbering
+3. End with 🔍 **Review**: criteria for verifying the phase
+
+Use plan_file action=write to create/update the plan. Set status to "ready" once the plan is final.
+
+Available planning tools: ${tools}
+
+Restrictions:
+- edit/write are disabled
+- bash is restricted to read-only allowlisted commands
+- Subagents: only Explore, Plan, Scout, or Reviewer (read-only)
+- plan_file is the only write tool, scoped to ./PLAN.md
+
+Plan persistence:
+- ./PLAN.md status: ${planFileStatus}
+- Use plan_file to save progress so context survives reloads.`;
+}
+
+function executionPrompt(
+  phases: ParsedPhase[],
+  progress: PlanProgress,
+  planTitle: string,
+): string {
+  const completedSteps = progress.steps.filter((s) => s.completed).length;
+  const totalSteps = progress.steps.length;
+  const completedPhases = progress.phases.filter((p) => p.completed).length;
+  const totalPhases = phases.length;
+
+  // Find current phase
+  let currentPhase: ParsedPhase | null = null;
+  let phaseInstruction = "";
+  for (const phase of phases) {
+    const phaseProgress = progress.phases.find(
+      (p) => p.number === phase.number,
+    );
+    if (phaseProgress?.completed) continue;
+
+    currentPhase = phase;
+
+    // Build step list for current phase
+    const phaseSteps = phase.steps
+      .map((s) => {
+        const stepProgress = progress.steps.find((sp) => sp.id === s.id);
+        const marker = stepProgress?.completed ? "✓" : "☐";
+        return `  ${marker} [${s.id}] ${s.text}`;
+      })
+      .join("\n");
+
+    phaseInstruction = `
+
+You are currently executing Phase ${phase.number}: ${phase.name}
+Files: ${phase.locations.length > 0 ? phase.locations.join(", ") : "see plan"}
+
+Steps:
+${phaseSteps}
+
+Review criteria for this phase:
+${phase.review || "(no specific review criteria)"}
+
+After completing each step, include [DONE:${phase.steps[0]?.phase ?? phase.number}.${phase.steps[0]?.step ?? 1}] in your response.
+After completing ALL steps in this phase and verifying the review criteria, include [PHASE_DONE:${phase.number}].`;
+    break;
+  }
+
+  return `[EXECUTING APPROVED PLAN — Phase ${completedPhases + 1}/${totalPhases}]
+
+Plan: ${planTitle}
+Progress: ${completedSteps}/${totalSteps} steps, ${completedPhases}/${totalPhases} phases complete.
+${phaseInstruction}
+
+After each step, include [DONE:X.Y] in your response.
+After all steps in a phase are done and review criteria verified, include [PHASE_DONE:X].
+Then proceed to the next phase.`;
+}
+
+// ── Extension ────────────────────────────────────────────────────────────────
 
 export default function planModeExtension(pi: ExtensionAPI): void {
   registerPlanFileTool(pi);
@@ -399,16 +714,70 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 
   let planModeEnabled = false;
   let executionMode = false;
-  let todoItems: TodoItem[] = [];
   let previousActiveTools: string[] | undefined;
+
+  // Phase-aware progress tracking
+  let steps: StepProgress[] = [];
+  let phases: PhaseProgress[] = [];
+  let planTitle = "";
+  let planningStage: "scoping" | "ready" | "executing" | "complete" | "off" =
+    "off";
 
   function persistState(): void {
     pi.appendEntry("plan-mode", {
       enabled: planModeEnabled,
-      todos: todoItems,
       executing: executionMode,
       previousActiveTools,
+      steps,
+      phases,
+      planTitle,
+      planningStage,
     });
+  }
+
+  function readPlanFile(cwd: string): ParsedPlan | null {
+    const filePath = getPlanFilePath(cwd);
+    if (!existsSync(filePath)) return null;
+    try {
+      const content = readFileSync(filePath, "utf8");
+      return parsePlanMd(content);
+    } catch {
+      return null;
+    }
+  }
+
+  function syncProgressFromPlan(ctx: ExtensionContext): void {
+    const plan = readPlanFile(ctx.cwd);
+    if (!plan) return;
+
+    planningStage = plan.status;
+    planTitle = plan.title;
+
+    // Initialize phase progress from parsed plan
+    const newPhases: PhaseProgress[] = plan.phases.map((p) => ({
+      number: p.number,
+      completed: false,
+    }));
+
+    // Merge with existing progress
+    for (const newPhase of newPhases) {
+      const existing = phases.find((p) => p.number === newPhase.number);
+      if (existing) newPhase.completed = existing.completed;
+    }
+    phases = newPhases;
+
+    // Initialize step progress from parsed plan
+    const newSteps: StepProgress[] = plan.allSteps.map((s) => ({
+      id: s.id,
+      completed: false,
+    }));
+
+    // Merge with existing progress
+    for (const newStep of newSteps) {
+      const existing = steps.find((s) => s.id === newStep.id);
+      if (existing) newStep.completed = existing.completed;
+    }
+    steps = newSteps;
   }
 
   function setPlanTools(): void {
@@ -423,26 +792,68 @@ export default function planModeExtension(pi: ExtensionAPI): void {
   }
 
   function updateStatus(ctx: ExtensionContext): void {
-    if (executionMode && todoItems.length > 0) {
-      const completed = todoItems.filter((todo) => todo.completed).length;
+    if (executionMode && steps.length > 0) {
+      const completedSteps = steps.filter((s) => s.completed).length;
+      const completedPhases = phases.filter((p) => p.completed).length;
       ctx.ui.setStatus(
         "plan-mode",
-        ctx.ui.theme.fg("accent", `📋 ${completed}/${todoItems.length}`),
+        ctx.ui.theme.fg(
+          "accent",
+          `📋 ${completedPhases}/${phases.length} phases · ${completedSteps}/${steps.length}`,
+        ),
       );
     } else if (planModeEnabled) {
-      ctx.ui.setStatus("plan-mode", ctx.ui.theme.fg("warning", "⏸ plan"));
+      const stageLabel =
+        planningStage === "scoping"
+          ? "scoping"
+          : planningStage === "ready"
+            ? "ready"
+            : "planning";
+      ctx.ui.setStatus(
+        "plan-mode",
+        ctx.ui.theme.fg("warning", `⏸ ${stageLabel}`),
+      );
     } else {
       ctx.ui.setStatus("plan-mode", undefined);
     }
 
-    // Do not render a separate plan todo widget. rpiv-todo already owns
-    // visible todo UI, while plan mode only keeps internal progress state.
-    ctx.ui.setWidget("plan-todos", undefined);
+    if (executionMode && steps.length > 0) {
+      const completedSteps = steps.filter((s) => s.completed).length;
+      const completedPhases = phases.filter((p) => p.completed).length;
 
-    if (executionMode && todoItems.length > 0) {
-      ctx.ui.setWidget("plan-mode", undefined);
+      // Find current phase and step
+      let currentPhaseName = "";
+      let currentStepId = "";
+      for (const phase of phases) {
+        if (!phase.completed) {
+          const plan = readPlanFile(ctx.cwd);
+          currentPhaseName =
+            plan?.phases.find((p) => p.number === phase.number)?.name ?? "";
+          for (const step of steps.filter(
+            (s) => getPhaseForStep(
+              plan?.allSteps ?? [],
+              s.id,
+            ) === phase.number,
+          )) {
+            if (!step.completed) {
+              currentStepId = step.id;
+              break;
+            }
+          }
+          break;
+        }
+      }
+
+      ctx.ui.setWidget("plan-mode", [
+        `📋 ${completedPhases}/${phases.length} phases · ${completedSteps}/${steps} steps`,
+        ...(currentPhaseName
+          ? [`Phase: ${currentPhaseName}`, `Step: ${currentStepId}`]
+          : []),
+      ]);
     } else if (planModeEnabled) {
-      ctx.ui.setWidget("plan-mode", ["🔍 PLAN MODE: read-only until approved"]);
+      ctx.ui.setWidget("plan-mode", [
+        `🔍 PLAN MODE: ${planningStage === "ready" ? "plan ready for review" : "asking questions until scope is clear"}`,
+      ]);
     } else {
       ctx.ui.setWidget("plan-mode", undefined);
     }
@@ -451,10 +862,13 @@ export default function planModeExtension(pi: ExtensionAPI): void {
   function enterPlanMode(ctx: ExtensionContext): void {
     planModeEnabled = true;
     executionMode = false;
-    todoItems = [];
+    planningStage = "scoping";
+    steps = [];
+    phases = [];
     setPlanTools();
+    syncProgressFromPlan(ctx);
     ctx.ui.notify(
-      "Plan mode enabled. I can inspect and draft a plan, but cannot edit until you approve it.",
+      "Plan mode enabled. I will investigate and ask clarifying questions before writing any implementation plan.",
       "info",
     );
     updateStatus(ctx);
@@ -464,7 +878,9 @@ export default function planModeExtension(pi: ExtensionAPI): void {
   function exitPlanMode(ctx: ExtensionContext): void {
     planModeEnabled = false;
     executionMode = false;
-    todoItems = [];
+    planningStage = "off";
+    steps = [];
+    phases = [];
     restorePreviousTools();
     ctx.ui.notify("Plan mode disabled. Previous tool access restored.", "info");
     updateStatus(ctx);
@@ -473,7 +889,9 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 
   function startExecution(ctx: ExtensionContext): void {
     planModeEnabled = false;
-    executionMode = todoItems.length > 0;
+    executionMode = true;
+    planningStage = "executing";
+    syncProgressFromPlan(ctx);
     restorePreviousTools();
     updateStatus(ctx);
     persistState();
@@ -490,10 +908,10 @@ export default function planModeExtension(pi: ExtensionAPI): void {
         const state = executionMode
           ? "executing"
           : planModeEnabled
-            ? "planning"
+            ? planningStage
             : "off";
         ctx.ui.notify(
-          `Plan mode: ${state}. Steps: ${todoItems.length}.`,
+          `Plan mode: ${state}. Steps: ${steps.length}. Phases: ${phases.length}.`,
           "info",
         );
         return;
@@ -527,7 +945,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
       if (!subagentType || !READ_ONLY_SUBAGENTS.has(subagentType)) {
         return {
           block: true,
-          reason: `Plan mode only allows read-only Explore, Plan, or Scout subagents. Requested: ${subagentType ?? "unknown"}`,
+          reason: `Plan mode only allows read-only subagents (Explore, Plan, Scout, Reviewer). Requested: ${subagentType ?? "unknown"}`,
         };
       }
       return;
@@ -583,57 +1001,69 @@ export default function planModeExtension(pi: ExtensionAPI): void {
       const planFileStatus = existsSync(getPlanFilePath(ctx.cwd))
         ? "exists"
         : "does not exist yet";
+
+      // Re-read plan file to check current stage
+      const plan = readPlanFile(ctx.cwd);
+      if (plan) {
+        planningStage = plan.status;
+
+        if (plan.status === "ready") {
+          // Plan is written and ready for review — continue in scoping/drafting mode
+          // but the agent knows the plan exists
+          return {
+            message: {
+              customType: "plan-mode-context",
+              content: `[PLAN MODE — PLAN DRAFTED]
+
+A plan has been drafted in PLAN.md. You may:
+- Refine the plan if the user requests changes
+- Wait for the user to approve the plan before executing
+
+Use plan_file action=read to review the current plan if needed.`,
+              display: false,
+            },
+          };
+        }
+      }
+
       const tools = availablePlanModeTools(pi).join(", ");
       return {
         message: {
           customType: "plan-mode-context",
-          content: `[PLAN MODE ACTIVE]
-You are in Claude/opencode-style plan mode.
-
-Behavior:
-- Investigate the codebase and ask concise clarifying questions if needed.
-- Do not implement, edit files, install packages, or run mutating shell commands.
-- Produce a concrete numbered plan and wait for user approval before execution.
-- Prefer a "Plan:" header with numbered steps so Pi can track progress.
-
-Available planning tools: ${tools || "read-only tools"}
-Restrictions:
-- edit/write are disabled.
-- bash is restricted to read-only allowlisted commands.
-- Subagents are allowed only for read-only context offloading: Explore, Plan, or Scout.
-- The only planning write is plan_file, scoped to ./PLAN.md.
-
-Plan persistence:
-- ./PLAN.md status: ${planFileStatus}
-- Use plan_file when useful to save or refine the proposed plan.
-
-Required response shape when ready:
-Plan:
-1. First implementation step
-2. Second implementation step
-...
-
-Do not start executing the plan in this response.`,
+          content: scopingPrompt(tools, planFileStatus),
           display: false,
         },
       };
     }
 
-    if (executionMode && todoItems.length > 0) {
-      const remaining = todoItems.filter((todo) => !todo.completed);
-      const todoList = remaining
-        .map((todo) => `${todo.step}. ${todo.text}`)
-        .join("\n");
+    if (executionMode && steps.length > 0) {
+      const plan = readPlanFile(ctx.cwd);
+      const parsedPhases = plan?.phases ?? [];
+      const remaining = steps.filter((s) => !s.completed);
+
+      if (remaining.length === 0) {
+        // All steps done
+        const completedPhases = phases
+          .filter((p) => p.completed)
+          .map((p) => `Phase ${p.number}`)
+          .join(", ");
+        return {
+          message: {
+            customType: "plan-execution-context",
+            content: `[EXECUTING APPROVED PLAN — NEARLY COMPLETE]
+
+All tracked steps are complete. Verify any remaining review criteria and include [PHASE_DONE:N] for any unmarked phases.
+
+Completed phases: ${completedPhases || "none yet"}`,
+            display: false,
+          },
+        };
+      }
+
       return {
         message: {
           customType: "plan-execution-context",
-          content: `[EXECUTING APPROVED PLAN]
-
-Execute the approved plan one step at a time.
-Remaining steps:
-${todoList}
-
-After completing each step, include the matching [DONE:n] marker in your response.`,
+          content: executionPrompt(parsedPhases, { steps, phases }, planTitle),
           display: false,
         },
       };
@@ -641,99 +1071,169 @@ After completing each step, include the matching [DONE:n] marker in your respons
   });
 
   pi.on("turn_end", async (event, ctx) => {
-    if (!executionMode || todoItems.length === 0) return;
+    if (!executionMode || steps.length === 0) return;
     if (!isAssistantMessage(event.message as MessageLike)) return;
 
     const text = getTextContent(event.message as AssistantMessage);
-    if (markCompletedSteps(text, todoItems) > 0) updateStatus(ctx);
-    persistState();
+    const stepsCompleted = markCompletedSteps(text, steps);
+    const phasesCompleted = markCompletedPhases(text, phases);
+
+    if (stepsCompleted > 0 || phasesCompleted > 0) {
+      updateStatus(ctx);
+      persistState();
+
+      // Check if a phase was just completed
+      if (phasesCompleted > 0) {
+        // Find the most recently completed phase
+        for (const phase of phases) {
+          if (!phase.completed) continue;
+          const plan = readPlanFile(ctx.cwd);
+          const parsedPhase = plan?.phases.find(
+            (p) => p.number === phase.number,
+          );
+          if (parsedPhase) {
+            pi.sendMessage(
+              {
+                customType: "phase-review",
+                content: `**Phase ${phase.number} Complete!** ✓\n\nPhase: ${parsedPhase.name}\nReview criteria: ${parsedPhase.review || "Verification complete"}\n\nAll steps in this phase have been completed and verified. Proceeding to the next phase.`,
+                display: true,
+              },
+              { triggerTurn: false },
+            );
+          }
+        }
+      }
+
+      // Check if ALL phases are done
+      if (phases.length > 0 && phases.every((p) => p.completed)) {
+        // Update PLAN.md status to complete
+        const filePath = getPlanFilePath(ctx.cwd);
+        if (existsSync(filePath)) {
+          try {
+            let content = readFileSync(filePath, "utf8");
+            content = content.replace(
+              /^>\s*Status:\s*\w+/m,
+              "> Status: complete",
+            );
+            writeFileSync(filePath, content, "utf8");
+          } catch {
+            // Ignore write errors
+          }
+        }
+      }
+    }
   });
 
   pi.on("agent_end", async (event, ctx) => {
-    if (executionMode && todoItems.length > 0) {
-      if (todoItems.every((todo) => todo.completed)) {
-        const completedList = todoItems
-          .map((todo) => `~~${todo.text}~~`)
+    // ── Execution mode: check for completion ──
+    if (executionMode && steps.length > 0) {
+      if (steps.every((s) => s.completed)) {
+        const plan = readPlanFile(ctx.cwd);
+        const phaseList = plan?.phases
+          .map((p) => {
+            const progress = phases.find((pp) => pp.number === p.number);
+            const marker = progress?.completed ? "✓" : "○";
+            return `${marker} Phase ${p.number}: ${p.name}`;
+          })
           .join("\n");
+
         pi.sendMessage(
           {
             customType: "plan-complete",
-            content: `**Plan Complete!** ✓\n\n${completedList}`,
+            content: `**Plan Complete!** ✓\n\n${planTitle}\n\n${phaseList ?? "All steps completed."}`,
             display: true,
           },
           { triggerTurn: false },
         );
         executionMode = false;
-        todoItems = [];
+        planningStage = "complete";
         updateStatus(ctx);
         persistState();
       }
       return;
     }
 
+    // ── Plan mode: show stage-appropriate UI ──
     if (!planModeEnabled || !ctx.hasUI) return;
 
-    const lastAssistant = [...event.messages]
-      .reverse()
-      .find((message) => isAssistantMessage(message as MessageLike));
-    if (lastAssistant) {
-      const extracted = extractTodoItems(
-        getTextContent(lastAssistant as AssistantMessage),
-      );
-      if (extracted.length > 0) todoItems = extracted;
+    // Re-read plan file to determine stage
+    const plan = readPlanFile(ctx.cwd);
+    if (plan) {
+      planningStage = plan.status;
+      syncProgressFromPlan(ctx);
     }
 
-    if (todoItems.length > 0) {
-      const todoListText = todoItems
-        .map((todo, index) => `${index + 1}. ☐ ${todo.text}`)
+    if (planningStage === "ready") {
+      // Plan has been drafted — show approval options
+      const phaseSummary = plan?.phases
+        .map(
+          (p) =>
+            `Phase ${p.number}: ${p.name}${p.locations.length > 0 ? ` → ${p.locations.join(", ")}` : ""}`,
+        )
         .join("\n");
-      pi.sendMessage(
-        {
-          customType: "plan-todo-list",
-          content: `**Plan Steps (${todoItems.length}):**\n\n${todoListText}`,
-          display: true,
-        },
-        { triggerTurn: false },
+
+      const choice = await ctx.ui.select("Plan ready — what next?", [
+        "Approve and execute plan",
+        "Refine the plan",
+        "Exit plan mode without executing",
+      ]);
+
+      if (choice === "Approve and execute plan") {
+        startExecution(ctx);
+        pi.sendMessage(
+          {
+            customType: "plan-mode-execute",
+            content: `The user approved the plan. Execute it now, starting with Phase 1${plan?.phases[0] ? `: ${plan.phases[0].name}` : ""}.`,
+            display: true,
+          },
+          { triggerTurn: true },
+        );
+      } else if (choice === "Refine the plan") {
+        const refinement = await ctx.ui.editor("Refine the plan:", "");
+        if (refinement?.trim()) pi.sendUserMessage(refinement.trim());
+      } else {
+        exitPlanMode(ctx);
+      }
+    } else {
+      // Scoping stage — show scoping options
+      const hasQuestions = plan !== null;
+
+      const choice = await ctx.ui.select(
+        "Plan mode — what next?",
+        hasQuestions
+          ? [
+              "Draft the implementation plan now",
+              "Continue asking questions",
+              "Exit plan mode without executing",
+            ]
+          : [
+              "Draft the implementation plan now",
+              "Continue asking questions",
+              "Exit plan mode without executing",
+            ],
       );
+
+      if (choice === "Draft the implementation plan now") {
+        // Ask the agent to draft the plan
+        pi.sendMessage(
+          {
+            customType: "plan-mode-execute",
+            content:
+              "The user wants you to draft the implementation plan now. Write the phased plan to PLAN.md using plan_file action=write. Set the status to 'ready'. Cover all aspects discussed, organized into phases with file locations and review criteria.",
+            display: true,
+          },
+          { triggerTurn: true },
+        );
+      } else if (choice === "Continue asking questions") {
+        // Just let the next turn proceed naturally
+        updateStatus(ctx);
+        persistState();
+      } else {
+        exitPlanMode(ctx);
+      }
     }
 
     persistState();
-
-    const choice = await ctx.ui.select("Plan mode - what next?", [
-      todoItems.length > 0
-        ? "Approve and execute plan"
-        : "Exit plan mode and execute",
-      "Stay in plan mode",
-      "Refine the plan",
-      "Exit plan mode without executing",
-    ]);
-
-    if (
-      choice?.startsWith("Approve") ||
-      choice?.startsWith("Exit plan mode and execute")
-    ) {
-      startExecution(ctx);
-      const execMessage =
-        todoItems.length > 0
-          ? `The user approved the plan. Execute it now, starting with step 1: ${todoItems[0].text}`
-          : "The user approved exiting plan mode. Execute the plan you just proposed.";
-      pi.sendMessage(
-        {
-          customType: "plan-mode-execute",
-          content: execMessage,
-          display: true,
-        },
-        { triggerTurn: true },
-      );
-    } else if (choice === "Refine the plan") {
-      const refinement = await ctx.ui.editor("Refine the plan:", "");
-      if (refinement?.trim()) pi.sendUserMessage(refinement.trim());
-    } else if (choice === "Exit plan mode without executing") {
-      exitPlanMode(ctx);
-    } else {
-      updateStatus(ctx);
-      persistState();
-    }
   });
 
   pi.on("session_start", async (_event, ctx) => {
@@ -748,22 +1248,43 @@ After completing each step, include the matching [DONE:n] marker in your respons
       | {
           data?: {
             enabled?: boolean;
-            todos?: TodoItem[];
+            todos?: unknown;
             executing?: boolean;
             previousActiveTools?: string[];
+            steps?: StepProgress[];
+            phases?: PhaseProgress[];
+            planTitle?: string;
+            planningStage?: string;
           };
         }
       | undefined;
 
     if (planModeEntry?.data) {
       planModeEnabled = planModeEntry.data.enabled ?? planModeEnabled;
-      todoItems = planModeEntry.data.todos ?? todoItems;
       executionMode = planModeEntry.data.executing ?? executionMode;
       previousActiveTools =
         planModeEntry.data.previousActiveTools ?? previousActiveTools;
+      planTitle = planModeEntry.data.planTitle ?? planTitle;
+      planningStage =
+        (planModeEntry.data.planningStage as typeof planningStage) ??
+        planningStage;
+      steps = planModeEntry.data.steps ?? steps;
+      phases = planModeEntry.data.phases ?? phases;
+
+      // Legacy: migrate old integer-step todos
+      const oldTodos = planModeEntry.data.todos as
+        | { step: number; text: string; completed: boolean }[]
+        | undefined;
+      if (oldTodos && oldTodos.length > 0 && steps.length === 0) {
+        steps = oldTodos.map((t, i) => ({
+          id: `1.${i + 1}`,
+          completed: t.completed,
+        }));
+        phases = [{ number: 1, completed: oldTodos.every((t) => t.completed) }];
+      }
     }
 
-    // Compatibility with older local versions of this extension.
+    // Compatibility with older versions
     const legacyEntry = entries
       .filter(
         (entry) =>
@@ -773,26 +1294,39 @@ After completing each step, include the matching [DONE:n] marker in your respons
     if (!planModeEntry?.data && legacyEntry?.data)
       planModeEnabled = legacyEntry.data.active ?? planModeEnabled;
 
-    if (executionMode && todoItems.length > 0) {
-      let executeIndex = -1;
-      for (let i = entries.length - 1; i >= 0; i--) {
-        const entry = entries[i] as { type: string; customType?: string };
-        if (entry.customType === "plan-mode-execute") {
-          executeIndex = i;
-          break;
-        }
-      }
+    // Re-sync from PLAN.md if it exists
+    if (planModeEnabled || executionMode) {
+      syncProgressFromPlan(ctx);
 
-      const messages: AssistantMessage[] = [];
-      for (let i = executeIndex + 1; i < entries.length; i++) {
-        const entry = entries[i];
-        if (entry.type === "message" && "message" in entry) {
-          const message = (entry as { message: unknown }).message;
-          if (isAssistantMessage(message as MessageLike))
-            messages.push(message as AssistantMessage);
+      // Also recover progress from conversation messages
+      if (executionMode && steps.length > 0) {
+        let executeIndex = -1;
+        for (let i = entries.length - 1; i >= 0; i--) {
+          const entry = entries[i] as { type: string; customType?: string };
+          if (entry.customType === "plan-mode-execute") {
+            executeIndex = i;
+            break;
+          }
         }
+
+        const messages: AssistantMessage[] = [];
+        for (let i = executeIndex + 1; i < entries.length; i++) {
+          const entry = entries[i];
+          if (entry.type === "message" && "message" in entry) {
+            const message = (entry as { message: unknown }).message;
+            if (isAssistantMessage(message as MessageLike))
+              messages.push(message as AssistantMessage);
+          }
+        }
+        markCompletedSteps(
+          messages.map(getTextContent).join("\n"),
+          steps,
+        );
+        markCompletedPhases(
+          messages.map(getTextContent).join("\n"),
+          phases,
+        );
       }
-      markCompletedSteps(messages.map(getTextContent).join("\n"), todoItems);
     }
 
     if (planModeEnabled) setPlanTools();
