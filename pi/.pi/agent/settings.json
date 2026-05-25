@@ -45,11 +45,6 @@
       "delegate": {
         "defaultProgress": true
       },
-      "local-worker": {
-        "model": "llama-cpp/qwen3.6-35b-a3b-local",
-        "thinking": "off",
-        "defaultProgress": true
-      },
       "oracle": {
         "model": "openai-codex/gpt-5.5",
         "thinking": "xhigh",
