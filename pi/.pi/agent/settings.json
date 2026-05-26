@@ -1,6 +1,6 @@
 {
-  "defaultModel": "qwen3.6-plus",
-  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4-pro",
+  "defaultProvider": "ollama-cloud",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.75.5",

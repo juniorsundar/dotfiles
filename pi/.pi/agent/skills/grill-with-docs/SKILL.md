@@ -59,6 +59,8 @@ If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The ma
 
 Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
+When searching for existing context files, look for both `CONTEXT.md` and `context.md` (case-insensitive). When creating new files, always use `CONTEXT.md` (uppercase).
+
 ## During the session
 
 ### Challenge against the glossary
@@ -98,6 +100,7 @@ If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](
 - Ask one question at a time. Wait for the user's response before continuing.
 - Always provide your recommended answer with each question.
 - `CONTEXT.md` is a glossary, not a spec, scratch pad, or repository for implementation decisions.
+- When reading existing context files, look for both `CONTEXT.md` and `context.md` (case-insensitive). When creating, always use `CONTEXT.md` (uppercase).
 - Only offer ADRs when all three criteria are met (hard to reverse, surprising without context, real trade-off).
 - When in doubt about codebase state, use `read`, `grep`, `find`, or read-only `bash` commands — or dispatch a `scout` subagent for broader exploration.
 - Never delegate the interview dialogue to a subagent.
