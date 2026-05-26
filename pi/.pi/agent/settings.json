@@ -34,14 +34,6 @@
   "doubleEscapeAction": "tree",
   "subagents": {
     "agentOverrides": {
-      "context-builder": {
-        "model": "ollama-cloud/deepseek-v4-pro",
-        "thinking": "medium",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "ollama-cloud/glm-5.1"
-        ]
-      },
       "delegate": {
         "defaultProgress": true
       },
@@ -51,22 +43,6 @@
         "defaultProgress": true,
         "fallbackModels": [
           "openai-codex/gpt-5.4"
-        ]
-      },
-      "planner": {
-        "model": "ollama-cloud/deepseek-v4-pro",
-        "thinking": "high",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "openai-codex/gpt-5.4"
-        ]
-      },
-      "researcher": {
-        "model": "ollama-cloud/glm-5.1",
-        "thinking": "medium",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "ollama-cloud/deepseek-v4-pro"
         ]
       },
       "reviewer": {
