@@ -845,7 +845,7 @@ export default function planModeExtension(pi: ExtensionAPI): void {
       }
 
       ctx.ui.setWidget("plan-mode", [
-        `📋 ${completedPhases}/${phases.length} phases · ${completedSteps}/${steps} steps`,
+        `📋 ${completedPhases}/${phases.length} phases · ${completedSteps}/${steps.length} steps`,
         ...(currentPhaseName
           ? [`Phase: ${currentPhaseName}`, `Step: ${currentStepId}`]
           : []),
