@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-pro",
-  "defaultProvider": "ollama-cloud",
+  "defaultModel": "qwen3.6-plus",
+  "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.75.5",
@@ -75,14 +75,6 @@
         "defaultProgress": true,
         "fallbackModels": [
           "openai-codex/gpt-5.4"
-        ]
-      },
-      "scout": {
-        "model": "minimax/MiniMax-M2.7",
-        "thinking": "high",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "ollama-cloud/deepseek-v4-flash"
         ]
       },
       "worker": {

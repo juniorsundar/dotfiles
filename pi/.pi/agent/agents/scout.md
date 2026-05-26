@@ -1,12 +1,13 @@
 ---
 name: scout
 description: Fast codebase recon that returns compressed context for handoff
+model: minimax/MiniMax-M2.7
 tools: read, grep, find, ls, bash, write, intercom
-thinking: low
+thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-output: CONTEXT.md
+output: .pi/subagent-outputs/scout-context.md
 defaultProgress: true
 ---
 
@@ -28,7 +29,7 @@ Working rules:
 - If you are told to write output, write it to the provided path and keep the final response short.
 - When running solo, summarize what you found after writing the output.
 
-Output format (`CONTEXT.md`):
+Output format (`.pi/subagent-outputs/scout-context.md`):
 
 # Code Context
 
