@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Test-driven development with red-green-refactor loop. Use when user wants to build features or fix bugs using TDD, mentions "red-green-refactor", wants integration tests, or asks for test-first development.
+description: Test-driven development with red-green-refactor loop. Use when user wants to build features or fix bugs using TDD, mentions "red-green-refactor", or asks for integration tests.
 ---
 
 # Test-Driven Development
@@ -61,9 +61,23 @@ Before writing any code:
 - [ ] List the behaviors to test (not implementation steps)
 - [ ] Get user approval on the plan
 
-Ask: "What should the public interface look like? Which behaviors are most important to test?"
-
 **You can't test everything.** Confirm with the user exactly which behaviors matter most. Focus testing effort on critical paths and complex logic, not every possible edge case.
+
+### 1.5 Criteria Audit (after plan approval)
+
+**After the plan is approved by the user**, dispatch a `criteria-auditor` subagent to cross-reference the plan's intended behaviors against the issue's acceptance criteria.
+
+```
+dispatch subagent: criteria-auditor
+task: |
+  Audit the acceptance criteria in {issue_path} against the planned test coverage.
+  The plan intends to cover these behaviors: {list from step 1}.
+  Test directory: {test_dir}
+  Source directory: {src_dir}
+  Report any criteria that lack planned test coverage.
+```
+
+This catches gaps **before any code is written** — if a criterion has no corresponding test in the plan, surface it now.
 
 ### 2. Tracer Bullet
 
@@ -75,6 +89,22 @@ GREEN: Write minimal code to pass → test passes
 ```
 
 This is your tracer bullet - proves the path works end-to-end.
+
+### 2.5 Checkpoint Review (after tracer bullet)
+
+**After the tracer bullet passes (GREEN)**, dispatch a `checkpoint-reviewer` subagent to verify the first slice before continuing.
+
+```
+dispatch subagent: checkpoint-reviewer
+task: |
+  Review the first TDD slice (tracer bullet).
+  Issue: {issue_path}
+  Slice description: {tracer bullet behavior}
+  Changed files: {list of files modified}
+  Test files: {list of test files modified/added}
+```
+
+This catches foundational problems early — wrong abstractions, missing gates, boundary violations — before they compound across subsequent slices.
 
 ### 3. Incremental Loop
 
@@ -92,6 +122,27 @@ Rules:
 - Don't anticipate future tests
 - Keep tests focused on observable behavior
 
+### 3.5 Periodic Checkpoint Reviews
+
+Dispatch `checkpoint-reviewer` **after every integration-boundary slice** — a slice that:
+
+- Touches a public API or changes a function signature
+- Adds a new module boundary or cross-module call
+- Introduces a new gate/conditional that other slices depend on
+- Wires a new integration (e.g., connects module A to module B)
+
+For simple slices (adding another test for the same behavior, refactoring), a checkpoint review is not necessary.
+
+```
+dispatch subagent: checkpoint-reviewer
+task: |
+  Review TDD slice: {slice_description}
+  Issue: {issue_path}
+  Changed files: {list}
+  Test files: {list}
+  Previous slices: {brief summary of what earlier slices implemented}
+```
+
 ### 4. Refactor
 
 After all tests pass, look for [refactor candidates](refactoring.md):
@@ -104,6 +155,32 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 
 **Never refactor while RED.** Get to GREEN first.
 
+### 4.5 Final Quality Gate
+
+**After all slices are complete and refactored**, dispatch both subagents for a final quality gate:
+
+```
+dispatch subagent: criteria-auditor
+task: |
+  Full audit of acceptance criteria coverage.
+  Issue: {issue_path}
+  Test directory: {test_dir}
+  Source directory: {src_dir}
+  Verify every checkbox in the issue has a dedicated test AND implementation.
+```
+
+```
+dispatch subagent: checkpoint-reviewer
+task: |
+  Final review of all slices.
+  Issue: {issue_path}
+  Changed files: {all files changed across all slices}
+  Test files: {all test files added/modified}
+  Previous slices: {summary of all slices}
+```
+
+Only proceed to mark the issue complete once both reports show no BLOCKERs.
+
 ## Rules
 
 - Write one test at a time. Write minimal code to pass. Then move to the next test.
@@ -115,3 +192,6 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 - Respect any ADRs in the area you're touching.
 - Mock only at system boundaries (external APIs, databases, time, file system). Do not mock your own classes or internal collaborators.
 - Use `read` over shelling out to `cat` for file contents.
+- Dispatch `criteria-auditor` after plan approval (step 1.5) and after all slices (step 4.5).
+- Dispatch `checkpoint-reviewer` after the tracer bullet (step 2.5), after integration-boundary slices (step 3.5), and after all slices (step 4.5).
+- Fix all BLOCKERs from checkpoint reviews before proceeding to the next slice. CONCERNs and NOTEs can be deferred but must be tracked.

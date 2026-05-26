@@ -1,6 +1,6 @@
 {
-  "defaultModel": "qwen3.6-plus",
-  "defaultProvider": "opencode-go",
+  "defaultModel": "MiniMax-M2.7",
+  "defaultProvider": "minimax",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.75.5",
@@ -30,7 +30,7 @@
   ],
   "theme": "atom-one-dark",
   "enableInstallTelemetry": false,
-  "shellCommandPrefix": "if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash)\"; fi",
+  "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "doubleEscapeAction": "tree",
   "subagents": {
     "agentOverrides": {
@@ -58,6 +58,23 @@
         "thinking": "high",
         "defaultProgress": true,
         "fallbackModels": [
+          "minimax/MiniMax-M2.7"
+        ]
+      },
+      "criteria-auditor": {
+        "model": "minimax/MiniMax-M2.7",
+        "thinking": "medium",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "ollama-cloud/deepseek-v4-flash"
+        ]
+      },
+      "checkpoint-reviewer": {
+        "model": "ollama-cloud/deepseek-v4-flash",
+        "thinking": "high",
+        "defaultProgress": true,
+        "fallbackModels": [
+          "opencode-go/deepseek-v4-flash",
           "minimax/MiniMax-M2.7"
         ]
       }
