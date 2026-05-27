@@ -12,3 +12,5 @@ ssh/.ssh/authorized_keys
 /pi/.pi/agent/cache/ollama-cloud/*
 /pi/.pi/agent/run-history.jsonl
 /pi/.pi/agent/.direnv
+/pi/.pi/agent/node_modules
+/pi/.pi/agent/.pi/subagent-outputs
