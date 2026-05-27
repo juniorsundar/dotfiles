@@ -13,5 +13,5 @@
       "typebox": [".direnv/node_modules/typebox"]
     }
   },
-  "include": ["extensions/confirm-mutating-tools.ts"]
+  "include": ["extensions/*.ts"]
 }

@@ -1,6 +1,6 @@
 {
-  "defaultModel": "MiniMax-M2.7",
-  "defaultProvider": "minimax",
+  "defaultModel": "deepseek/deepseek-v4-pro",
+  "defaultProvider": "kilo",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.75.5",
