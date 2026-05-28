@@ -3,10 +3,34 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from "fs"
 import { join } from "path";
 import { tmpdir } from "os";
 import * as spawnerModule from "./spawner";
+import * as agentDefParserModule from "./agent-definition-parser";
+
+// ── Mock @earendil-works/pi-tui so we can test renderCall without the real package ──
+//
+// The production code imports { Text } from pi-tui. In tests we provide a minimal
+// compatible implementation so the module resolves without a local install.
+
+vi.mock("@earendil-works/pi-tui", () => {
+  class Text {
+    private _text: string;
+    constructor(text = "", _paddingX = 0, _paddingY = 0) {
+      this._text = text;
+    }
+    setText(text: string) {
+      this._text = text;
+    }
+    render(_width: number): string[] {
+      return this._text.split("\n");
+    }
+    invalidate() {}
+  }
+
+  return { Text };
+});
 
 // ── Module import ──
 
-import subagentEntryPoint from "./index";
+import subagentEntryPoint, { resolveModel, formatCallHeader } from "./index";
 
 // ── Test helpers ──
 
@@ -592,5 +616,308 @@ describe("subagents entry point", () => {
     expect(warning).toBeUndefined();
 
     warnSpy.mockRestore();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// renderCall — static tool call header with agent type + model
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("renderCall — tool call header", () => {
+  function extractToolDef(pi: ReturnType<typeof mockExtensionAPI>) {
+    expect(pi.registerTool).toHaveBeenCalledTimes(1);
+    return pi.registerTool.mock.calls[0][0];
+  }
+
+  function callRender(
+    toolDef: any,
+    args: Record<string, unknown>,
+    ctxOverrides: Record<string, unknown> = {},
+  ) {
+    const theme = {
+      bold: (t: string) => `BOLD(${t})`,
+      fg: (_c: string, t: string) => `FG(${t})`,
+    } as any;
+
+    const context = {
+      args,
+      toolCallId: "tcid-1",
+      invalidate: () => {},
+      lastComponent: undefined,
+      state: {},
+      cwd: ctxOverrides.cwd ?? "/test",
+      executionStarted: false,
+      argsComplete: false,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+      ...ctxOverrides,
+    } as any;
+
+    return toolDef.renderCall(args, theme, context);
+  }
+
+  // ── Slice 1: Tracer bullet — basic header ──────────────────────────
+
+  it("renderCall returns a valid Component with render and invalidate", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    expect(toolDef.renderCall).toBeTypeOf("function");
+
+    const component = callRender(toolDef, { agent_type: "scout", prompt: "test" });
+
+    expect(component).toBeDefined();
+    expect(typeof component.render).toBe("function");
+    expect(typeof component.invalidate).toBe("function");
+  });
+
+  it("renders agent type in bold as the first line", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(toolDef, { agent_type: "scout", prompt: "test" });
+
+    const lines = component.render(80);
+    expect(lines[0]).toContain("BOLD(scout)");
+  });
+
+  it("renders exactly two lines", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(toolDef, { agent_type: "scout", prompt: "test" });
+
+    const lines = component.render(80);
+    expect(lines).toHaveLength(2);
+  });
+
+  // ── Slice 1 bonus: status indicator ───────────────────────────────
+
+  it("shows 'pending...' status when execution has not started", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test" },
+      { executionStarted: false },
+    );
+
+    const lines = component.render(80);
+    expect(lines[1]).toContain("pending");
+  });
+
+  it("shows 'running...' status when execution started", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test" },
+      { executionStarted: true },
+    );
+
+    const lines = component.render(80);
+    expect(lines[1]).toContain("running");
+  });
+
+  // ── Slice 2: Model from agent definition ──────────────────────────
+
+  it("shows model from agent definition in muted style", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { model: "minimax/MiniMax-M2.7" });
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test" },
+      { cwd: "/test" },
+    );
+
+    const lines = component.render(80);
+    expect(lines[0]).toContain("FG(minimax/MiniMax-M2.7)");
+  });
+
+  // ── Slice 3: Model override priority ────────────────────────────
+
+  it("uses args.model when provided, ignoring agent definition model", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { model: "minimax/MiniMax-M2.7" });
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test", model: "anthropic/claude-sonnet" },
+      { cwd: "/test" },
+    );
+
+    const lines = component.render(80);
+    expect(lines[0]).toContain("FG(anthropic/claude-sonnet)");
+    expect(lines[0]).not.toContain("minimax");
+  });
+
+  // ── Slice 4: Graceful degradation ─────────────────────────────────
+
+  it("renders header without model when agent has no model in definition and no args.model", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout"); // no model field
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test" },
+      { cwd: "/test" },
+    );
+
+    const lines = component.render(80);
+    // Still renders two lines, agent in bold is present
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain("BOLD(scout)");
+  });
+
+  it("renders header when agent definition file does not exist", () => {
+    const agentsDir = makeAgentsDir();
+    // No agent definition written
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "nonexistent", prompt: "test" },
+      { cwd: "/test" },
+    );
+
+    const lines = component.render(80);
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain("BOLD(nonexistent)");
+  });
+
+  // ── Slice 5: Component reuse via lastComponent ────────────────────
+
+  it("reuses lastComponent when available (pattern consistency)", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    const first = callRender(toolDef, { agent_type: "scout", prompt: "test" });
+
+    // Second call with lastComponent set to the first component
+    const second = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test" },
+      { lastComponent: first },
+    );
+
+    // Should reuse the same component instance
+    expect(second).toBe(first);
+  });
+
+  // ── Defensive fallback ──────────────────────────────────────────────
+
+  it("renders '...' as agent type when agent_type is absent", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(toolDef, { prompt: "test" }); // no agent_type
+
+    const lines = component.render(80);
+    expect(lines[0]).toContain("BOLD(...)");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// resolveModel — pure function tests
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("resolveModel", () => {
+
+  it("returns args.model when present", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { model: "minimax/MiniMax-M2.7" });
+
+    const result = resolveModel("scout", { model: "anthropic/claude-sonnet" }, agentsDir);
+    expect(result).toBe("anthropic/claude-sonnet");
+  });
+
+  it("returns agent definition model when args.model is absent", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { model: "minimax/MiniMax-M2.7" });
+
+    const result = resolveModel("scout", {}, agentsDir);
+    expect(result).toBe("minimax/MiniMax-M2.7");
+  });
+
+  it("returns undefined when neither args.model nor definition model", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout"); // no model
+
+    const result = resolveModel("scout", {}, agentsDir);
+    expect(result).toBeUndefined();
+  });
+
+  it("returns undefined when agent definition file does not exist", () => {
+    const agentsDir = makeAgentsDir();
+
+    const result = resolveModel("nonexistent", {}, agentsDir);
+    expect(result).toBeUndefined();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// formatCallHeader — pure function tests
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("formatCallHeader", () => {
+
+  function themeStub() {
+    return {
+      bold: (t: string) => `BOLD(${t})`,
+      fg: (_c: string, t: string) => `FG(${t})`,
+    };
+  }
+
+  it("renders agent type in bold and model in muted", () => {
+    const result = formatCallHeader("scout", "minimax/MiniMax-M2.7", true, themeStub());
+    const lines = result.split("\n");
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toBe("BOLD(scout)  FG(minimax/MiniMax-M2.7)");
+    expect(lines[1]).toBe("FG(running...)");
+  });
+
+  it("renders agent type without model when model is undefined", () => {
+    const result = formatCallHeader("scout", undefined, true, themeStub());
+    const lines = result.split("\n");
+    expect(lines[0]).toBe("BOLD(scout)");
+  });
+
+  it("renders pending... when not started", () => {
+    const result = formatCallHeader("scout", undefined, false, themeStub());
+    const lines = result.split("\n");
+    expect(lines[1]).toBe("FG(pending...)");
+  });
+
+  it("renders running... when started", () => {
+    const result = formatCallHeader("scout", undefined, true, themeStub());
+    const lines = result.split("\n");
+    expect(lines[1]).toBe("FG(running...)");
   });
 });

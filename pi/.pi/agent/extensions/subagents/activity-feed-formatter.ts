@@ -20,6 +20,12 @@ export interface ActivityFeedOptions {
 export interface ActivityFeedOutput {
   collapsed: ActivityFeedView;
   expanded: ActivityFeedView;
+  usage?: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+  };
 }
 
 const DEFAULT_COLLAPSED_WINDOW = 6;
@@ -39,6 +45,21 @@ export function formatActivityFeed(
   const collapsedLines = collapsedEvents.map(toLine);
   const expandedLines = events.map(toLine);
 
+  // Extract most recent usage event for token snapshot
+  let usage: ActivityFeedOutput["usage"] | undefined;
+  for (let i = events.length - 1; i >= 0; i--) {
+    if (events[i].type === "usage") {
+      const u = events[i];
+      usage = {
+        input: u.input,
+        output: u.output,
+        cacheRead: u.cacheRead,
+        cacheWrite: u.cacheWrite,
+      };
+      break;
+    }
+  }
+
   return {
     collapsed: {
       text: [
@@ -53,6 +74,7 @@ export function formatActivityFeed(
       hiddenCount: 0,
       lines: expandedLines,
     },
+    usage,
   };
 }
 

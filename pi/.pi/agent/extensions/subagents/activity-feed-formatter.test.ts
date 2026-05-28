@@ -224,6 +224,46 @@ describe("formatActivityFeed — event categories", () => {
   });
 });
 
+describe("formatActivityFeed — usage extraction", () => {
+  it("output includes usage when events contain a usage event", () => {
+    const events = [
+      makeEvent({ type: "lifecycle", text: "started", timestamp: "2026-01-01T00:00:00Z", status: "started" }),
+      { type: "usage" as const, text: "Tokens: 100 input, 50 output", timestamp: "2026-01-01T00:00:01Z", input: 100, output: 50 },
+    ];
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.usage).toEqual({ input: 100, output: 50 });
+    expect(feed.usage?.cacheRead).toBeUndefined();
+    expect(feed.usage?.cacheWrite).toBeUndefined();
+  });
+
+  it("extracts the most recent usage event, superseding earlier ones", () => {
+    const events = [
+      { type: "usage" as const, text: "Tokens: 10 in", timestamp: "2026-01-01T00:00:00Z", input: 10 },
+      makeEvent({ type: "assistant_text", text: "working", timestamp: "2026-01-01T00:00:01Z" }),
+      { type: "usage" as const, text: "Tokens: 200 input, 75 output", timestamp: "2026-01-01T00:00:02Z", input: 200, output: 75 },
+    ];
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.usage?.input).toBe(200);
+    expect(feed.usage?.output).toBe(75);
+    expect(feed.usage?.cacheRead).toBeUndefined();
+  });
+
+  it("leaves usage undefined when no usage events are present", () => {
+    const events = [
+      makeEvent({ type: "lifecycle", text: "started", timestamp: "2026-01-01T00:00:00Z", status: "started" }),
+      makeEvent({ type: "terminal", text: "done", timestamp: "2026-01-01T00:00:01Z", status: "completed" }),
+    ];
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.usage).toBeUndefined();
+  });
+});
+
 describe("formatActivityFeed — edge cases", () => {
   it("returns empty collapsed and expanded views for an empty history", () => {
     const feed = formatActivityFeed([]);

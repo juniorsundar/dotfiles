@@ -163,6 +163,61 @@ if msg.get('role') == 'assistant':
 " 2>/dev/null || echo "")
         fi
       fi
+
+      # Emit usage progress event if message.usage is present
+      if [[ "$JSON_PARSER" == "jq" ]]; then
+        has_usage=$(echo "$line" | jq -r 'if .message.usage != null then "true" else "false" end' 2>/dev/null || echo "false")
+      else
+        has_usage=$(echo "$line" | python3 -c "
+import sys, json
+d = json.loads(sys.stdin.readline())
+print('true' if d.get('message',{}).get('usage') is not None else 'false')
+" 2>/dev/null || echo "false")
+      fi
+
+      if [[ "$has_usage" == "true" ]]; then
+        timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        if [[ "$JSON_PARSER" == "jq" ]]; then
+          usage_json=$(echo "$line" | jq -c '{
+            type: "usage",
+            text: ("Tokens: " + (.message.usage.input // 0 | tostring) + " input, " + (.message.usage.output // 0 | tostring) + " output, " + (.message.usage.cacheRead // 0 | tostring) + " cache read, " + (.message.usage.cacheWrite // 0 | tostring) + " cache write"),
+            timestamp: $ts,
+            input: (.message.usage.input // 0),
+            output: (.message.usage.output // 0),
+            cacheRead: (.message.usage.cacheRead // 0),
+            cacheWrite: (.message.usage.cacheWrite // 0)
+          }' --arg ts "$timestamp" 2>/dev/null)
+          if [[ -n "$usage_json" ]]; then
+            echo "$usage_json" >> "$PROGRESS_FILE"
+          fi
+        else
+          python3 - "$PROGRESS_FILE" "$timestamp" "$line" <<'PY'
+import json
+import sys
+
+progress_path, timestamp = sys.argv[1], sys.argv[2]
+d = json.loads(sys.argv[3])
+usage = d.get("message", {}).get("usage")
+if usage:
+    it = usage.get("input", 0)
+    ot = usage.get("output", 0)
+    cr = usage.get("cacheRead", 0)
+    cw = usage.get("cacheWrite", 0)
+    text = f"Tokens: {it} input, {ot} output, {cr} cache read, {cw} cache write"
+    event = {
+        "type": "usage",
+        "text": text,
+        "timestamp": timestamp,
+        "input": it,
+        "output": ot,
+        "cacheRead": cr,
+        "cacheWrite": cw,
+    }
+    with open(progress_path, "a", encoding="utf-8") as pf:
+        pf.write(json.dumps(event, separators=(",", ":")) + "\n")
+PY
+        fi
+      fi
       ;;
     tool_execution_start|tool_call)
       # Render tool name + truncated args
@@ -227,6 +282,62 @@ for msg in reversed(d.get('messages', [])):
       fi
       # Note: text_buffer is for pane display only; final_text is authoritative.
       # Do not append text_buffer here — it would duplicate message_end/messages text.
+
+      # Emit final usage snapshot summed across all messages in the messages array
+      if [[ "$JSON_PARSER" == "jq" ]]; then
+        it=$(echo "$line" | jq '[.messages[].usage.input // 0] | add' 2>/dev/null || echo "0")
+        ot=$(echo "$line" | jq '[.messages[].usage.output // 0] | add' 2>/dev/null || echo "0")
+        cr=$(echo "$line" | jq '[.messages[].usage.cacheRead // 0] | add' 2>/dev/null || echo "0")
+        cw=$(echo "$line" | jq '[.messages[].usage.cacheWrite // 0] | add' 2>/dev/null || echo "0")
+        totalUsage=$((it + ot + cr + cw))
+      else
+        read it ot cr cw <<< $(echo "$line" | python3 -c "
+import sys, json
+d = json.loads(sys.stdin.readline())
+it = sum(m.get('usage',{}).get('input',0) or 0 for m in d.get('messages',[]))
+ot = sum(m.get('usage',{}).get('output',0) or 0 for m in d.get('messages',[]))
+cr = sum(m.get('usage',{}).get('cacheRead',0) or 0 for m in d.get('messages',[]))
+cw = sum(m.get('usage',{}).get('cacheWrite',0) or 0 for m in d.get('messages',[]))
+print(it, ot, cr, cw)
+" 2>/dev/null || echo "0 0 0 0")
+        totalUsage=$((it + ot + cr + cw))
+      fi
+
+      if [[ $totalUsage -gt 0 ]]; then
+        timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        if [[ "$JSON_PARSER" == "jq" ]]; then
+          jq -nc \
+            --arg type "usage" \
+            --arg text "Tokens: $it input, $ot output, $cr cache read, $cw cache write" \
+            --arg timestamp "$timestamp" \
+            --argjson input "$it" \
+            --argjson output "$ot" \
+            --argjson cacheRead "$cr" \
+            --argjson cacheWrite "$cw" \
+            '{type:$type,text:$text,timestamp:$timestamp,input:$input,output:$output,cacheRead:$cacheRead,cacheWrite:$cacheWrite}' \
+            >> "$PROGRESS_FILE"
+        else
+          python3 - "$PROGRESS_FILE" "$timestamp" "$it" "$ot" "$cr" "$cw" <<'PY'
+import json
+import sys
+
+progress_path, timestamp = sys.argv[1], sys.argv[2]
+it, ot, cr, cw = sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]
+text = f"Tokens: {it} input, {ot} output, {cr} cache read, {cw} cache write"
+event = {
+    "type": "usage",
+    "text": text,
+    "timestamp": timestamp,
+    "input": int(it),
+    "output": int(ot),
+    "cacheRead": int(cr),
+    "cacheWrite": int(cw),
+}
+with open(progress_path, "a", encoding="utf-8") as pf:
+    pf.write(json.dumps(event, separators=(",", ":")) + "\n")
+PY
+        fi
+      fi
 
       # Write output
       echo "$final_text" > "$OUTPUT_FILE"

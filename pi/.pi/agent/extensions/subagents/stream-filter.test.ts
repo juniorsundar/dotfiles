@@ -722,6 +722,130 @@ describe("stream-filter.sh", () => {
     });
   });
 
+  describe("usage events", () => {
+    it("appends a usage progress event from message_end with message.usage", async () => {
+      const taskDir = makeTaskDir();
+      taskDirs.push(taskDir);
+
+      const manifestPath = join(taskDir, "manifest.json");
+      writeFileSync(manifestPath, JSON.stringify({ task: "test task" }));
+
+      const messageEndWithUsage = JSON.stringify({
+        type: "message_end",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "answer" }],
+          usage: { input: 150, output: 80, cacheRead: 300, cacheWrite: 25 },
+        },
+      });
+
+      const events = [
+        messageEndWithUsage,
+        JSON.stringify({ type: "agent_end", messages: [{ role: "user", content: [] }, { role: "assistant", content: [{ type: "text", text: "done" }] }], willRetry: false }),
+      ];
+
+      const { exitCode } = await runScript(taskDir, manifestPath, events);
+
+      expect(exitCode).toBe(0);
+
+      const progressEvents = readFileSync(join(taskDir, "progress.jsonl"), "utf-8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line));
+
+      const usageEvents = progressEvents.filter((event) => event.type === "usage");
+      expect(usageEvents).toHaveLength(1);
+      expect(usageEvents[0]).toEqual(expect.objectContaining({
+        type: "usage",
+        input: 150,
+        output: 80,
+        cacheRead: 300,
+        cacheWrite: 25,
+      }));
+      expect(typeof usageEvents[0].text).toBe("string");
+      expect(usageEvents[0].text.length).toBeGreaterThan(0);
+      expect(Number.isNaN(Date.parse(usageEvents[0].timestamp))).toBe(false);
+    });
+
+    it("appends a final usage snapshot on agent_end summing usage across messages", async () => {
+      const taskDir = makeTaskDir();
+      taskDirs.push(taskDir);
+
+      const manifestPath = join(taskDir, "manifest.json");
+      writeFileSync(manifestPath, JSON.stringify({ task: "test task" }));
+
+      const events = [
+        JSON.stringify({
+          type: "agent_end",
+          messages: [
+            { role: "user", content: [{ type: "text", text: "hello" }] },
+            { role: "assistant", content: [{ type: "text", text: "turn 1" }], usage: { input: 100, output: 50, cacheRead: 200, cacheWrite: 10 } },
+            { role: "user", content: [{ type: "text", text: "followup" }] },
+            { role: "assistant", content: [{ type: "text", text: "turn 2" }], usage: { input: 80, output: 40, cacheRead: 0, cacheWrite: 0 } },
+          ],
+          willRetry: false,
+        }),
+      ];
+
+      const { exitCode } = await runScript(taskDir, manifestPath, events);
+
+      expect(exitCode).toBe(0);
+
+      const progressEvents = readFileSync(join(taskDir, "progress.jsonl"), "utf-8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line));
+
+      const usageEvents = progressEvents.filter((event) => event.type === "usage");
+      expect(usageEvents).toHaveLength(1);
+      expect(usageEvents[0]).toEqual(expect.objectContaining({
+        type: "usage",
+        input: 180,
+        output: 90,
+        cacheRead: 200,
+        cacheWrite: 10,
+      }));
+    });
+
+    it("produces valid progress.jsonl without usage events when no usage data is present", async () => {
+      const taskDir = makeTaskDir();
+      taskDirs.push(taskDir);
+
+      const manifestPath = join(taskDir, "manifest.json");
+      writeFileSync(manifestPath, JSON.stringify({ task: "test task" }));
+
+      const events = [
+        JSON.stringify({ type: "agent_start" }),
+        JSON.stringify({ type: "message_end", message: { role: "assistant", content: [{ type: "text", text: "no usage here" }] } }),
+        JSON.stringify({ type: "tool_execution_start", toolCallId: "call_1", toolName: "bash", args: { command: "ls" } }),
+        JSON.stringify({ type: "agent_end", messages: [{ role: "user", content: [] }, { role: "assistant", content: [{ type: "text", text: "done" }] }], willRetry: false }),
+      ];
+
+      const { exitCode } = await runScript(taskDir, manifestPath, events);
+
+      expect(exitCode).toBe(0);
+
+      const progressPath = join(taskDir, "progress.jsonl");
+      const raw = readFileSync(progressPath, "utf-8");
+
+      // No malformed output: every non-empty line must be valid JSON
+      const lines = raw.trim().split("\n").filter((l) => l.length > 0);
+      for (const line of lines) {
+        expect(() => JSON.parse(line)).not.toThrow();
+      }
+
+      const progressEvents = lines.map((line) => JSON.parse(line));
+
+      // No usage events emitted
+      const usageEvents = progressEvents.filter((event) => event.type === "usage");
+      expect(usageEvents).toHaveLength(0);
+
+      // Other events still present
+      expect(progressEvents).toContainEqual(expect.objectContaining({ type: "lifecycle", status: "started" }));
+      expect(progressEvents).toContainEqual(expect.objectContaining({ type: "terminal", status: "completed" }));
+    });
+  });
+
   describe("exit code propagation", () => {
     it("exits 0 on successful agent_end", async () => {
       const taskDir = makeTaskDir();

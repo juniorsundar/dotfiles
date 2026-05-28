@@ -1,5 +1,8 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
+import type { Component } from "@earendil-works/pi-tui";
 import { spawnSubagent, listAvailableAgents } from "./spawner";
+import { parseAgentDefinitionFile } from "./agent-definition-parser";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
@@ -8,6 +11,45 @@ const DEFAULT_AGENTS_DIR = join(homedir(), ".pi", "agent", "agents");
 
 export interface SubagentEntryPointOptions {
   agentsDir?: string;
+}
+
+/** Resolve the model for a subagent call: args.model override > agent definition > undefined */
+export function resolveModel(
+  agentType: string,
+  args: Record<string, unknown>,
+  agentsDir: string,
+): string | undefined {
+  let model = args.model as string | undefined;
+  if (!model) {
+    try {
+      const def = parseAgentDefinitionFile(agentType, agentsDir);
+      model = def.model;
+    } catch {
+      // Agent definition may not exist — degrade gracefully
+    }
+  }
+  return model;
+}
+
+/** Format the two-line static tool call header. */
+export function formatCallHeader(
+  agentType: string,
+  model: string | undefined,
+  executionStarted: boolean,
+  theme: { bold: (text: string) => string; fg: (color: string, text: string) => string },
+): string {
+  let line1 = theme.bold(agentType);
+  if (model) {
+    line1 += "  " + theme.fg("muted", model);
+  }
+
+  // renderCall is only shown during call phase;
+  // once result arrives, ToolExecutionComponent switches to renderResult
+  const line2 = !executionStarted
+    ? theme.fg("dim", "pending...")
+    : theme.fg("dim", "running...");
+
+  return `${line1}\n${line2}`;
 }
 
 function buildToolDescription(agentsDir: string): string {
@@ -94,6 +136,23 @@ export default function subagentEntryPoint(
           details: { error: true },
         };
       }
+    },
+
+    renderCall(args: Record<string, unknown>, theme: any, context: any): Component {
+      const text: Text =
+        context.lastComponent instanceof Text
+          ? context.lastComponent
+          : new Text("", 0, 0);
+
+      const agentType = (args.agent_type as string) || "...";
+      const model = resolveModel(agentType, args, agentsDir);
+      const header = formatCallHeader(agentType, model, !!context.executionStarted, {
+        bold: theme.bold.bind(theme),
+        fg: theme.fg.bind(theme),
+      });
+
+      text.setText(header);
+      return text;
     },
   });
 

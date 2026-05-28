@@ -1,10 +1,14 @@
 import { statSync, readFileSync, existsSync } from "fs";
 
 export interface ProgressEvent {
-  type: "lifecycle" | "tool" | "assistant_text" | "terminal";
+  type: "lifecycle" | "tool" | "assistant_text" | "terminal" | "usage";
   text: string;
   timestamp: string;
   status?: "started" | "succeeded" | "failed" | "completed";
+  input?: number;
+  output?: number;
+  cacheRead?: number;
+  cacheWrite?: number;
 }
 
 export interface TailProgressOptions {
