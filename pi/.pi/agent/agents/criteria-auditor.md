@@ -7,7 +7,6 @@ model: minimax/MiniMax-M2.7
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
-output: .pi/subagent-outputs/criteria-auditor-report.md
 defaultProgress: true
 ---
 

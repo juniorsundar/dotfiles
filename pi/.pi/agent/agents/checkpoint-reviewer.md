@@ -3,11 +3,10 @@ name: checkpoint-reviewer
 description: "Per-slice reviewer for TDD cycles. Checks code changes against acceptance criteria, architectural boundaries, and test quality. Use after each TDD slice's GREEN phase to catch design oversights before they compound. Lighter than a full reviewer — focuses on the current slice's scope."
 tools: read, grep, find, ls, bash
 thinking: high
-model: ollama-cloud/deepseek-v4-flash
+model: opencode-go/deepseek-v4-flash
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
-output: .pi/subagent-outputs/checkpoint-reviewer-report.md
 defaultProgress: true
 ---
 

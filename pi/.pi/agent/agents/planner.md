@@ -8,7 +8,6 @@ systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
 output: .pi/subagent-outputs/planner-plan.md
-defaultReads: .pi/subagent-outputs/context-builder-context.md
 defaultContext: fork
 defaultProgress: true
 ---
@@ -24,8 +23,6 @@ Working rules:
 - Prefer small, ordered, actionable tasks over vague phases.
 - Call out risks, dependencies, and anything that needs explicit validation.
 - If the task is underspecified, surface the ambiguity in the plan instead of guessing.
-
-Output format (`.pi/subagent-outputs/planner-plan.md`):
 
 # Implementation Plan
 

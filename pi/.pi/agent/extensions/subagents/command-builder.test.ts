@@ -4,6 +4,11 @@ import type { AgentDefinition } from "./agent-definition-parser";
 
 const MANIFEST_PATH = "/tmp/manifest.json";
 
+function valueAfter(args: string[], flag: string): string | undefined {
+  const index = args.indexOf(flag);
+  return index >= 0 ? args[index + 1] : undefined;
+}
+
 function makeDefinition(overrides: Partial<AgentDefinition> = {}): AgentDefinition {
   return {
     name: "scout",
@@ -17,16 +22,16 @@ function makeDefinition(overrides: Partial<AgentDefinition> = {}): AgentDefiniti
 }
 
 describe("buildCommand", () => {
-  it("produces the basic structure with --mode json, --no-session, PI_SUBAGENT_CHILD, and manifest", () => {
+  it("produces the basic structure with --mode json, --no-session, PI_SUBAGENT_CHILD, and task prompt", () => {
     const result = buildCommand(makeDefinition(), "Find all .ts files", MANIFEST_PATH);
 
     expect(result.args).toContain("--mode");
     expect(result.args).toContain("json");
     expect(result.args).toContain("--no-session");
     expect(result.args).toContain("-p");
-    expect(result.args).toContain(MANIFEST_PATH);
+    expect(valueAfter(result.args, "-p")).toBe("Find all .ts files");
+    expect(result.args).not.toContain(MANIFEST_PATH);
     expect(result.env.PI_SUBAGENT_CHILD).toBe("1");
-    expect(result.manifest.task).toBe("Find all .ts files");
   });
 
   describe("system prompt modes", () => {
@@ -38,9 +43,9 @@ describe("buildCommand", () => {
       );
 
       expect(result.args).toContain("--system-prompt");
-      expect(result.args).toContain(MANIFEST_PATH);
+      expect(valueAfter(result.args, "--system-prompt")).toBe("You are a worker");
+      expect(result.args).not.toContain(MANIFEST_PATH);
       expect(result.args).not.toContain("--append-system-prompt");
-      expect(result.manifest.systemPrompt).toBe("You are a worker");
     });
 
     it("uses --append-system-prompt when systemPromptMode is append", () => {
@@ -51,19 +56,20 @@ describe("buildCommand", () => {
       );
 
       expect(result.args).toContain("--append-system-prompt");
-      expect(result.args).toContain(MANIFEST_PATH);
+      expect(valueAfter(result.args, "--append-system-prompt")).toBe("Also: follow these rules");
+      expect(result.args).not.toContain(MANIFEST_PATH);
       expect(result.args).not.toContain("--system-prompt");
-      expect(result.manifest.systemPrompt).toBe("Also: follow these rules");
     });
 
-    it("does not include systemPrompt in manifest when systemPromptBody is empty", () => {
+    it("does not include system prompt flags when systemPromptBody is empty", () => {
       const result = buildCommand(
         makeDefinition({ systemPromptBody: "" }),
         "Do stuff",
         MANIFEST_PATH,
       );
 
-      expect(result.manifest.systemPrompt).toBeUndefined();
+      expect(result.args).not.toContain("--system-prompt");
+      expect(result.args).not.toContain("--append-system-prompt");
     });
   });
 
@@ -251,8 +257,8 @@ describe("buildCommand", () => {
     });
   });
 
-  describe("manifest special characters", () => {
-    it("preserves quotes and special characters in systemPromptBody in manifest", () => {
+  describe("argv special characters", () => {
+    it("preserves quotes and special characters in systemPromptBody argv", () => {
       const body = `Here is "quoted" text with 'apostrophes' and $dollar signs.`;
       const result = buildCommand(
         makeDefinition({ systemPromptMode: "replace", systemPromptBody: body }),
@@ -260,14 +266,10 @@ describe("buildCommand", () => {
         MANIFEST_PATH,
       );
 
-      expect(result.manifest.systemPrompt).toBe(body);
-      // JSON round-trip should not corrupt
-      const json = JSON.stringify(result.manifest);
-      const parsed = JSON.parse(json);
-      expect(parsed.systemPrompt).toBe(body);
+      expect(valueAfter(result.args, "--system-prompt")).toBe(body);
     });
 
-    it("preserves backticks and template literals in systemPromptBody in manifest", () => {
+    it("preserves backticks and template literals in systemPromptBody argv", () => {
       const body = "Use \`backticks\` and \${templateLiterals} here.";
       const result = buildCommand(
         makeDefinition({ systemPromptMode: "replace", systemPromptBody: body }),
@@ -275,13 +277,10 @@ describe("buildCommand", () => {
         MANIFEST_PATH,
       );
 
-      expect(result.manifest.systemPrompt).toBe(body);
-      const json = JSON.stringify(result.manifest);
-      const parsed = JSON.parse(json);
-      expect(parsed.systemPrompt).toBe(body);
+      expect(valueAfter(result.args, "--system-prompt")).toBe(body);
     });
 
-    it("preserves newlines in systemPromptBody in manifest", () => {
+    it("preserves newlines in systemPromptBody argv", () => {
       const body = "Line 1\nLine 2\nLine 3";
       const result = buildCommand(
         makeDefinition({ systemPromptMode: "replace", systemPromptBody: body }),
@@ -289,20 +288,14 @@ describe("buildCommand", () => {
         MANIFEST_PATH,
       );
 
-      expect(result.manifest.systemPrompt).toBe(body);
-      const json = JSON.stringify(result.manifest);
-      const parsed = JSON.parse(json);
-      expect(parsed.systemPrompt).toBe(body);
+      expect(valueAfter(result.args, "--system-prompt")).toBe(body);
     });
 
-    it("preserves special characters in task in manifest", () => {
+    it("preserves special characters in task argv", () => {
       const task = 'Task with "quotes", $vars, and \`backticks\`.';
       const result = buildCommand(makeDefinition(), task, MANIFEST_PATH);
 
-      expect(result.manifest.task).toBe(task);
-      const json = JSON.stringify(result.manifest);
-      const parsed = JSON.parse(json);
-      expect(parsed.task).toBe(task);
+      expect(valueAfter(result.args, "-p")).toBe(task);
     });
   });
 
@@ -331,12 +324,12 @@ describe("buildCommand", () => {
 
       // Task prompt
       expect(result.args).toContain("-p");
-      expect(result.args).toContain(MANIFEST_PATH);
-      expect(result.manifest.task).toBe("Review the code in src/");
+      expect(valueAfter(result.args, "-p")).toBe("Review the code in src/");
+      expect(result.args).not.toContain(MANIFEST_PATH);
 
       // System prompt
       expect(result.args).toContain("--system-prompt");
-      expect(result.manifest.systemPrompt).toBe("You are a code reviewer.");
+      expect(valueAfter(result.args, "--system-prompt")).toBe("You are a code reviewer.");
 
       // Tools
       const toolsIndex = result.args.indexOf("--tools");
@@ -380,7 +373,7 @@ describe("buildCommand", () => {
 
       // Definition-only fields still present
       expect(result.args).toContain("--append-system-prompt");
-      expect(result.manifest.systemPrompt).toBe("Extra rules here.");
+      expect(valueAfter(result.args, "--append-system-prompt")).toBe("Extra rules here.");
 
       const toolsIndex = result.args.indexOf("--tools");
       expect(result.args[toolsIndex + 1]).toBe("read,write");
@@ -402,7 +395,6 @@ describe("buildCommand", () => {
       expect(result.args).not.toContain("--no-context-files");
       expect(result.args).not.toContain("--no-skills");
       expect(result.args).not.toContain("--no-extensions");
-      expect(result.manifest.systemPrompt).toBeUndefined();
 
       // Still has the always-present bits
       expect(result.args).toContain("--mode");

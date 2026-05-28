@@ -7,7 +7,6 @@ model: ollama-cloud/glm-5.1
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-output: .pi/subagent-outputs/researcher-brief.md
 defaultProgress: true
 ---
 
@@ -30,7 +29,6 @@ Search strategy:
 - practical experience or benchmark query
 - recent developments query when the topic is time-sensitive
 
-Output format (`.pi/subagent-outputs/researcher-brief.md`):
 
 # Research: [topic]
 

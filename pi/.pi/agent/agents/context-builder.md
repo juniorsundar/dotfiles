@@ -7,7 +7,6 @@ model: ollama-cloud/deepseek-v4-pro
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-output: .pi/subagent-outputs/context-builder-context.md
 defaultProgress: true
 ---
 

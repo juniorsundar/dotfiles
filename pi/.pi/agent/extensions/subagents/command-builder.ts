@@ -3,10 +3,6 @@ import type { AgentDefinition } from "./agent-definition-parser";
 export interface BuildCommandResult {
   args: string[];
   env: Record<string, string>;
-  manifest: {
-    task: string;
-    systemPrompt?: string;
-  };
 }
 
 export interface BuildCommandOverrides {
@@ -17,7 +13,7 @@ export interface BuildCommandOverrides {
 export function buildCommand(
   definition: AgentDefinition,
   task: string,
-  manifestPath: string,
+  _manifestPath: string,
   overrides?: BuildCommandOverrides,
 ): BuildCommandResult {
   const args: string[] = [
@@ -29,17 +25,12 @@ export function buildCommand(
     PI_SUBAGENT_CHILD: "1",
   };
 
-  const manifest: BuildCommandResult["manifest"] = {
-    task,
-  };
-
   // System prompt
   if (definition.systemPromptBody) {
     const flag = definition.systemPromptMode === "append"
       ? "--append-system-prompt"
       : "--system-prompt";
-    args.push(flag, manifestPath);
-    manifest.systemPrompt = definition.systemPromptBody;
+    args.push(flag, definition.systemPromptBody);
   }
 
   // Tools
@@ -69,7 +60,7 @@ export function buildCommand(
   }
 
   // Task prompt (-p)
-  args.push("-p", manifestPath);
+  args.push("-p", task);
 
-  return { args, env, manifest };
+  return { args, env };
 }

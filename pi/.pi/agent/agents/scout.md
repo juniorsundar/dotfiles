@@ -7,7 +7,6 @@ thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-output: .pi/subagent-outputs/scout-context.md
 defaultProgress: true
 ---
 
@@ -28,8 +27,6 @@ Working rules:
 - When you cite code, use exact file paths and line ranges.
 - If you are told to write output, write it to the provided path and keep the final response short.
 - When running solo, summarize what you found after writing the output.
-
-Output format (`.pi/subagent-outputs/scout-context.md`):
 
 # Code Context
 
