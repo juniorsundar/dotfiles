@@ -1,6 +1,6 @@
 {
   "defaultModel": "deepseek-v4-pro",
-  "defaultProvider": "ollama-cloud",
+  "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.76.0",

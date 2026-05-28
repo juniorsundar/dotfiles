@@ -67,7 +67,38 @@ afterEach(() => {
 });
 
 describe("subagents entry point", () => {
-  // ── Slice 1: Tracer Bullet — Happy Path ──
+  // ── Slice 1.1: Tracer Bullet — onUpdate forwarded to spawnSubagent ──
+
+  it("forwards onUpdate callback to spawnSubagent as onProgress", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    const mockOnUpdate = vi.fn();
+    const spawnSpy = vi.spyOn(spawnerModule, "spawnSubagent").mockResolvedValueOnce({
+      output: "task completed successfully",
+      agentId: "scout-a1b2c3d4",
+    });
+
+    await toolCall.execute(
+      "call-1",
+      { agent_type: "scout", prompt: "Find all TypeScript files" },
+      new AbortController().signal,
+      mockOnUpdate,
+      { cwd: workDir },
+    );
+
+    expect(spawnSpy).toHaveBeenCalledTimes(1);
+    const spawnOpts = spawnSpy.mock.calls[0][0];
+    expect(spawnOpts.onProgress).toBeTypeOf("function");
+  });
+
+  // ── Slice 1.2: Tracer Bullet — Happy Path ──
 
   it("registers subagent tool with correct parameters and execute handler calls spawnSubagent, returns result", async () => {
     const workDir = makeWorkDir();
@@ -135,7 +166,233 @@ describe("subagents entry point", () => {
     expect(result.details.agentId).toBe("scout-a1b2c3d4");
   });
 
-  // ── Slice 2: Tool description lists available agent types ──
+  // ── Slice 2.1: Update payload shape — collapsed + expanded feed ──
+
+  it("calls onUpdate with AgentToolResult shape containing collapsed and expanded feed", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    const mockOnUpdate = vi.fn();
+    const sampleFeed = {
+      collapsed: {
+        text: "Subagent started\n… 3 older events hidden …\nTool: read\nTool: edit",
+        hiddenCount: 3,
+        lines: [
+          { type: "lifecycle" as const, text: "Subagent started", timestamp: "2026-01-01T00:00:00Z" },
+          { type: "tool" as const, text: "Tool: read", timestamp: "2026-01-01T00:00:01Z", status: "succeeded" as const },
+          { type: "tool" as const, text: "Tool: edit", timestamp: "2026-01-01T00:00:02Z", status: "succeeded" as const },
+        ],
+      },
+      expanded: {
+        text: "Subagent started\nTool: read\nTool: edit\nTool: search\nAssistant: done",
+        hiddenCount: 0,
+        lines: [
+          { type: "lifecycle" as const, text: "Subagent started", timestamp: "2026-01-01T00:00:00Z" },
+          { type: "tool" as const, text: "Tool: read", timestamp: "2026-01-01T00:00:01Z", status: "succeeded" as const },
+          { type: "tool" as const, text: "Tool: edit", timestamp: "2026-01-01T00:00:02Z", status: "succeeded" as const },
+          { type: "tool" as const, text: "Tool: search", timestamp: "2026-01-01T00:00:03Z", status: "succeeded" as const },
+          { type: "assistant_text" as const, text: "Assistant: done", timestamp: "2026-01-01T00:00:04Z" },
+        ],
+      },
+    };
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockImplementationOnce(async (opts) => {
+      opts.onProgress?.(sampleFeed);
+      return { output: "task completed successfully", agentId: "scout-abc123" };
+    });
+
+    await toolCall.execute(
+      "call-1",
+      { agent_type: "scout", prompt: "Find all TypeScript files" },
+      new AbortController().signal,
+      mockOnUpdate,
+      { cwd: workDir },
+    );
+
+    expect(mockOnUpdate).toHaveBeenCalledTimes(1);
+    const updatePayload = mockOnUpdate.mock.calls[0][0];
+
+    // Verify AgentToolResult shape
+    expect(updatePayload.content).toBeDefined();
+    expect(updatePayload.content).toHaveLength(1);
+    expect(updatePayload.content[0].type).toBe("text");
+    expect(updatePayload.content[0].text).toBe(sampleFeed.collapsed.text);
+
+    // Verify details contains full feed for custom rendering
+    expect(updatePayload.details).toBeDefined();
+    expect(updatePayload.details.collapsed).toBeDefined();
+    expect(updatePayload.details.expanded).toBeDefined();
+    expect(updatePayload.details.collapsed.hiddenCount).toBe(3);
+    expect(updatePayload.details.expanded.hiddenCount).toBe(0);
+  });
+
+  // ── Slice 3.1: Best-effort — onUpdate failure does not break completion ──
+
+  it("returns final result even when onUpdate throws during progress delivery", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    const throwingOnUpdate = vi.fn().mockImplementation(() => {
+      throw new Error("UI rendering failed");
+    });
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockImplementationOnce(async (opts) => {
+      opts.onProgress?.({
+        collapsed: { text: "progress", hiddenCount: 0, lines: [] },
+        expanded: { text: "progress", hiddenCount: 0, lines: [] },
+      });
+      return { output: "completed despite UI error", agentId: "scout-123" };
+    });
+
+    const result = await toolCall.execute(
+      "call-1",
+      { agent_type: "scout", prompt: "do stuff" },
+      new AbortController().signal,
+      throwingOnUpdate,
+      { cwd: workDir },
+    );
+
+    // onUpdate was called (and threw), but final result is still returned
+    expect(throwingOnUpdate).toHaveBeenCalledTimes(1);
+    expect(result.content[0].text).toBe("completed despite UI error");
+    expect(result.details.agentId).toBe("scout-123");
+  });
+
+  // ── Slice 3.2: Final success result unchanged despite progress updates ──
+
+  it("returns unchanged final success result when progress updates occurred", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "worker");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    const mockOnUpdate = vi.fn();
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockImplementationOnce(async (opts) => {
+      // Simulate multiple progress updates
+      opts.onProgress?.({
+        collapsed: { text: "Step 1", hiddenCount: 0, lines: [] },
+        expanded: { text: "Step 1", hiddenCount: 0, lines: [] },
+      });
+      opts.onProgress?.({
+        collapsed: { text: "Step 2", hiddenCount: 0, lines: [] },
+        expanded: { text: "Step 2", hiddenCount: 0, lines: [] },
+      });
+      return { output: "final answer", agentId: "worker-abc" };
+    });
+
+    const result = await toolCall.execute(
+      "call-1",
+      { agent_type: "worker", prompt: "complex task" },
+      new AbortController().signal,
+      mockOnUpdate,
+      { cwd: workDir },
+    );
+
+    // Progress was delivered to UI
+    expect(mockOnUpdate).toHaveBeenCalledTimes(2);
+
+    // But LLM gets ONLY the final result, no progress data
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe("text");
+    expect(result.content[0].text).toBe("final answer");
+    expect(result.details.agentId).toBe("worker-abc");
+    expect(result.details.collapsed).toBeUndefined();
+    expect(result.details.expanded).toBeUndefined();
+  });
+
+  // ── Slice 3.3: Final error result unchanged despite progress updates ──
+
+  it("returns unchanged final error result when progress updates occurred before failure", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "planner");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    const mockOnUpdate = vi.fn();
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockImplementationOnce(async (opts) => {
+      opts.onProgress?.({
+        collapsed: { text: "Trying...", hiddenCount: 0, lines: [] },
+        expanded: { text: "Trying...", hiddenCount: 0, lines: [] },
+      });
+      // Simulate the spawner returning an error output (not throwing)
+      return { output: '[ERROR] Subagent "planner" crashed.', agentId: "planner-err" };
+    });
+
+    const result = await toolCall.execute(
+      "call-1",
+      { agent_type: "planner", prompt: "risky task" },
+      new AbortController().signal,
+      mockOnUpdate,
+      { cwd: workDir },
+    );
+
+    // Progress was delivered to UI
+    expect(mockOnUpdate).toHaveBeenCalledTimes(1);
+
+    // LLM gets the error result, unchanged, with no progress mixed in
+    expect(result.content[0].text).toBe('[ERROR] Subagent "planner" crashed.');
+    expect(result.details.agentId).toBe("planner-err");
+    expect(result.details.collapsed).toBeUndefined();
+    expect(result.details.expanded).toBeUndefined();
+  });
+
+  // ── Slice 3.4: Progress works without tmux ──
+
+  it("returns final result normally when onUpdate is provided without any tmux environment", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    const mockOnUpdate = vi.fn();
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockImplementationOnce(async (opts) => {
+      // Simulate progress delivery via file tailing (no tmux involved at entry point)
+      opts.onProgress?.({
+        collapsed: { text: "Progress: no tmux needed", hiddenCount: 0, lines: [] },
+        expanded: { text: "Progress: no tmux needed", hiddenCount: 0, lines: [] },
+      });
+      return { output: "done", agentId: "scout-notmux" };
+    });
+
+    const result = await toolCall.execute(
+      "call-1",
+      { agent_type: "scout", prompt: "simple task" },
+      new AbortController().signal,
+      mockOnUpdate,
+      { cwd: workDir },
+    );
+
+    expect(mockOnUpdate).toHaveBeenCalledTimes(1);
+    expect(result.content[0].text).toBe("done");
+    expect(result.details.agentId).toBe("scout-notmux");
+  });
 
   it("tool description includes agent types loaded from the agents directory", () => {
     const agentsDir = makeAgentsDir();

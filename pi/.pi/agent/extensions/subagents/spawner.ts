@@ -4,6 +4,8 @@ import { spawn } from "child_process";
 import { mkdirSync, writeFileSync, readFileSync, readdirSync } from "fs";
 import { join, resolve } from "path";
 import { randomUUID } from "crypto";
+import { formatActivityFeed, type ActivityFeedOutput } from "./activity-feed-formatter";
+import { tailProgress, type ProgressEvent } from "./tail-progress";
 
 export const TIMEOUT_DEFAULTS: Record<string, number> = {
   scout: 120_000,
@@ -11,6 +13,8 @@ export const TIMEOUT_DEFAULTS: Record<string, number> = {
   worker: 600_000,
 };
 export const DEFAULT_TIMEOUT = 300_000;
+
+export type ProgressCallback = (feed: ActivityFeedOutput) => void;
 
 export interface SpawnSubagentOptions {
   agentType: string;
@@ -22,6 +26,10 @@ export interface SpawnSubagentOptions {
   wrapperPath?: string;
   /** For testing: inject a deterministic id generator. */
   generateId?: () => string;
+  /** Optional callback for progress updates during subagent execution. */
+  onProgress?: ProgressCallback;
+  /** Optional signal to cancel the subagent (kills child + stops progress tailing). */
+  signal?: AbortSignal;
 }
 
 export interface SpawnSubagentResult {
@@ -78,6 +86,8 @@ export async function spawnSubagent(
     overrides,
     wrapperPath: wrapperPathOverride,
     generateId,
+    onProgress,
+    signal,
   } = options;
 
   // 1. Generate unique agent-id
@@ -88,6 +98,15 @@ export async function spawnSubagent(
   // 2. Create task directory
   const taskDir = join(workDir, ".pi", "subagents", agentId);
   mkdirSync(taskDir, { recursive: true });
+
+  // 2a. Notify progress observer with initial empty feed (tracer bullet)
+  if (onProgress) {
+    try {
+      onProgress(formatActivityFeed([]));
+    } catch {
+      console.warn("[pi-subagents] Progress callback threw during initial feed");
+    }
+  }
 
   // 3. Write task.md
   writeFileSync(join(taskDir, "task.md"), task, "utf-8");
@@ -124,40 +143,88 @@ export async function spawnSubagent(
     stdio: ["ignore", "pipe", "pipe"],
   });
 
+  // 8a. Start progress tailing if callback provided
+  let progressTailer: { controller: AbortController; done: Promise<void> } | null = null;
+  if (onProgress) {
+    progressTailer = startProgressTailing(taskDir, onProgress);
+  }
+
   // 9. Compute timeout: explicit agent timeout (seconds→ms) > type default > global default
   const timeoutMs =
     definition.timeout !== undefined
       ? definition.timeout * 1000
       : (TIMEOUT_DEFAULTS[agentType] ?? DEFAULT_TIMEOUT);
 
-  // 10. Race: child exit vs timeout. Timeout is returned as tool output,
-  // not thrown, so the LLM receives a clear error message in-context.
-  await new Promise<void>((resolve, reject) => {
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      child.kill("SIGTERM");
-      // Write timeout error to output.md so wrapper path is consistent
-      writeFileSync(
-        join(taskDir, "output.md"),
-        `[ERROR] Subagent "${agentType}" timed out after ${timeoutMs / 1000}s.`,
-        "utf-8",
-      );
-      resolve();
-    }, timeoutMs);
+  // 10. Race: child exit vs timeout vs cancellation. Timeout is returned as
+  // tool output, not thrown, so the LLM receives a clear error message in-context.
+  try {
+    await new Promise<void>((resolve, reject) => {
+      let settled = false;
 
-    child.on("close", () => {
-      if (!timedOut) {
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+
+      const fail = (err: Error) => {
+        if (settled) return;
+        settled = true;
+        reject(err);
+      };
+
+      let timedOut = false;
+      const timer = setTimeout(() => {
+        timedOut = true;
+        // Stop progress tailing before killing child
+        progressTailer?.controller.abort();
+        child.kill("SIGTERM");
+        // Write timeout error to output.md so wrapper path is consistent
+        writeFileSync(
+          join(taskDir, "output.md"),
+          `[ERROR] Subagent "${agentType}" timed out after ${timeoutMs / 1000}s.`,
+          "utf-8",
+        );
+        finish();
+      }, timeoutMs);
+
+      child.on("close", () => {
+        if (!timedOut) {
+          clearTimeout(timer);
+        }
+        // Stop progress tailing
+        progressTailer?.controller.abort();
+        finish();
+      });
+
+      child.on("error", (err) => {
         clearTimeout(timer);
-      }
-      resolve();
-    });
+        // Stop progress tailing on crash
+        progressTailer?.controller.abort();
+        fail(err);
+      });
 
-    child.on("error", (err) => {
-      clearTimeout(timer);
-      reject(err);
+      // Cancellation signal: abort tailer and kill child
+      if (signal) {
+        const cancel = () => {
+          clearTimeout(timer);
+          progressTailer?.controller.abort();
+          child.kill("SIGTERM");
+          finish();
+        };
+        if (signal.aborted) {
+          cancel();
+        } else {
+          signal.addEventListener("abort", cancel, { once: true });
+        }
+      }
     });
-  });
+  } finally {
+    // Wait for progress tailer to finish regardless of exit path
+    if (progressTailer) {
+      await progressTailer.done;
+    }
+  }
 
   // 11. Read output.md and return (handle missing file gracefully)
   const outputPath = join(taskDir, "output.md");
@@ -170,4 +237,34 @@ export async function spawnSubagent(
   }
 
   return { output, agentId };
+}
+
+/**
+ * Start tailing progress.jsonl and deliver formatted snapshots through the callback.
+ * Returns a controller to abort the tailing and a promise that resolves when tailing stops.
+ */
+function startProgressTailing(
+  taskDir: string,
+  onProgress: ProgressCallback,
+): { controller: AbortController; done: Promise<void> } {
+  const controller = new AbortController();
+  const progressPath = join(taskDir, "progress.jsonl");
+  const events: ProgressEvent[] = [];
+
+  const done = (async () => {
+    try {
+      for await (const event of tailProgress(progressPath, { signal: controller.signal })) {
+        events.push(event);
+        try {
+          onProgress(formatActivityFeed(events));
+        } catch {
+          console.warn("[pi-subagents] Progress callback threw during event delivery");
+        }
+      }
+    } catch {
+      // Tailing stopped (aborted or error) — silently ignore
+    }
+  })();
+
+  return { controller, done };
 }

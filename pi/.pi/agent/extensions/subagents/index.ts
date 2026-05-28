@@ -49,7 +49,7 @@ export default function subagentEntryPoint(
       required: ["agent_type", "prompt"],
       additionalProperties: false,
     },
-    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+    async execute(_toolCallId, params, signal, onUpdate, ctx) {
       const { agent_type, prompt, model, thinking } = params as {
         agent_type: string;
         prompt: string;
@@ -63,6 +63,19 @@ export default function subagentEntryPoint(
           task: prompt,
           agentsDir,
           workDir: ctx.cwd,
+          signal,
+          onProgress: onUpdate
+            ? (feed) => {
+                try {
+                  onUpdate({
+                    content: [{ type: "text" as const, text: feed.collapsed.text }],
+                    details: feed,
+                  });
+                } catch {
+                  // Progress delivery is best-effort; ignore UI rendering errors
+                }
+              }
+            : undefined,
           overrides: {
             ...(model ? { model } : {}),
             ...(thinking ? { thinking } : {}),

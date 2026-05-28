@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, chmodSync,
 import { join, resolve } from "path";
 import { tmpdir } from "os";
 import { spawnSubagent } from "./spawner";
+import type { ActivityFeedOutput } from "./activity-feed-formatter";
 
 // ── Test helpers ──
 
@@ -223,6 +224,38 @@ describe("spawnSubagent → stream-filter integration (tmux bypassed)", () => {
     expect(progressEvents).toContainEqual(expect.objectContaining({ type: "tool", status: "failed" }));
     expect(progressEvents).toContainEqual(expect.objectContaining({ type: "assistant_text", text: "Scanning codebase." }));
     expect(progressEvents).toContainEqual(expect.objectContaining({ type: "terminal", status: "completed" }));
+
+    // ── Validate every progress event has required fields with correct types ──
+    const validTypes = ["lifecycle", "tool", "assistant_text", "terminal"];
+    const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+    for (const event of progressEvents) {
+      expect(validTypes).toContain(event.type);
+      expect(typeof event.text).toBe("string");
+      expect(event.text.length).toBeGreaterThan(0);
+      expect(typeof event.timestamp).toBe("string");
+      expect(event.timestamp).toMatch(iso8601Regex);
+    }
+
+    // ── Verify lifecycle events are sequenced correctly (started before completed) ──
+    const lifecycleEvents = progressEvents.filter((e) => e.type === "lifecycle");
+    expect(lifecycleEvents.length).toBeGreaterThanOrEqual(2);
+    const startedIdx = lifecycleEvents.findIndex((e) => e.status === "started");
+    const completedIdx = lifecycleEvents.findIndex((e) => e.status === "completed");
+    expect(startedIdx).toBeGreaterThanOrEqual(0);
+    expect(completedIdx).toBeGreaterThanOrEqual(0);
+    expect(startedIdx).toBeLessThan(completedIdx);
+
+    // ── Verify tool events have appropriate status values ──
+    const toolEvents = progressEvents.filter((e) => e.type === "tool");
+    const toolStatuses = new Set(toolEvents.map((e) => e.status));
+    expect(toolStatuses.has("started")).toBe(true);
+    expect(toolStatuses.has("succeeded") || toolStatuses.has("failed")).toBe(true);
+
+    // ── Verify run.log exists and records successful completion ──
+    expect(existsSync(join(taskDir, "run.log"))).toBe(true);
+    const runLog = readFileSync(join(taskDir, "run.log"), "utf-8");
+    expect(runLog).toContain("completed");
+    expect(runLog).toContain("stream-filter started");
 
     // ── Verify output.md content ──
     const outputMd = readFileSync(join(taskDir, "output.md"), "utf-8");
@@ -496,5 +529,353 @@ describe("read-only agent tool specification", () => {
 
     expect(result.agentId).toBe("pure-ro-001");
     expect(result.output).toContain("Hello from integration subagent");
+  }, 15000);
+});
+
+// ══════════════════════════════════════════════════════════════════
+// Phase 4: Failure Cases — Crash
+// ══════════════════════════════════════════════════════════════════
+
+/** Write a fake pi script that simulates a crash:
+ * emits a few progress events then exits non-zero without agent_end.
+ */
+function writeFakePiCrash(workDir: string): string {
+  const fakePiPath = join(workDir, "fake-pi-crash.sh");
+  const content = `#!/usr/bin/env bash
+# Simulate a subagent that starts working then crashes before finishing.
+echo '{"type":"session","session_id":"crash-session-001"}'
+echo '{"type":"agent_start","agentType":"scout"}'
+echo '{"type":"tool_execution_start","toolCallId":"call_crash","toolName":"bash","args":{"command":"cat /dev/zero"}}'
+echo '{"type":"tool_execution_end","toolCallId":"call_crash","toolName":"bash","result":{"isError":true,"content":[{"type":"text","text":"killed by signal"}]}}'
+# Crash: exit non-zero without emitting agent_end
+exit 1
+`;
+  writeFileSync(fakePiPath, content, "utf-8");
+  chmodSync(fakePiPath, 0o755);
+  return fakePiPath;
+}
+
+describe("failure cases", () => {
+  it("[4.1] subagent crash (non-zero exit, missing agent_end): progress.jsonl records failure, output.md contains [ERROR], run.log records error", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", {
+      model: "minimax/MiniMax-M2.7",
+      tools: ["read", "grep", "find", "bash"],
+      systemPromptMode: "replace",
+    });
+
+    const fakePiCrashPath = writeFakePiCrash(workDir);
+    const wrapperPath = writeCustomWrapper(workDir, fakePiCrashPath);
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "Crash test",
+      agentsDir,
+      workDir,
+      wrapperPath,
+      generateId: () => "scout-crash-001",
+    });
+
+    const taskDir = join(workDir, ".pi", "subagents", "scout-crash-001");
+
+    // ── Verify progress.jsonl records the failure ──
+    expect(existsSync(join(taskDir, "progress.jsonl"))).toBe(true);
+    const progressJsonl = readFileSync(join(taskDir, "progress.jsonl"), "utf-8");
+    const progressEvents = progressJsonl.trim().split("\n").map((line) => JSON.parse(line));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "terminal", status: "failed" }));
+
+    // ── Verify output.md contains [ERROR] ──
+    expect(existsSync(join(taskDir, "output.md"))).toBe(true);
+    const outputMd = readFileSync(join(taskDir, "output.md"), "utf-8");
+    expect(outputMd).toContain("[ERROR]");
+
+    // ── Verify run.log records the error ──
+    expect(existsSync(join(taskDir, "run.log"))).toBe(true);
+    const runLog = readFileSync(join(taskDir, "run.log"), "utf-8");
+    expect(runLog).toContain("error: missing agent_end");
+
+    // ── Verify the result returned to caller reflects the failure ──
+    expect(result.agentId).toBe("scout-crash-001");
+    expect(result.output).toContain("[ERROR]");
+  }, 15000);
+
+  it("[4.2] stream ends before agent_end (simulated hang/timeout): progress records terminal failed, output.md contains [ERROR], run.log records error", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", {
+      model: "minimax/MiniMax-M2.7",
+      tools: ["read", "grep", "find"],
+      systemPromptMode: "replace",
+    });
+
+    // Fake pi that emits a few events then exits 0 without agent_end.
+    // This simulates a subagent process that hangs and is killed (SIGTERM)
+    // or exits silently without producing final output.
+    const fakePiPath = join(workDir, "fake-pi-hang.sh");
+    writeFileSync(fakePiPath, `#!/usr/bin/env bash
+echo '{"type":"session","session_id":"hang-session-001"}'
+echo '{"type":"agent_start","agentType":"scout"}'
+echo '{"type":"tool_execution_start","toolCallId":"call_hang","toolName":"read","args":{"path":"/tmp/x"}}'
+# Exit 0 without agent_end — simulates killed/hung subagent
+exit 0
+`, "utf-8");
+    chmodSync(fakePiPath, 0o755);
+
+    const wrapperPath = writeCustomWrapper(workDir, fakePiPath);
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "Hang/timeout test",
+      agentsDir,
+      workDir,
+      wrapperPath,
+      generateId: () => "scout-hang-001",
+    });
+
+    const taskDir = join(workDir, ".pi", "subagents", "scout-hang-001");
+
+    // ── Verify progress.jsonl records terminal failed ──
+    const progressJsonl = readFileSync(join(taskDir, "progress.jsonl"), "utf-8");
+    const progressEvents = progressJsonl.trim().split("\n").map((line) => JSON.parse(line));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "terminal", status: "failed" }));
+
+    // ── Verify output.md contains [ERROR] ──
+    const outputMd = readFileSync(join(taskDir, "output.md"), "utf-8");
+    expect(outputMd).toContain("[ERROR]");
+
+    // ── Verify run.log records the missing agent_end error ──
+    const runLog = readFileSync(join(taskDir, "run.log"), "utf-8");
+    expect(runLog).toContain("missing agent_end");
+
+    expect(result.agentId).toBe("scout-hang-001");
+    expect(result.output).toContain("[ERROR]");
+  }, 15000);
+
+  it("[4.3] malformed JSON in event stream: stream-filter skips garbage lines, warns in run.log, continues processing valid events", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", {
+      model: "minimax/MiniMax-M2.7",
+      tools: ["read", "bash"],
+      systemPromptMode: "replace",
+    });
+
+    // Fake pi that emits valid events, some garbage, then more valid events + agent_end.
+    const fakePiPath = join(workDir, "fake-pi-malformed.sh");
+    writeFileSync(fakePiPath, `#!/usr/bin/env bash
+# Valid events mixed with non-JSON garbage
+echo '{"type":"session","session_id":"malformed-session-001"}'
+echo '{"type":"agent_start","agentType":"scout"}'
+echo 'this is not valid json at all'
+echo '{"type":"tool_execution_start","toolCallId":"call_m1","toolName":"bash","args":{"command":"ls"}}'
+echo 'also garbage here >>>'
+echo '{"type":"tool_execution_end","toolCallId":"call_m1","toolName":"bash","result":{"content":[{"type":"text","text":"ok"}]}}'
+echo '{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"survived malformed input"}]}],"willRetry":false}'
+exit 0
+`, "utf-8");
+    chmodSync(fakePiPath, 0o755);
+
+    const wrapperPath = writeCustomWrapper(workDir, fakePiPath);
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "Malformed JSON test",
+      agentsDir,
+      workDir,
+      wrapperPath,
+      generateId: () => "scout-malformed-001",
+    });
+
+    const taskDir = join(workDir, ".pi", "subagents", "scout-malformed-001");
+
+    // ── Verify run.log contains malformed JSON warning ──
+    expect(existsSync(join(taskDir, "run.log"))).toBe(true);
+    const runLog = readFileSync(join(taskDir, "run.log"), "utf-8");
+    expect(runLog).toContain("malformed");
+
+    // ── Verify events.jsonl only contains valid JSON lines (no garbage) ──
+    const eventsJsonl = readFileSync(join(taskDir, "events.jsonl"), "utf-8");
+    const eventLines = eventsJsonl.trim().split("\n");
+    for (const line of eventLines) {
+      expect(() => JSON.parse(line)).not.toThrow();
+    }
+    // Should have exactly 5 valid events (session, agent_start, tool_start, tool_end, agent_end)
+    expect(eventLines.length).toBe(5);
+
+    // ── Verify progress.jsonl has valid structured events (no garbage leaked) ──
+    const progressJsonl = readFileSync(join(taskDir, "progress.jsonl"), "utf-8");
+    const progressEvents = progressJsonl.trim().split("\n").map((line) => JSON.parse(line));
+    expect(progressEvents.length).toBeGreaterThan(0);
+    for (const event of progressEvents) {
+      expect(["lifecycle", "tool", "assistant_text", "terminal"]).toContain(event.type);
+    }
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "terminal", status: "completed" }));
+
+    // ── Verify output.md contains the final text despite garbage input ──
+    const outputMd = readFileSync(join(taskDir, "output.md"), "utf-8");
+    expect(outputMd).toContain("survived malformed input");
+
+    expect(result.agentId).toBe("scout-malformed-001");
+  }, 15000);
+
+  it("[4.4] entirely malformed output (no valid JSON at all): surfaces clear final error, terminal failed, [ERROR] in output", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", {
+      model: "minimax/MiniMax-M2.7",
+      tools: ["read"],
+      systemPromptMode: "replace",
+    });
+
+    // Fake pi that emits ONLY garbage — no valid JSON, no agent_end.
+    const fakePiPath = join(workDir, "fake-pi-garbage.sh");
+    writeFileSync(fakePiPath, `#!/usr/bin/env bash
+echo 'completely invalid garbage line'
+echo '{"broken": indeed'
+echo 'also not json'
+exit 1
+`, "utf-8");
+    chmodSync(fakePiPath, 0o755);
+
+    const wrapperPath = writeCustomWrapper(workDir, fakePiPath);
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "All malformed output test",
+      agentsDir,
+      workDir,
+      wrapperPath,
+      generateId: () => "scout-garbage-001",
+    });
+
+    const taskDir = join(workDir, ".pi", "subagents", "scout-garbage-001");
+
+    // ── Verify progress.jsonl records terminal failed ──
+    const progressJsonl = readFileSync(join(taskDir, "progress.jsonl"), "utf-8");
+    const progressEvents = progressJsonl.trim().split("\n").map((line) => JSON.parse(line));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "terminal", status: "failed" }));
+
+    // ── Verify output.md contains [ERROR] ──
+    const outputMd = readFileSync(join(taskDir, "output.md"), "utf-8");
+    expect(outputMd).toContain("[ERROR]");
+
+    // ── Verify run.log contains malformed warnings + missing agent_end error ──
+    const runLog = readFileSync(join(taskDir, "run.log"), "utf-8");
+    expect(runLog).toContain("malformed");
+    expect(runLog).toContain("missing agent_end");
+
+    // ── Verify caller receives clear error ──
+    expect(result.output).toContain("[ERROR]");
+    expect(result.agentId).toBe("scout-garbage-001");
+  }, 15000);
+});
+
+// ══════════════════════════════════════════════════════════════════
+// Phase 5: onProgress Content Shape — collapsed/expanded survives
+// the real spawnSubagent → tailProgress → formatActivityFeed pipeline
+// ══════════════════════════════════════════════════════════════════
+
+describe("onProgress content shape", () => {
+  it("[5.1] onProgress callbacks carry valid {collapsed, expanded} shape through the real tailing pipeline", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", {
+      model: "minimax/MiniMax-M2.7",
+      tools: ["read", "grep", "find", "bash"],
+      systemPromptMode: "replace",
+    });
+
+    // Use the standard fake pi (10 events) through real stream-filter.
+    // Add a post-pipeline sleep so the progress tailer (polling every 100ms)
+    // has time to read progress.jsonl before the wrapper exits.
+    const fakePiPath = writeFakePi(workDir);
+    const streamFilterPath = resolve(__dirname, "stream-filter.sh");
+    const wrapperPath = join(workDir, "custom-wrapper-sleep.sh");
+    const wrapperContent = `#!/usr/bin/env bash
+set -euo pipefail
+TASK_DIR="\$1"
+MANIFEST_PATH="\$2"
+if command -v jq &>/dev/null && [[ -f "\$MANIFEST_PATH" ]]; then
+  while IFS=\$'\\t' read -r key value; do
+    [[ -z "\$key" ]] && continue
+    export "\$key=\$value"
+  done < <(jq -r '.env // {} | to_entries[] | [.key, (.value | tostring)] | @tsv' "\$MANIFEST_PATH")
+fi
+bash "${fakePiPath}" | bash "${streamFilterPath}" "\$TASK_DIR" "\$MANIFEST_PATH"
+exit_code=\$?
+if [[ -f "\$TASK_DIR/.pi_exit_code" ]]; then
+  exit_code=\$(tr -d '[:space:]' < "\$TASK_DIR/.pi_exit_code")
+fi
+# Brief sleep so the progress tailer can poll progress.jsonl before we exit
+sleep 0.3
+exit "\$exit_code"
+`;
+    writeFileSync(wrapperPath, wrapperContent, "utf-8");
+    chmodSync(wrapperPath, 0o755);
+
+    const progressCalls: ActivityFeedOutput[] = [];
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "Progress shape test",
+      agentsDir,
+      workDir,
+      wrapperPath,
+      generateId: () => "scout-shape-001",
+      onProgress: (feed) => {
+        progressCalls.push(feed);
+      },
+    });
+
+    // ── Verify onProgress was called at least once ──
+    expect(progressCalls.length).toBeGreaterThanOrEqual(1);
+
+    // ── Verify every callback carries both collapsed and expanded views ──
+    for (const call of progressCalls) {
+      expect(call).toHaveProperty("collapsed");
+      expect(call).toHaveProperty("expanded");
+      expect(typeof call.collapsed.text).toBe("string");
+      expect(typeof call.expanded.text).toBe("string");
+      expect(Array.isArray(call.collapsed.lines)).toBe(true);
+      expect(Array.isArray(call.expanded.lines)).toBe(true);
+      expect(typeof call.collapsed.hiddenCount).toBe("number");
+      expect(typeof call.expanded.hiddenCount).toBe("number");
+    }
+
+    // ── Verify first callback has empty feed (sent before progress events arrive) ──
+    expect(progressCalls[0].collapsed.lines).toEqual([]);
+    expect(progressCalls[0].expanded.lines).toEqual([]);
+
+    // ── Verify later callbacks contain progress events ──
+    const nonEmptyCalls = progressCalls.filter(
+      (c) => c.expanded.lines.length > 0,
+    );
+    expect(nonEmptyCalls.length).toBeGreaterThanOrEqual(1);
+
+    // ── Verify the expanded view never has fewer lines than collapsed ──
+    for (const call of progressCalls) {
+      expect(call.expanded.lines.length).toBeGreaterThanOrEqual(
+        call.collapsed.lines.length,
+      );
+    }
+
+    // ── Verify expanded lines have valid structure ──
+    const lastCall = nonEmptyCalls[nonEmptyCalls.length - 1];
+    for (const line of lastCall.expanded.lines) {
+      expect(["lifecycle", "tool", "assistant_text", "terminal"]).toContain(line.type);
+      expect(typeof line.text).toBe("string");
+      expect(line.text.length).toBeGreaterThan(0);
+      expect(typeof line.timestamp).toBe("string");
+    }
+
+    // ── Verify output is still canonical (progress callbacks don't break the result) ──
+    expect(result.output).toContain("Hello from integration subagent");
+    expect(result.agentId).toBe("scout-shape-001");
   }, 15000);
 });
