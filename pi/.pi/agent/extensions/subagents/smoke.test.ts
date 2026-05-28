@@ -159,6 +159,7 @@ describe("spawnSubagent → stream-filter integration (tmux bypassed)", () => {
     expect(existsSync(join(taskDir, "manifest.json"))).toBe(true);
     expect(existsSync(join(taskDir, "output.md"))).toBe(true);
     expect(existsSync(join(taskDir, "events.jsonl"))).toBe(true);
+    expect(existsSync(join(taskDir, "progress.jsonl"))).toBe(true);
 
     // ── Verify task.md contains the prompt ──
     const taskMd = readFileSync(join(taskDir, "task.md"), "utf-8");
@@ -212,6 +213,16 @@ describe("spawnSubagent → stream-filter integration (tmux bypassed)", () => {
     const toolErrorEvent = JSON.parse(eventLines[7]);
     expect(toolErrorEvent.toolName).toBe("bash");
     expect(toolErrorEvent.result.isError).toBe(true);
+
+    // ── Verify progress.jsonl contains structured user-facing events ──
+    const progressJsonl = readFileSync(join(taskDir, "progress.jsonl"), "utf-8");
+    const progressEvents = progressJsonl.trim().split("\n").map((line) => JSON.parse(line));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "lifecycle", status: "started" }));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "tool", status: "started" }));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "tool", status: "succeeded" }));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "tool", status: "failed" }));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "assistant_text", text: "Scanning codebase." }));
+    expect(progressEvents).toContainEqual(expect.objectContaining({ type: "terminal", status: "completed" }));
 
     // ── Verify output.md content ──
     const outputMd = readFileSync(join(taskDir, "output.md"), "utf-8");

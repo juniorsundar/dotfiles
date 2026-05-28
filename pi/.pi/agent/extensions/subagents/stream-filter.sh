@@ -8,8 +8,14 @@ TASK_DIR="${1:?task directory required}"
 MANIFEST_PATH="${2:?manifest path required}"
 
 EVENTS_FILE="$TASK_DIR/events.jsonl"
+PROGRESS_FILE="$TASK_DIR/progress.jsonl"
 OUTPUT_FILE="$TASK_DIR/output.md"
 LOG_FILE="$TASK_DIR/run.log"
+
+if [[ ! -d "$TASK_DIR" ]]; then
+  echo "error: task dir missing: $TASK_DIR" >&2
+  exit 1
+fi
 
 # Select JSON parser
 if command -v jq &>/dev/null; then
@@ -20,6 +26,32 @@ fi
 
 # Initialize log
 echo "stream-filter started, task_dir=$TASK_DIR, manifest=$MANIFEST_PATH" > "$LOG_FILE"
+
+append_progress_event() {
+  local type="$1"
+  local status="$2"
+  local text="$3"
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  if [[ "$JSON_PARSER" == "jq" ]]; then
+    jq -nc --arg type "$type" --arg status "$status" --arg text "$text" --arg timestamp "$timestamp" \
+      '{type:$type,text:$text,timestamp:$timestamp} + (if $status == "" then {} else {status:$status} end)' \
+      >> "$PROGRESS_FILE"
+  else
+    python3 - "$PROGRESS_FILE" "$type" "$status" "$text" "$timestamp" <<'PY'
+import json
+import sys
+
+path, event_type, status, text, timestamp = sys.argv[1:]
+event = {"type": event_type, "text": text, "timestamp": timestamp}
+if status:
+    event["status"] = status
+with open(path, "a", encoding="utf-8") as progress_file:
+    progress_file.write(json.dumps(event, separators=(",", ":")) + "\n")
+PY
+  fi
+}
 
 # Text buffer for sentence accumulation
 text_buffer=""
@@ -34,6 +66,7 @@ flush_sentences() {
       local sentence="${BASH_REMATCH[1]}"
       local match_end=$((${#BASH_REMATCH[0]}))
       flushed="$flushed$sentence"$'\n'
+      append_progress_event "assistant_text" "" "$sentence"
       remaining="${remaining:$match_end}"
     else
       break
@@ -46,6 +79,8 @@ flush_sentences() {
 }
 
 final_text=""
+lifecycle_started_emitted=0
+lifecycle_completed_emitted=0
 
 # Process stdin line by line
 while IFS= read -r line; do
@@ -85,6 +120,12 @@ while IFS= read -r line; do
   fi
 
   case "$event_type" in
+    agent_start)
+      if [[ $lifecycle_started_emitted -eq 0 ]]; then
+        append_progress_event "lifecycle" "started" "Subagent started"
+        lifecycle_started_emitted=1
+      fi
+      ;;
     message_update)
       case "$sub_type" in
         text_delta)
@@ -103,7 +144,11 @@ while IFS= read -r line; do
       ;;
     message_end)
       # Extract final text from assistant messages
-      message_role=$(echo "$line" | jq -r '.message.role // ""' 2>/dev/null || echo "")
+      if [[ "$JSON_PARSER" == "jq" ]]; then
+        message_role=$(echo "$line" | jq -r '.message.role // ""' 2>/dev/null || echo "")
+      else
+        message_role=$(echo "$line" | python3 -c "import sys,json; d=json.loads(sys.stdin.readline()); print(d.get('message',{}).get('role',''))" 2>/dev/null || echo "")
+      fi
       if [[ "$message_role" == "assistant" ]]; then
         if [[ "$JSON_PARSER" == "jq" ]]; then
           final_text=$(echo "$line" | jq -r '.message.content | map(select(.type == "text")) | map(.text) | join("\n")' 2>/dev/null || echo "")
@@ -133,6 +178,7 @@ if msg.get('role') == 'assistant':
       if [[ ${#summary} -gt 120 ]]; then
         summary="${summary:0:117}..."
       fi
+      append_progress_event "tool" "started" "$summary"
       echo "$summary"
       ;;
     tool_execution_end|tool_result)
@@ -145,8 +191,10 @@ if msg.get('role') == 'assistant':
         is_error=$(echo "$line" | python3 -c "import sys,json; d=json.loads(sys.stdin.readline()); print(d.get('result',{}).get('isError',False))" 2>/dev/null || echo "False")
       fi
       if [[ "$is_error" == "true" ]] || [[ "$is_error" == "True" ]]; then
+        append_progress_event "tool" "failed" "Tool $tool_name failed"
         echo "  ✗ $tool_name"
       else
+        append_progress_event "tool" "succeeded" "Tool $tool_name succeeded"
         echo "  ✓ $tool_name"
       fi
       ;;
@@ -182,6 +230,11 @@ for msg in reversed(d.get('messages', [])):
 
       # Write output
       echo "$final_text" > "$OUTPUT_FILE"
+      if [[ $lifecycle_completed_emitted -eq 0 ]]; then
+        append_progress_event "lifecycle" "completed" "Subagent completed"
+        lifecycle_completed_emitted=1
+      fi
+      append_progress_event "terminal" "completed" "Subagent completed"
       echo "completed" >> "$LOG_FILE"
       exit 0
       ;;
@@ -200,5 +253,6 @@ done
     echo "$final_text"
   fi
 } > "$OUTPUT_FILE"
+append_progress_event "terminal" "failed" "Subagent failed: missing agent_end"
 echo "error: missing agent_end" >> "$LOG_FILE"
 exit 1
