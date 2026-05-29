@@ -256,6 +256,85 @@ describe("subagents entry point", () => {
     expect(updatePayload.details.expanded.hiddenCount).toBe(0);
   });
 
+  it("full live update flow stores partial usage state and renderCall shows the new header values", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const mockOnUpdate = vi.fn();
+    const sampleFeed = {
+      collapsed: {
+        text: "Tool: read\nTool: bash",
+        hiddenCount: 0,
+        lines: [
+          { type: "tool" as const, text: "Tool: read", timestamp: "2026-01-01T00:00:01Z", status: "succeeded" as const },
+          { type: "tool" as const, text: "Tool: bash", timestamp: "2026-01-01T00:00:02Z", status: "succeeded" as const },
+        ],
+      },
+      expanded: {
+        text: "Tool: read\nTool: bash\nUsage: 2400 tokens",
+        hiddenCount: 0,
+        lines: [
+          { type: "tool" as const, text: "Tool: read", timestamp: "2026-01-01T00:00:01Z", status: "succeeded" as const },
+          { type: "tool" as const, text: "Tool: bash", timestamp: "2026-01-01T00:00:02Z", status: "succeeded" as const },
+          { type: "usage" as const, text: "Usage: 2400 tokens", timestamp: "2026-01-01T00:00:03Z" },
+        ],
+      },
+      usage: { input: 2100, output: 300, cacheRead: 0, cacheWrite: 0 },
+    };
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockImplementationOnce(async (opts) => {
+      opts.onProgress?.(sampleFeed);
+      return { output: "done", agentId: "scout-live" };
+    });
+
+    await toolCall.execute(
+      "call-1",
+      { agent_type: "scout", prompt: "watch progress" },
+      new AbortController().signal,
+      mockOnUpdate,
+      { cwd: workDir },
+    );
+
+    expect(mockOnUpdate).toHaveBeenCalledTimes(1);
+    const partialResult = mockOnUpdate.mock.calls[0][0];
+    expect(partialResult.content[0].text).toBe(sampleFeed.collapsed.text);
+    expect(partialResult.details).toBe(sampleFeed);
+
+    const invalidate = vi.fn();
+    const context = {
+      args: { agent_type: "scout", prompt: "watch progress" },
+      toolCallId: "tcid-live",
+      invalidate,
+      lastComponent: undefined,
+      state: {},
+      cwd: workDir,
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: true,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+    const theme = {
+      bold: (t: string) => `BOLD(${t})`,
+      fg: (_c: string, t: string) => `FG(${t})`,
+    } as any;
+
+    toolCall.renderResult(partialResult, { expanded: false, isPartial: true }, theme, context);
+    expect(context.state.usage).toEqual(sampleFeed.usage);
+    expect(context.state.toolCount).toBe(2);
+    expect(invalidate).toHaveBeenCalledTimes(1);
+
+    const header = toolCall.renderCall(context.args, theme, context);
+    const lines = header.render(80);
+    expect(lines[1]).toContain("2.4K tokens");
+    expect(lines[1]).toContain("2 tools run");
+  });
+
   // ── Slice 3.1: Best-effort — onUpdate failure does not break completion ──
 
   it("returns final result even when onUpdate throws during progress delivery", async () => {
@@ -337,6 +416,55 @@ describe("subagents entry point", () => {
     expect(result.content[0].type).toBe("text");
     expect(result.content[0].text).toBe("final answer");
     expect(result.details.agentId).toBe("worker-abc");
+    expect(result.details.collapsed).toBeUndefined();
+    expect(result.details.expanded).toBeUndefined();
+  });
+
+  // ── Slice 3.2b (019): Final result details enriched with model, duration, usage ──
+
+  it("final result details includes model, duration, and usage from spawner; content has output text only", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { model: "minimax/MiniMax-M2.7" });
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockResolvedValueOnce({
+      output: "subagent output here",
+      agentId: "scout-enriched-1",
+      agentType: "scout",
+      duration: 12345,
+      model: "minimax/MiniMax-M2.7",
+      usage: { input: 4200, output: 890, cacheRead: 512, cacheWrite: 0 },
+    });
+
+    const result = await toolCall.execute(
+      "call-1",
+      { agent_type: "scout", prompt: "enriched test" },
+      new AbortController().signal,
+      vi.fn(),
+      { cwd: workDir },
+    );
+
+    // content has ONLY the subagent output text — no metadata leakage
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe("text");
+    expect(result.content[0].text).toBe("subagent output here");
+    expect(result.content[0].text).not.toContain("scout-enriched-1");
+    expect(result.content[0].text).not.toContain("minimax");
+    expect(result.content[0].text).not.toContain("12.3");
+    expect(result.content[0].text).not.toContain("tokens");
+
+    // details has all enriched metadata
+    expect(result.details.agentId).toBe("scout-enriched-1");
+    expect(result.details.agentType).toBe("scout");
+    expect(result.details.model).toBe("minimax/MiniMax-M2.7");
+    expect(result.details.duration).toBe(12345);
+    expect(result.details.usage).toEqual({ input: 4200, output: 890, cacheRead: 512, cacheWrite: 0 });
+
+    // details does NOT carry progress-only fields (collapsed/expanded)
     expect(result.details.collapsed).toBeUndefined();
     expect(result.details.expanded).toBeUndefined();
   });
@@ -728,6 +856,62 @@ describe("renderCall — tool call header", () => {
     expect(lines[1]).toContain("running");
   });
 
+  it("shows live token count and tool count from context.state on line two", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test" },
+      {
+        executionStarted: true,
+        state: {
+          usage: { input: 2100, output: 300 },
+          toolCount: 3,
+        },
+      },
+    );
+
+    const lines = component.render(80);
+    expect(lines[1]).toContain("2.4K tokens");
+    expect(lines[1]).toContain("3 tools run");
+    expect(lines[1]).not.toContain("running");
+  });
+
+  it("shows known Subagent model context window as the token denominator", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { model: "local/model-large" });
+    writeFileSync(join(agentsDir, "models.json"), JSON.stringify({
+      providers: {
+        local: {
+          models: [
+            { id: "local/model-large", contextWindow: 200000 },
+          ],
+        },
+      },
+    }), "utf-8");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolDef = extractToolDef(pi);
+
+    const component = callRender(
+      toolDef,
+      { agent_type: "scout", prompt: "test" },
+      {
+        executionStarted: true,
+        state: {
+          usage: { input: 2100, output: 300 },
+          toolCount: 3,
+        },
+      },
+    );
+
+    const lines = component.render(80);
+    expect(lines[1]).toContain("2.4K/200K tokens");
+  });
+
   // ── Slice 2: Model from agent definition ──────────────────────────
 
   it("shows model from agent definition in muted style", () => {
@@ -841,6 +1025,304 @@ describe("renderCall — tool call header", () => {
 
     const lines = component.render(80);
     expect(lines[0]).toContain("BOLD(...)");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// renderResult — live partial update state
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("renderResult — live partial update state", () => {
+  function extractToolDef(pi: ReturnType<typeof mockExtensionAPI>) {
+    expect(pi.registerTool).toHaveBeenCalledTimes(1);
+    return pi.registerTool.mock.calls[0][0];
+  }
+
+  it("stores partial Activity Feed usage and tool count in context.state, then invalidates", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const invalidate = vi.fn();
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate,
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: true,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "progress" }],
+        details: {
+          collapsed: { text: "progress", hiddenCount: 0, lines: [] },
+          expanded: {
+            text: "read\nbash\ndone",
+            hiddenCount: 0,
+            lines: [
+              { type: "tool", text: "read", timestamp: "2026-05-29T00:00:00.000Z" },
+              { type: "tool", text: "bash", timestamp: "2026-05-29T00:00:01.000Z" },
+              { type: "lifecycle", text: "done", timestamp: "2026-05-29T00:00:02.000Z" },
+            ],
+          },
+          usage: { input: 2100, output: 300, cacheRead: 0, cacheWrite: 0 },
+        },
+      },
+      { expanded: false, isPartial: true },
+      { fg: (_c: string, t: string) => t } as any,
+      context,
+    );
+
+    expect(component).toBeDefined();
+    expect(typeof component.render).toBe("function");
+    expect(context.state.usage).toEqual({ input: 2100, output: 300, cacheRead: 0, cacheWrite: 0 });
+    expect(context.state.toolCount).toBe(2);
+    expect(invalidate).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not mutate live state or invalidate for a final result", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const invalidate = vi.fn();
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate,
+      lastComponent: undefined,
+      state: { existing: true },
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      { content: [{ type: "text", text: "final output" }], details: { agentId: "scout-1" } },
+      { expanded: false, isPartial: false },
+      { fg: (_c: string, t: string) => t } as any,
+      context,
+    );
+
+    expect(component.render(80)).toEqual(["final output"]);
+    expect(context.state).toEqual({ existing: true });
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+
+  // ── Slice 3 (019): Final render shows metadata block ──
+
+  it("final render shows metadata block with agent, model, duration, tokens, separator, then output text", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "subagent output here" }],
+        details: {
+          agentId: "scout-a3f2b1c8",
+          agentType: "scout",
+          model: "minimax/MiniMax-M2.7",
+          duration: 12345,
+          usage: { input: 4231, output: 892, cacheRead: 512, cacheWrite: 0 },
+        },
+      },
+      { expanded: false, isPartial: false },
+      { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+      context,
+    );
+
+    const lines = component.render(80);
+    const rendered = lines.join("\n");
+
+    // Metadata block present — agent type plus id suffix
+    expect(rendered).toContain("scout");
+    expect(rendered).toContain("(id: a3f2b1c8)");
+    expect(rendered).toContain("minimax/MiniMax-M2.7");
+    expect(rendered).toContain("12.3s");
+    expect(rendered).toContain("4,231");
+    expect(rendered).toContain("input");
+    expect(rendered).toContain("892");
+    expect(rendered).toContain("output");
+    expect(rendered).toContain("512");
+    expect(rendered).toContain("cache read");
+
+    // Separator between metadata and output
+    expect(rendered).toContain("───");
+
+    // Output text follows after metadata + separator
+    expect(rendered).toContain("subagent output here");
+  });
+
+  // ── Slice 4 (019): Theme styling applied to metadata block ──
+
+  it("applies theme colors to metadata block: agent bold, labels muted, separator dim", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const theme = {
+      bold: (t: string) => `BOLD(${t})`,
+      fg: (c: string, t: string) => `FG_${c.toUpperCase()}(${t})`,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "subagent output here" }],
+        details: {
+          agentId: "scout-a3f2b1c8",
+          agentType: "scout",
+          model: "minimax/MiniMax-M2.7",
+          duration: 12345,
+          usage: { input: 4231, output: 892, cacheRead: 512, cacheWrite: 0 },
+        },
+      },
+      { expanded: false, isPartial: false },
+      theme,
+      context,
+    );
+
+    const lines = component.render(80);
+    const rendered = lines.join("\n");
+
+    // Agent type is bold, id suffix is muted
+    expect(rendered).toContain("BOLD(scout)");
+    expect(rendered).toContain("FG_MUTED( (id: a3f2b1c8))");
+
+    // Model is muted
+    expect(rendered).toContain("FG_MUTED(model: minimax/MiniMax-M2.7)");
+
+    // Duration is muted
+    expect(rendered).toContain("FG_MUTED(duration: 12.3s)");
+
+    // Tokens line is muted
+    expect(rendered).toContain("FG_MUTED(tokens: 4,231 input · 892 output · 512 cache read)");
+
+    // Separator is dim
+    expect(rendered).toContain("FG_DIM(─────────────────────────)");
+  });
+
+  it("renders partial token breakdown when only some usage fields are present", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "result text" }],
+        details: {
+          agentId: "scout-partial",
+          agentType: "scout",
+          model: "test/model",
+          duration: 500,
+          usage: { input: 100 },
+        },
+      },
+      { expanded: false, isPartial: false },
+      { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+      context,
+    );
+
+    const rendered = component.render(80).join("\n");
+    expect(rendered).toContain("tokens: 100 input");
+    // Tokens line should NOT include output or cache read fields when absent
+    const tokensLine = rendered.split("\n").find((l: string) => l.startsWith("tokens:"));
+    expect(tokensLine).toBeDefined();
+    expect(tokensLine).not.toContain("output");
+    expect(tokensLine).not.toContain("cache read");
+  });
+
+  it("omits tokens line when usage is absent from details", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "result" }],
+        details: {
+          agentId: "scout-nousage",
+          agentType: "scout",
+          model: "test/model",
+          duration: 500,
+        },
+      },
+      { expanded: false, isPartial: false },
+      { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+      context,
+    );
+
+    const rendered = component.render(80).join("\n");
+    expect(rendered).toContain("scout");
+    expect(rendered).toContain("(id: nousage)");
+    expect(rendered).toContain("0.5s");
+    expect(rendered).not.toContain("tokens");
   });
 });
 

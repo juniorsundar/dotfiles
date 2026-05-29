@@ -15,3 +15,5 @@ ssh/.ssh/authorized_keys
 /pi/.pi/agent/node_modules
 /pi/.pi/agent/.pi/subagent-outputs
 /pi/.pi/agent/.pi/subagents
+/pi/.pi/.pi/subagents
+/.pi/subagents

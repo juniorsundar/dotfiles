@@ -1,9 +1,9 @@
 {
-  "defaultModel": "deepseek-v4-pro",
-  "defaultProvider": "opencode-go",
+  "defaultModel": "gpt-5.5",
+  "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.76.0",
+  "lastChangelogVersion": "0.77.0",
   "packages": [
     "git:github.com/mrexodia/kilo-pi-provider",
     "git:github.com/juicesharp/rpiv-mono",

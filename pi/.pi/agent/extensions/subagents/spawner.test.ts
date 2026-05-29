@@ -50,6 +50,13 @@ function writeFakeWrapper(dir: string, content: string): string {
   return path;
 }
 
+function writeFakePi(dir: string, content: string): string {
+  const path = join(dir, "fake-pi.sh");
+  writeFileSync(path, content, "utf-8");
+  chmodSync(path, 0o755);
+  return path;
+}
+
 afterEach(() => {
   for (const dir of workDirs.splice(0)) {
     try { rmSync(dir, { recursive: true, force: true }); } catch {}
@@ -60,25 +67,28 @@ afterEach(() => {
 });
 
 describe("spawnSubagent", () => {
-  // ── Slice 1: Tracer Bullet — Happy Path ──
+  // ── Slice 1: Tracer Bullet — Direct pi spawn ──
 
-  it("generates agent-id, creates task dir, writes task.md + manifest.json, spawns wrapper, reads output.md", async () => {
+  it("spawns pi directly and returns output from NDJSON stream", async () => {
     const workDir = makeWorkDir();
     const agentsDir = makeAgentsDir();
 
-    // Write a real agent definition
     writeAgentDef(agentsDir, "scout", {
       model: "minimax/MiniMax-M2.7",
       tools: ["read", "grep", "bash"],
       systemPromptMode: "replace",
     });
 
-    // Write a fake wrapper that creates output.md with known content
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi that emits NDJSON with text ending with sentence boundary
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-echo "hello from subagent" > "$TASK_DIR/output.md"
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Hello from subagent."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Hello from subagent."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Hello from subagent."}]}]}
+NDJSON
 exit 0
 `,
     );
@@ -88,15 +98,15 @@ exit 0
       task: "Find all TypeScript files",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-a3f1b2c3",
     });
 
     // Returns correct agentId
     expect(result.agentId).toBe("scout-a3f1b2c3");
 
-    // Returns output from output.md
-    expect(result.output.trim()).toBe("hello from subagent");
+    // Returns output from stream processor's final text
+    expect(result.output.trim()).toBe("Hello from subagent.");
 
     // Created task directory
     const taskDir = join(workDir, ".pi", "subagents", "scout-a3f1b2c3");
@@ -118,9 +128,68 @@ exit 0
     expect(manifest.command[manifest.command.indexOf("-p") + 1]).toBe("Find all TypeScript files");
     expect(manifest.command).toContain("--system-prompt");
     expect(manifest.command[manifest.command.indexOf("--system-prompt") + 1]).toBe("You are a scout agent.");
-    expect(manifest.command).not.toContain(join(taskDir, "manifest.json"));
     expect(manifest.env).toBeTypeOf("object");
     expect(manifest.env.PI_SUBAGENT_CHILD).toBe("1");
+
+    // output.md should exist with final text
+    expect(existsSync(join(taskDir, "output.md"))).toBe(true);
+    expect(readFileSync(join(taskDir, "output.md"), "utf-8").trim()).toBe("Hello from subagent.");
+
+    // progress.jsonl should exist with stream processor events
+    expect(existsSync(join(taskDir, "progress.jsonl"))).toBe(true);
+    const progressLines = readFileSync(join(taskDir, "progress.jsonl"), "utf-8").trim().split("\n").filter(Boolean);
+    expect(progressLines.length).toBeGreaterThanOrEqual(3);
+    const firstEvent = JSON.parse(progressLines[0]);
+    expect(firstEvent.type).toBe("lifecycle");
+    expect(firstEvent.status).toBe("started");
+  });
+
+  it("writes events.jsonl with raw NDJSON lines and run.log with lifecycle", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", { model: "test-model" });
+
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Task done."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Task done."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Task done."}]}]}
+NDJSON
+exit 0
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "do something",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-persist",
+    });
+
+    const taskDir = join(workDir, ".pi", "subagents", "scout-persist");
+
+    // events.jsonl should contain the raw NDJSON lines
+    expect(existsSync(join(taskDir, "events.jsonl"))).toBe(true);
+    const eventsRaw = readFileSync(join(taskDir, "events.jsonl"), "utf-8");
+    const eventsLines = eventsRaw.trim().split("\n").filter(Boolean);
+    expect(eventsLines.length).toBe(4);
+    expect(eventsLines[0]).toContain('"type":"agent_start"');
+    expect(eventsLines[3]).toContain('"type":"agent_end"');
+
+    // run.log should contain spawner start and completion
+    expect(existsSync(join(taskDir, "run.log"))).toBe(true);
+    const logText = readFileSync(join(taskDir, "run.log"), "utf-8");
+    expect(logText).toContain("spawner started");
+    expect(logText).toContain("completed");
+
+    // Output should still be canonical
+    expect(result.output.trim()).toBe("Task done.");
   });
 
   // ── Slice 2: Agent Definition Errors ──
@@ -164,7 +233,7 @@ exit 0
 
   // ── Slice 3: Timeout Handling ──
 
-  it("times out when wrapper runs longer than agent timeout, kills wrapper, writes timeout error to output.md", async () => {
+  it("times out when subagent runs longer than agent timeout, kills child, writes timeout error to output.md", async () => {
     const workDir = makeWorkDir();
     const agentsDir = makeAgentsDir();
 
@@ -173,16 +242,16 @@ exit 0
       timeout: 1,
     });
 
-    // Fake wrapper that sleeps for 10s (way longer than 1s timeout)
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi that outputs a start event then blocks longer than timeout.
+    // Uses `tail -f /dev/null` which blocks indefinitely but dies on SIGTERM.
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-trap 'exit 143' TERM
-echo "started" > "$TASK_DIR/output.md"
-sleep 10
-echo "finished" > "$TASK_DIR/output.md"
-exit 0
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+# Block — exec replaces shell so SIGTERM goes directly to tail
+exec tail -f /dev/null
 `,
     );
 
@@ -193,7 +262,7 @@ exit 0
       task: "something slow",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-timeout",
     });
 
@@ -213,21 +282,22 @@ exit 0
     expect(outputMd).toContain("timed out");
   }, 10000);
 
-  it("completes normally when wrapper finishes before timeout", async () => {
+  it("completes normally when pi finishes before timeout", async () => {
     const workDir = makeWorkDir();
     const agentsDir = makeAgentsDir();
 
-    // Agent with 10s timeout (in seconds → 10000ms)
-    writeAgentDef(agentsDir, "scout", {
-      timeout: 10,
-    });
+    writeAgentDef(agentsDir, "scout", { timeout: 10 });
 
-    // Fake wrapper that finishes quickly
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi that outputs NDJSON quickly
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-echo "done fast" > "$TASK_DIR/output.md"
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Done fast."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done fast."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done fast."}]}]}
+NDJSON
 exit 0
 `,
     );
@@ -237,25 +307,28 @@ exit 0
       task: "quick task",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-fast",
     });
 
-    expect(result.output.trim()).toBe("done fast");
+    expect(result.output.trim()).toBe("Done fast.");
   });
 
-  // ── Slice 4: Error Edge Cases ──
+  // ── Slice 4: Truncation and Error Edge Cases ──
 
-  it("returns clear error when wrapper exits but output.md is missing", async () => {
+  it("returns truncation error when pi exits without emitting agent_end", async () => {
     const workDir = makeWorkDir();
     const agentsDir = makeAgentsDir();
 
     writeAgentDef(agentsDir, "scout");
 
-    // Fake wrapper exits 0 but does NOT create output.md
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi that exits without agent_end → stream truncation
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
 exit 0
 `,
     );
@@ -265,27 +338,31 @@ exit 0
       task: "broken task",
       agentsDir,
       workDir,
-      wrapperPath,
-      generateId: () => "scout-missing",
+      piPath,
+      generateId: () => "scout-truncated",
     });
 
-    // Should return an error message in the output
+    // Stream processor detects truncation and writes error to output.md
     expect(result.output).toContain("[ERROR]");
-    expect(result.output.toLowerCase()).toContain("no output");
+    expect(result.output).toContain("Stream truncated");
   });
 
-  it("returns wrapper error output when wrapper exits non-zero", async () => {
+  it("returns final text when pi exits non-zero after agent_end", async () => {
     const workDir = makeWorkDir();
     const agentsDir = makeAgentsDir();
 
     writeAgentDef(agentsDir, "scout");
 
-    // Fake wrapper exits 1 and writes error to output.md
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi that emits full NDJSON with agent_end then exits 1
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-echo "wrapper crash: out of memory" > "$TASK_DIR/output.md"
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Partial work done."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Partial work done."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Partial work done."}]}]}
+NDJSON
 exit 1
 `,
     );
@@ -295,12 +372,12 @@ exit 1
       task: "crashing task",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-crash",
     });
 
-    // Should still read output.md contents
-    expect(result.output.trim()).toBe("wrapper crash: out of memory");
+    // Stream processor completed with agent_end, so final text is returned
+    expect(result.output.trim()).toBe("Partial work done.");
   });
 
   // ── Slice 5 (012 Tracer Bullet): Optional progress callback ──
@@ -311,11 +388,15 @@ exit 1
 
     writeAgentDef(agentsDir, "scout");
 
-    const wrapperPath = writeFakeWrapper(
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-echo "done" > "$TASK_DIR/output.md"
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Done."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done."}]}]}
+NDJSON
 exit 0
 `,
     );
@@ -326,25 +407,29 @@ exit 0
       task: "no callback",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-nocb",
     });
 
-    expect(result.output.trim()).toBe("done");
+    expect(result.output.trim()).toBe("Done.");
     expect(result.agentId).toBe("scout-nocb");
   });
 
-  it("calls onProgress with an empty feed when no progress.jsonl exists yet", async () => {
+  it("calls onProgress with an empty feed initially", async () => {
     const workDir = makeWorkDir();
     const agentsDir = makeAgentsDir();
 
     writeAgentDef(agentsDir, "scout");
 
-    const wrapperPath = writeFakeWrapper(
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-echo "done" > "$TASK_DIR/output.md"
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Done."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done."}]}]}
+NDJSON
 exit 0
 `,
     );
@@ -356,52 +441,53 @@ exit 0
       task: "with callback",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-withcb",
       onProgress: (feed) => {
         progressCalls.push(feed);
       },
     });
 
-    // Callback should have been called at least once (initial empty feed)
+    // Callback called at least once (initial empty feed)
     expect(progressCalls.length).toBeGreaterThanOrEqual(1);
 
-    // Initial feed should be empty (no progress events yet)
+    // First call is empty feed
     const firstCall = progressCalls[0];
     expect(firstCall.collapsed.lines).toEqual([]);
     expect(firstCall.expanded.lines).toEqual([]);
     expect(firstCall.collapsed.hiddenCount).toBe(0);
 
-    // Output should still be canonical
-    expect(result.output.trim()).toBe("done");
+    // Output should be canonical
+    expect(result.output.trim()).toBe("Done.");
   });
 
   // ── Slice 6 (012): Progress tailing delivers formatted snapshots ──
 
-  it("delivers formatted progress snapshots via onProgress as the subagent writes progress events", async () => {
+  it("delivers formatted progress snapshots via onProgress as stream processor emits events", async () => {
     const workDir = makeWorkDir();
     const agentsDir = makeAgentsDir();
 
     writeAgentDef(agentsDir, "scout");
 
-    // Fake wrapper writes progress events to progress.jsonl, then output.md
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi emits NDJSON with interleaved sleeps so the tailer can poll
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-PROGRESS_FILE="$TASK_DIR/progress.jsonl"
-
-# Write all progress events (tailer polls every 100ms, events may arrive in batches)
-echo '{"type":"lifecycle","text":"Subagent started","timestamp":"2026-01-01T00:00:00Z","status":"started"}' > "$PROGRESS_FILE"
-echo '{"type":"tool","text":"[read] looking at file","timestamp":"2026-01-01T00:00:01Z","status":"succeeded"}' >> "$PROGRESS_FILE"
-echo '{"type":"assistant_text","text":"Found 3 files.","timestamp":"2026-01-01T00:00:02Z"}' >> "$PROGRESS_FILE"
-echo '{"type":"terminal","text":"Subagent completed","timestamp":"2026-01-01T00:00:03Z","status":"completed"}' >> "$PROGRESS_FILE"
-
-# Brief sleep to let the tailer poll and pick up the events before we exit
+# Emit agent_start first — wait for tailer to pick it up
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.15
+# Emit tool events
+echo '{"type":"tool_execution_start","toolName":"read","args":{"file":"looking at file"}}'
+echo '{"type":"tool_execution_end","toolName":"read","result":{}}'
+sleep 0.15
+# Emit message events
+echo '{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Found 3 files."}}'
+echo '{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Found 3 files."}]}}'
+echo '{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Found 3 files."}]}]}'
+# Give tailer time to pick up final batch before exit
 sleep 0.2
-
-# Write output
-echo "done with progress" > "$TASK_DIR/output.md"
 exit 0
 `,
     );
@@ -413,45 +499,44 @@ exit 0
       task: "find files",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-progress",
       onProgress: (feed) => {
         progressCalls.push(feed);
       },
     });
 
-    // Should have at least 2 calls: initial empty + at least one with events
+    // At least initial empty feed + one with events
     expect(progressCalls.length).toBeGreaterThanOrEqual(2);
 
     // First call is empty feed
     expect(progressCalls[0].collapsed.lines).toEqual([]);
 
     // Later calls should contain progress events
-    const nonEmptyCalls = progressCalls.filter(
-      (c) => c.expanded.lines.length > 0,
-    );
+    const nonEmptyCalls = progressCalls.filter((c) => c.expanded.lines.length > 0);
     expect(nonEmptyCalls.length).toBeGreaterThanOrEqual(1);
 
-    // The final progress snapshot should have all 4 events (may arrive in batches)
+    // The final progress snapshot should have all events (may arrive in batches)
     const lastNonEmpty = nonEmptyCalls[nonEmptyCalls.length - 1];
-    expect(lastNonEmpty.expanded.lines.length).toBe(4);
+    // Events: lifecycle(started), tool(started), tool(succeeded), assistant_text, lifecycle(completed)
+    expect(lastNonEmpty.expanded.lines.length).toBe(5);
     expect(lastNonEmpty.expanded.lines[0]).toMatchObject({
       type: "lifecycle",
       text: "Subagent started",
     });
-    expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text === "[read] looking at file")).toBe(true);
+    expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text.includes("[read]"))).toBe(true);
     expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text === "Found 3 files.")).toBe(true);
     expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text === "Subagent completed")).toBe(true);
 
-    // Collapsed view should be formatted (events ≤ window of 6, all visible)
-    expect(lastNonEmpty.collapsed.lines.length).toBe(4);
+    // Collapsed view should be formatted
+    expect(lastNonEmpty.collapsed.lines.length).toBe(5);
     expect(lastNonEmpty.collapsed.hiddenCount).toBe(0);
 
     // Output should still be canonical
-    expect(result.output.trim()).toBe("done with progress");
+    expect(result.output.trim()).toBe("Found 3 files.");
   });
 
-  // ── Slice 7 (012): Progress tailing stops on finish, timeout, crash ──
+  // ── Progress tailing stops on finish, timeout, crash ──
 
   it("stops progress tailing when subagent finishes and does not deliver events after completion", async () => {
     const workDir = makeWorkDir();
@@ -459,15 +544,20 @@ exit 0
 
     writeAgentDef(agentsDir, "scout");
 
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi with interleaved sleep so tailer can pick up events before completion
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-PROGRESS_FILE="$TASK_DIR/progress.jsonl"
-
-echo '{"type":"lifecycle","text":"Subagent started","timestamp":"2026-01-01T00:00:00Z","status":"started"}' > "$PROGRESS_FILE"
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.15
+cat << 'NDJSON'
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Done."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done."}]}]}
+NDJSON
 sleep 0.2
-echo "done" > "$TASK_DIR/output.md"
 exit 0
 `,
     );
@@ -479,25 +569,24 @@ exit 0
       task: "finish",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-finish",
       onProgress: (feed) => {
         progressCalls.push(feed);
       },
     });
 
-    // Progress was delivered at least once with events
+    // Progress delivered with events
     const callsWithEvents = progressCalls.filter((c) => c.expanded.lines.length > 0);
     expect(callsWithEvents.length).toBeGreaterThanOrEqual(1);
 
-    // Output is still canonical
-    expect(result.output.trim()).toBe("done");
+    // Output is canonical
+    expect(result.output.trim()).toBe("Done.");
 
-    // Verify no more callbacks after this — the count is final
+    // Verify no more callbacks after this
     const finalCount = progressCalls.length;
 
     // Append an event to progress.jsonl AFTER subagent finished
-    // (should be ignored since tailer is stopped)
     const taskDir = join(workDir, ".pi", "subagents", "scout-finish");
     appendFileSync(
       join(taskDir, "progress.jsonl"),
@@ -505,10 +594,7 @@ exit 0
       "utf-8",
     );
 
-    // Give time for any stray poll
     await new Promise((r) => setTimeout(r, 150));
-
-    // No additional callbacks delivered after completion
     expect(progressCalls.length).toBe(finalCount);
   });
 
@@ -518,18 +604,15 @@ exit 0
 
     writeAgentDef(agentsDir, "scout", { timeout: 1 });
 
-    const wrapperPath = writeFakeWrapper(
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-PROGRESS_FILE="$TASK_DIR/progress.jsonl"
-
-echo '{"type":"lifecycle","text":"Subagent started","timestamp":"2026-01-01T00:00:00Z","status":"started"}' > "$PROGRESS_FILE"
-sleep 0.2
-echo '{"type":"tool","text":"[read] reading file","timestamp":"2026-01-01T00:00:01Z","status":"started"}' >> "$PROGRESS_FILE"
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"tool_execution_start","toolName":"read","args":{"file":"reading file"}}
+NDJSON
 # Sleep longer than timeout to trigger it
 sleep 5
-echo "should not reach" > "$TASK_DIR/output.md"
 exit 0
 `,
     );
@@ -541,24 +624,23 @@ exit 0
       task: "slow",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-timeout-progress",
       onProgress: (feed) => {
         progressCalls.push(feed);
       },
     });
 
-    // Progress was delivered with events before timeout
+    // Progress delivered with events before timeout
     const callsWithEvents = progressCalls.filter((c) => c.expanded.lines.length > 0);
     expect(callsWithEvents.length).toBeGreaterThanOrEqual(1);
 
-    // Output contains timeout error (canonical)
+    // Output contains timeout error
     expect(result.output).toContain("timed out");
 
-    // No callbacks should arrive after this point
+    // No callbacks after this point
     const finalCount = progressCalls.length;
 
-    // Append post-timeout event
     const taskDir = join(workDir, ".pi", "subagents", "scout-timeout-progress");
     appendFileSync(
       join(taskDir, "progress.jsonl"),
@@ -570,7 +652,7 @@ exit 0
     expect(progressCalls.length).toBe(finalCount);
   }, 10000);
 
-  // ── Slice 8 (012): Callback failure safety ──
+  // ── Callback failure safety ──
 
   it("ignores callback failures and does not change final subagent output", async () => {
     const workDir = makeWorkDir();
@@ -578,15 +660,15 @@ exit 0
 
     writeAgentDef(agentsDir, "scout");
 
-    const wrapperPath = writeFakeWrapper(
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-PROGRESS_FILE="$TASK_DIR/progress.jsonl"
-
-echo '{"type":"lifecycle","text":"Subagent started","timestamp":"2026-01-01T00:00:00Z","status":"started"}' > "$PROGRESS_FILE"
-sleep 0.2
-echo "success" > "$TASK_DIR/output.md"
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Success."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Success."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Success."}]}]}
+NDJSON
 exit 0
 `,
     );
@@ -598,7 +680,7 @@ exit 0
       task: "crash callback",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-crashcb",
       onProgress: (_feed) => {
         callCount++;
@@ -606,15 +688,15 @@ exit 0
       },
     });
 
-    // Callback was called at least once (initial empty + progress)
+    // Callback called at least once
     expect(callCount).toBeGreaterThanOrEqual(1);
 
-    // But the subagent still completed and returned the canonical output
-    expect(result.output.trim()).toBe("success");
+    // Subagent still completes and returns canonical output
+    expect(result.output.trim()).toBe("Success.");
     expect(result.agentId).toBe("scout-crashcb");
   });
 
-  // ── Slice 9 (012): Cancellation via AbortSignal ──
+  // ── Cancellation via AbortSignal ──
 
   it("stops progress tailing and kills subagent when cancellation signal fires", async () => {
     const workDir = makeWorkDir();
@@ -622,27 +704,21 @@ exit 0
 
     writeAgentDef(agentsDir, "scout", { timeout: 10 });
 
-    const wrapperPath = writeFakeWrapper(
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-PROGRESS_FILE="$TASK_DIR/progress.jsonl"
-trap 'exit 143' TERM
-
-echo '{"type":"lifecycle","text":"Subagent started","timestamp":"2026-01-01T00:00:00Z","status":"started"}' > "$PROGRESS_FILE"
-sleep 0.2
-echo '{"type":"tool","text":"[read] started","timestamp":"2026-01-01T00:00:01Z","status":"started"}' >> "$PROGRESS_FILE"
-# Sleep long — we expect cancellation to kill us before timeout
-sleep 10
-echo "should not reach" > "$TASK_DIR/output.md"
-exit 0
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"tool_execution_start","toolName":"read","args":{"file":"started"}}
+NDJSON
+# Block — exec replaces shell so SIGTERM goes directly to tail
+exec tail -f /dev/null
 `,
     );
 
     const controller = new AbortController();
     const progressCalls: ActivityFeedOutput[] = [];
 
-    // Schedule cancellation after the first progress event arrives
     const abortTimer = setTimeout(() => {
       controller.abort();
     }, 300);
@@ -652,7 +728,7 @@ exit 0
       task: "cancelled task",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-cancel",
       onProgress: (feed) => {
         progressCalls.push(feed);
@@ -662,20 +738,202 @@ exit 0
 
     clearTimeout(abortTimer);
 
-    // Progress was delivered before cancellation
+    // Progress delivered before cancellation
     const callsWithEvents = progressCalls.filter((c) => c.expanded.lines.length > 0);
     expect(callsWithEvents.length).toBeGreaterThanOrEqual(1);
 
-    // Result is returned (not thrown) — cancellation is handled gracefully
+    // Result is returned (not thrown)
     expect(result.agentId).toBe("scout-cancel");
 
-    // No callbacks arrive after return
+    // No callbacks after return
     const finalCount = progressCalls.length;
     await new Promise((r) => setTimeout(r, 150));
     expect(progressCalls.length).toBe(finalCount);
   }, 10000);
 
-  // ── Slice 10 (012): Crash cleanup with progress callback ──
+  // ── Slice 11 (019 Tracer Bullet): Enriched result with duration, model, usage ──
+
+  it("returns enriched result with duration, model, and usage when stream processor yields usage events", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", { model: "minimax/MiniMax-M2.7" });
+
+    // Fake pi emits NDJSON with usage in agent_end messages
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"tool_execution_start","toolName":"read","args":{"file":"looking at file"}}
+{"type":"tool_execution_end","toolName":"read","result":{}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done with usage."}],"usage":{"input":2100,"output":300,"cacheRead":0,"cacheWrite":0}}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done with usage."}],"usage":{"input":2100,"output":300}}]}
+NDJSON
+exit 0
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "track usage",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-enriched",
+      onProgress: () => {},
+    });
+
+    expect(result.output.trim()).toBe("Done with usage.");
+    expect(result.agentId).toBe("scout-enriched");
+    expect(result.agentType).toBe("scout");
+
+    expect(typeof result.duration).toBe("number");
+    expect(result.duration).toBeGreaterThan(0);
+    expect(result.duration).toBeLessThan(5000);
+
+    expect(result.model).toBe("minimax/MiniMax-M2.7");
+
+    // Usage captured from progress events (via stream processor on agent_end)
+    expect(result.usage).toBeDefined();
+    expect(result.usage!.input).toBe(2100);
+    expect(result.usage!.output).toBe(300);
+    expect(result.usage!.cacheRead).toBe(0);
+    expect(result.usage!.cacheWrite).toBe(0);
+  });
+
+  it("returns model from overrides when provided, ignoring agent definition", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "worker", { model: "minimax/MiniMax-M2.7" });
+
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Done."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done."}]}]}
+NDJSON
+exit 0
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "worker",
+      task: "override model",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "worker-override",
+      overrides: { model: "anthropic/claude-sonnet" },
+    });
+
+    expect(result.model).toBe("anthropic/claude-sonnet");
+  });
+
+  it("returns undefined model when neither overrides nor definition has a model", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout"); // no model field
+
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Done."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done."}]}]}
+NDJSON
+exit 0
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "no model",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-nomodel",
+    });
+
+    expect(result.model).toBeUndefined();
+  });
+
+  it("returns undefined usage when no usage events appear in progress", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout");
+
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Done no usage."}}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done no usage."}]}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done no usage."}]}]}
+NDJSON
+exit 0
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "no usage events",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-nousage",
+      onProgress: () => {},
+    });
+
+    expect(result.usage).toBeUndefined();
+  });
+
+  it("captures usage from progress.jsonl even when no onProgress callback is provided", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", { model: "minimax/MiniMax-M2.7" });
+
+    // Fake pi emits NDJSON with full usage in agent_end messages
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done no callback."}],"usage":{"input":3500,"output":1500,"cacheRead":100,"cacheWrite":0}}}
+{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done no callback."}],"usage":{"input":3500,"output":1500,"cacheRead":100,"cacheWrite":0}}]}
+NDJSON
+exit 0
+`,
+    );
+
+    // No onProgress callback — usage should still be captured
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "usage without callback",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-nocb-usage",
+    });
+
+    expect(result.output.trim()).toBe("Done no callback.");
+    expect(result.duration).toBeGreaterThan(0);
+    expect(result.model).toBe("minimax/MiniMax-M2.7");
+    expect(result.usage).toBeDefined();
+    expect(result.usage!.input).toBe(3500);
+    expect(result.usage!.output).toBe(1500);
+    expect(result.usage!.cacheRead).toBe(100);
+  });
 
   it("delivers progress and returns error output when subagent crashes with callback active", async () => {
     const workDir = makeWorkDir();
@@ -683,16 +941,16 @@ exit 0
 
     writeAgentDef(agentsDir, "scout");
 
-    const wrapperPath = writeFakeWrapper(
+    // Fake pi emits some NDJSON (with interleaved sleep for tailer), then exits without agent_end
+    const piPath = writeFakePi(
       workDir,
       `#!/usr/bin/env bash
-TASK_DIR="$1"
-PROGRESS_FILE="$TASK_DIR/progress.jsonl"
-
-echo '{"type":"lifecycle","text":"Subagent started","timestamp":"2026-01-01T00:00:00Z","status":"started"}' > "$PROGRESS_FILE"
-sleep 0.2
-echo '{"type":"tool","text":"[read] about to crash","timestamp":"2026-01-01T00:00:01Z","status":"failed"}' >> "$PROGRESS_FILE"
-echo "wrapper crash: out of memory" > "$TASK_DIR/output.md"
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.15
+echo '{"type":"tool_execution_start","toolName":"read","args":{"file":"about to crash"}}'
+echo '{"type":"tool_execution_end","toolName":"read","result":{"isError":true}}'
 exit 1
 `,
     );
@@ -704,19 +962,19 @@ exit 1
       task: "crashing",
       agentsDir,
       workDir,
-      wrapperPath,
+      piPath,
       generateId: () => "scout-crash-progress",
       onProgress: (feed) => {
         progressCalls.push(feed);
       },
     });
 
-    // Progress was delivered before crash
+    // Progress delivered before crash
     const callsWithEvents = progressCalls.filter((c) => c.expanded.lines.length > 0);
     expect(callsWithEvents.length).toBeGreaterThanOrEqual(1);
 
-    // Crash output is still canonical
-    expect(result.output.trim()).toBe("wrapper crash: out of memory");
+    // Output contains truncation error (stream processor detects no agent_end)
+    expect(result.output).toContain("[ERROR]");
     expect(result.agentId).toBe("scout-crash-progress");
   });
 });
