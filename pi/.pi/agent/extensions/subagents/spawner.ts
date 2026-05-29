@@ -51,6 +51,8 @@ export interface SpawnSubagentResult {
     cacheRead?: number;
     cacheWrite?: number;
   };
+  /** Final activity feed snapshot at the moment the subagent finishes. */
+  activityFeed?: ActivityFeedOutput;
 }
 
 export class UnknownAgentError extends Error {
@@ -339,6 +341,26 @@ export async function spawnSubagent(
     latestUsage = extractUsageFromProgressFile(taskDir);
   }
 
+  // 12.5 Generate final activity feed from progress.jsonl
+  let activityFeed: ActivityFeedOutput | undefined;
+  try {
+    const progressPath = join(taskDir, "progress.jsonl");
+    if (existsSync(progressPath)) {
+      const raw = readFileSync(progressPath, "utf-8");
+      const events: ProgressEvent[] = raw.trim().split("\n")
+        .filter(Boolean)
+        .map((line) => {
+          try { return JSON.parse(line) as ProgressEvent; } catch { return null; }
+        })
+        .filter((e): e is ProgressEvent => e !== null);
+      if (events.length > 0) {
+        activityFeed = formatActivityFeed(events);
+      }
+    }
+  } catch {
+    // If formatting fails, activityFeed remains undefined — don't throw
+  }
+
   // 13. Read output.md and return
   const outputPath = join(taskDir, "output.md");
   let output: string;
@@ -349,7 +371,7 @@ export async function spawnSubagent(
     writeFileSync(outputPath, output, "utf-8");
   }
 
-  return { output, agentId, agentType, duration: Date.now() - startTime, model: resolvedModel, usage: latestUsage };
+  return { output, agentId, agentType, duration: Date.now() - startTime, model: resolvedModel, usage: latestUsage, activityFeed };
 }
 
 /**

@@ -138,7 +138,7 @@ exit 0
     // progress.jsonl should exist with stream processor events
     expect(existsSync(join(taskDir, "progress.jsonl"))).toBe(true);
     const progressLines = readFileSync(join(taskDir, "progress.jsonl"), "utf-8").trim().split("\n").filter(Boolean);
-    expect(progressLines.length).toBeGreaterThanOrEqual(3);
+    expect(progressLines.length).toBeGreaterThanOrEqual(2);
     const firstEvent = JSON.parse(progressLines[0]);
     expect(firstEvent.type).toBe("lifecycle");
     expect(firstEvent.status).toBe("started");
@@ -518,18 +518,17 @@ exit 0
 
     // The final progress snapshot should have all events (may arrive in batches)
     const lastNonEmpty = nonEmptyCalls[nonEmptyCalls.length - 1];
-    // Events: lifecycle(started), tool(started), tool(succeeded), assistant_text, lifecycle(completed)
-    expect(lastNonEmpty.expanded.lines.length).toBe(5);
+    // Events: lifecycle(started), tool(started), tool(succeeded), lifecycle(completed)
+    expect(lastNonEmpty.expanded.lines.length).toBe(4);
     expect(lastNonEmpty.expanded.lines[0]).toMatchObject({
       type: "lifecycle",
       text: "Subagent started",
     });
-    expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text.includes("[read]"))).toBe(true);
-    expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text === "Found 3 files.")).toBe(true);
+    expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text.includes("read: looking at file"))).toBe(true);
     expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text === "Subagent completed")).toBe(true);
 
     // Collapsed view should be formatted
-    expect(lastNonEmpty.collapsed.lines.length).toBe(5);
+    expect(lastNonEmpty.collapsed.lines.length).toBe(4);
     expect(lastNonEmpty.collapsed.hiddenCount).toBe(0);
 
     // Output should still be canonical
@@ -977,4 +976,260 @@ exit 1
     expect(result.output).toContain("[ERROR]");
     expect(result.agentId).toBe("scout-crash-progress");
   });
+
+  // ── Phase 2 Tracer Bullet: Final activity feed ──
+
+  it("returns final activity feed with all events after successful completion", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", { model: "test-model" });
+
+    // Fake pi emits lifecycle + tool + message events (with interleaved sleep for tailer)
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.15
+echo '{"type":"tool_execution_start","toolName":"read","args":{"file":"test.ts"}}'
+echo '{"type":"tool_execution_end","toolName":"read","result":{}}'
+sleep 0.1
+echo '{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done."}],"usage":{"input":100,"output":50}}}'
+echo '{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done."}]}]}'
+sleep 0.2
+exit 0
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "final feed test",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-final-feed",
+      onProgress: () => {},
+    });
+
+    // Output is canonical
+    expect(result.output.trim()).toBe("Done.");
+
+    // activityFeed should be present
+    expect(result.activityFeed).toBeDefined();
+
+    // Expanded should contain all events: lifecycle(started), tool(started), tool(succeeded), usage, lifecycle(completed)
+    expect(result.activityFeed!.expanded.lines.length).toBe(5);
+    expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
+      type: "lifecycle",
+      text: "Subagent started",
+    });
+    expect(result.activityFeed!.expanded.lines.some((l: { text: string }) => l.text.includes("read: test.ts"))).toBe(true);
+    expect(result.activityFeed!.expanded.lines.some((l: { type: string }) => l.type === "usage")).toBe(true);
+    expect(result.activityFeed!.expanded.lines[result.activityFeed!.expanded.lines.length - 1]).toMatchObject({
+      type: "lifecycle",
+      text: "Subagent completed",
+    });
+
+    // Collapsed view should be formatted and have same count (under window)
+    expect(result.activityFeed!.collapsed.lines.length).toBe(5);
+    expect(result.activityFeed!.collapsed.hiddenCount).toBe(0);
+
+    // Usage should still be available
+    expect(result.usage).toBeDefined();
+    expect(result.usage!.input).toBe(100);
+    expect(result.usage!.output).toBe(50);
+
+    // Backward compatibility: existing fields still present
+    expect(result.agentId).toBe("scout-final-feed");
+    expect(result.agentType).toBe("scout");
+    expect(result.duration).toBeGreaterThan(0);
+    expect(result.model).toBe("test-model");
+  });
+
+  it("returns activity feed even when no onProgress callback is provided", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout");
+
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.1
+echo '{"type":"tool_execution_start","toolName":"read","args":{"file":"test.ts"}}'
+echo '{"type":"tool_execution_end","toolName":"read","result":{}}'
+sleep 0.1
+echo '{"type":"message_end","message":{"role":"assistant","content":[{"type":"text","text":"Done."}]}}'
+echo '{"type":"agent_end","messages":[{"role":"assistant","content":[{"type":"text","text":"Done."}]}]}'
+sleep 0.2
+exit 0
+`,
+    );
+
+    // No onProgress callback — feed should still be available from progress.jsonl
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "no callback feed",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-nocb-feed",
+    });
+
+    expect(result.activityFeed).toBeDefined();
+    // Should contain lifecycle(started), tool(started), tool(succeeded), lifecycle(completed)
+    expect(result.activityFeed!.expanded.lines.length).toBe(4);
+    expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
+      type: "lifecycle",
+      text: "Subagent started",
+    });
+    expect(result.activityFeed!.expanded.lines[result.activityFeed!.expanded.lines.length - 1]).toMatchObject({
+      type: "lifecycle",
+      text: "Subagent completed",
+    });
+  });
+
+  it("returns activity feed accumulated before timeout", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", { timeout: 1 });
+
+    // Fake pi emits some events then blocks longer than timeout
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.1
+echo '{"type":"tool_execution_start","toolName":"read","args":{"file":"test.ts"}}'
+# Block longer than timeout — will be killed
+exec tail -f /dev/null
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "timeout feed",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-timeout-feed",
+    });
+
+    // Output is timeout error
+    expect(result.output).toContain("timed out");
+
+    // activityFeed should contain events accumulated before timeout
+    expect(result.activityFeed).toBeDefined();
+    // Should have at least lifecycle(started) and tool(started)
+    expect(result.activityFeed!.expanded.lines.length).toBeGreaterThanOrEqual(2);
+    expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
+      type: "lifecycle",
+      text: "Subagent started",
+    });
+    expect(result.activityFeed!.expanded.lines.some((l: { text: string }) => l.text.includes("read: test.ts"))).toBe(true);
+  }, 10000);
+
+  it("returns activity feed accumulated before crash", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout");
+
+    // Fake pi emits some events then exits non-zero without agent_end
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.1
+echo '{"type":"tool_execution_start","toolName":"read","args":{"file":"about to crash"}}'
+echo '{"type":"tool_execution_end","toolName":"read","result":{"isError":true}}'
+sleep 0.1
+exit 1
+`,
+    );
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "crash feed",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-crash-feed",
+    });
+
+    // Output contains truncation error
+    expect(result.output).toContain("[ERROR]");
+
+    // activityFeed should contain events accumulated before crash
+    expect(result.activityFeed).toBeDefined();
+    // Should have at least lifecycle(started), tool(started), tool(succeeded)
+    expect(result.activityFeed!.expanded.lines.length).toBeGreaterThanOrEqual(3);
+    expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
+      type: "lifecycle",
+      text: "Subagent started",
+    });
+    expect(result.activityFeed!.expanded.lines.some((l: { text: string }) => l.text.includes("about to crash"))).toBe(true);
+  });
+
+  it("returns activity feed accumulated before cancellation", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+
+    writeAgentDef(agentsDir, "scout", { timeout: 10 });
+
+    // Fake pi emits some events then blocks
+    const piPath = writeFakePi(
+      workDir,
+      `#!/usr/bin/env bash
+cat << 'NDJSON'
+{"type":"agent_start"}
+NDJSON
+sleep 0.1
+echo '{"type":"tool_execution_start","toolName":"read","args":{"file":"readme.md"}}'
+# Block until killed
+exec tail -f /dev/null
+`,
+    );
+
+    const controller = new AbortController();
+
+    const abortTimer = setTimeout(() => {
+      controller.abort();
+    }, 300);
+
+    const result = await spawnSubagent({
+      agentType: "scout",
+      task: "cancel feed",
+      agentsDir,
+      workDir,
+      piPath,
+      generateId: () => "scout-cancel-feed",
+      signal: controller.signal,
+    });
+
+    clearTimeout(abortTimer);
+
+    // Result is returned (not thrown)
+    expect(result.agentId).toBe("scout-cancel-feed");
+
+    // activityFeed should contain events accumulated before cancellation
+    expect(result.activityFeed).toBeDefined();
+    // Should have at least lifecycle(started) and tool(started)
+    expect(result.activityFeed!.expanded.lines.length).toBeGreaterThanOrEqual(2);
+    expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
+      type: "lifecycle",
+      text: "Subagent started",
+    });
+    expect(result.activityFeed!.expanded.lines.some((l: { text: string }) => l.text.includes("read: readme.md"))).toBe(true);
+  }, 10000);
 });

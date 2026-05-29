@@ -24,16 +24,16 @@ Remove all tmux-dependent shell scripts and their test files now that the TypeSc
 
 ### Acceptance criteria
 
-- [ ] `subagent-wrapper.sh` is deleted
-- [ ] `tmux-manager.sh` is deleted
-- [ ] `stream-filter.sh` is deleted
-- [ ] `subagent-wrapper.test.ts` is deleted
-- [ ] `tmux-manager.test.ts` is deleted
-- [ ] `stream-filter.test.ts` is deleted
-- [ ] No remaining imports, requires, or shell invocations reference the deleted scripts
-- [ ] No remaining code references `tmux` for subagent functionality (documentation references are fine)
-- [ ] The full test suite (`spawner.test.ts`, `stream-processor.test.ts`, `process-registry.test.ts`, and any remaining tests) passes
-- [ ] Subagent spawns continue to work end-to-end without any shell script dependency
+- [x] `subagent-wrapper.sh` is deleted
+- [x] `tmux-manager.sh` is deleted
+- [x] `stream-filter.sh` is deleted
+- [x] `subagent-wrapper.test.ts` is deleted
+- [x] `tmux-manager.test.ts` is deleted
+- [x] `stream-filter.test.ts` is deleted
+- [x] No remaining imports, requires, or shell invocations reference the deleted scripts
+- [x] No remaining code references `tmux` for subagent functionality (documentation references are fine)
+- [x] The full test suite (`spawner.test.ts`, `stream-processor.test.ts`, `process-registry.test.ts`, and any remaining tests) passes
+- [x] Subagent spawns continue to work end-to-end without any shell script dependency
 
 ### Blocked by
 

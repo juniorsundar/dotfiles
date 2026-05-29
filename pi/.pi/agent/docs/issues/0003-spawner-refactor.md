@@ -22,20 +22,20 @@ Modify `spawner.ts` to replace the shell wrapper spawn with a direct `child_proc
 
 ### Acceptance criteria
 
-- [ ] `spawnSubagent` spawns `pi` directly via `child_process.spawn` instead of `bash subagent-wrapper.sh`
-- [ ] Environment variables from the agent definition and overrides are passed via `spawn()`'s `env` option, not base64-encoded through a shell script
-- [ ] `pi` stdout is piped through the stream processor; `progress.jsonl` is written with all lifecycle, tool, assistant_text, and usage events matching current behavior
-- [ ] `output.md` is written with final assistant text on `agent_end`, or an error message on stream truncation
-- [ ] `events.jsonl` and `run.log` are written by the persistence layer (or the stream processor) with the same content as today
-- [ ] Process registry registers on spawn and deregisters on exit; orphan reaping runs at the start of every `spawnSubagent` call
-- [ ] Timeout kills the child process via `SIGTERM` and writes a timeout error to `output.md` (same behavior as today)
-- [ ] `AbortSignal` cancellation kills the child process and stops progress tailing
-- [ ] `onProgress` callback receives `ActivityFeedOutput` snapshots at the same cadence as today
-- [ ] `SpawnSubagentResult` includes `output`, `agentId`, `agentType`, `duration`, `model`, and `usage` — unchanged
-- [ ] `wrapperPath` option is removed; `piPath` option replaces it for test overrides
-- [ ] Existing tests in `spawner.test.ts` are updated to work with the new code path; no regressions in timeout, cancellation, unknown agent error, or output extraction
-- [ ] Subagent spawns work without tmux installed anywhere on the system
-- [ ] Subagent spawns work in a headless environment (no `$TERM`, no pty)
+- [x] `spawnSubagent` spawns `pi` directly via `child_process.spawn` instead of `bash subagent-wrapper.sh`
+- [x] Environment variables from the agent definition and overrides are passed via `spawn()`'s `env` option, not base64-encoded through a shell script
+- [x] `pi` stdout is piped through the stream processor; `progress.jsonl` is written with all lifecycle, tool, assistant_text, and usage events matching current behavior
+- [x] `output.md` is written with final assistant text on `agent_end`, or an error message on stream truncation
+- [x] `events.jsonl` and `run.log` are written by the persistence layer (or the stream processor) with the same content as today
+- [x] Process registry registers on spawn and deregisters on exit; orphan reaping runs at the start of every `spawnSubagent` call
+- [x] Timeout kills the child process via `SIGTERM` and writes a timeout error to `output.md` (same behavior as today)
+- [x] `AbortSignal` cancellation kills the child process and stops progress tailing
+- [x] `onProgress` callback receives `ActivityFeedOutput` snapshots at the same cadence as today
+- [x] `SpawnSubagentResult` includes `output`, `agentId`, `agentType`, `duration`, `model`, and `usage` — unchanged
+- [x] `wrapperPath` option is removed; `piPath` option replaces it for test overrides
+- [x] Existing tests in `spawner.test.ts` are updated to work with the new code path; no regressions in timeout, cancellation, unknown agent error, or output extraction
+- [x] Subagent spawns work without tmux installed anywhere on the system
+- [x] Subagent spawns work in a headless environment (no `$TERM`, no pty)
 
 ### Blocked by
 

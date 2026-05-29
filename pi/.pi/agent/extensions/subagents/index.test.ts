@@ -327,6 +327,10 @@ describe("subagents entry point", () => {
     toolCall.renderResult(partialResult, { expanded: false, isPartial: true }, theme, context);
     expect(context.state.usage).toEqual(sampleFeed.usage);
     expect(context.state.toolCount).toBe(2);
+    // Invalidation must be deferred: synchronous invalidate re-enters ToolExecutionComponent
+    // rendering and can add the same partial result component twice.
+    expect(invalidate).not.toHaveBeenCalled();
+    await Promise.resolve();
     expect(invalidate).toHaveBeenCalledTimes(1);
 
     const header = toolCall.renderCall(context.args, theme, context);
@@ -467,6 +471,69 @@ describe("subagents entry point", () => {
     // details does NOT carry progress-only fields (collapsed/expanded)
     expect(result.details.collapsed).toBeUndefined();
     expect(result.details.expanded).toBeUndefined();
+  });
+
+  // ── Slice 1 (Tracer Bullet): activityFeed forwarded from spawner to details ──
+
+  it("forwards activityFeed from spawn result to result.details", async () => {
+    const workDir = makeWorkDir();
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+    const toolCall = pi.registerTool.mock.calls[0][0];
+
+    const sampleActivityFeed = {
+      collapsed: {
+        text: "run Subagent started\nusage …",
+        hiddenCount: 2,
+        lines: [
+          { type: "lifecycle", text: "Subagent started", timestamp: "2026-05-29T00:00:00.000Z" },
+          { type: "tool", text: "read: test.ts", timestamp: "2026-05-29T00:00:01.000Z" },
+          { type: "usage", text: "100 in · 50 out", timestamp: "2026-05-29T00:00:02.000Z" },
+          { type: "lifecycle", text: "Subagent completed", timestamp: "2026-05-29T00:00:03.000Z", status: "completed" },
+        ],
+      },
+      expanded: {
+        text: "run Subagent started\ntool read: test.ts\nusage 100 in · 50 out\ndone Subagent completed",
+        hiddenCount: 0,
+        lines: [
+          { type: "lifecycle", text: "Subagent started", timestamp: "2026-05-29T00:00:00.000Z" },
+          { type: "tool", text: "read: test.ts", timestamp: "2026-05-29T00:00:01.000Z" },
+          { type: "usage", text: "100 in · 50 out", timestamp: "2026-05-29T00:00:02.000Z" },
+          { type: "lifecycle", text: "Subagent completed", timestamp: "2026-05-29T00:00:03.000Z", status: "completed" },
+        ],
+      },
+      usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+    };
+
+    vi.spyOn(spawnerModule, "spawnSubagent").mockResolvedValueOnce({
+      output: "feed output",
+      agentId: "scout-feed-1",
+      agentType: "scout",
+      duration: 5432,
+      model: "test/model",
+      usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+      activityFeed: sampleActivityFeed,
+    });
+
+    const result = await toolCall.execute(
+      "call-1",
+      { agent_type: "scout", prompt: "feed test" },
+      new AbortController().signal,
+      vi.fn(),
+      { cwd: workDir },
+    );
+
+    // activityFeed is present in details and matches the spawn result
+    expect(result.details.activityFeed).toBeDefined();
+    expect(result.details.activityFeed).toEqual(sampleActivityFeed);
+
+    // content still has only the clean output
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe("text");
+    expect(result.content[0].text).toBe("feed output");
   });
 
   // ── Slice 3.3: Final error result unchanged despite progress updates ──
@@ -1038,7 +1105,7 @@ describe("renderResult — live partial update state", () => {
     return pi.registerTool.mock.calls[0][0];
   }
 
-  it("stores partial Activity Feed usage and tool count in context.state, then invalidates", () => {
+  it("stores partial Activity Feed usage and tool count in context.state, then defers invalidation", async () => {
     const pi = mockExtensionAPI();
     subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
     const toolDef = extractToolDef(pi);
@@ -1084,6 +1151,8 @@ describe("renderResult — live partial update state", () => {
     expect(typeof component.render).toBe("function");
     expect(context.state.usage).toEqual({ input: 2100, output: 300, cacheRead: 0, cacheWrite: 0 });
     expect(context.state.toolCount).toBe(2);
+    expect(invalidate).not.toHaveBeenCalled();
+    await Promise.resolve();
     expect(invalidate).toHaveBeenCalledTimes(1);
   });
 
@@ -1323,6 +1392,234 @@ describe("renderResult — live partial update state", () => {
     expect(rendered).toContain("(id: nousage)");
     expect(rendered).toContain("0.5s");
     expect(rendered).not.toContain("tokens");
+  });
+
+  // ── Slice 2: Expanded final result shows activity feed between metadata and output ──
+
+  it("expanded final render includes activity feed between metadata block and output text", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "subagent output here" }],
+        details: {
+          agentId: "scout-a3f2b1c8",
+          agentType: "scout",
+          model: "minimax/MiniMax-M2.7",
+          duration: 12345,
+          usage: { input: 4231, output: 892, cacheRead: 512, cacheWrite: 0 },
+          activityFeed: {
+            collapsed: {
+              text: "run Subagent started\nusage …",
+              hiddenCount: 1,
+              lines: [
+                { type: "lifecycle", text: "Subagent started", timestamp: "2026-05-29T00:00:00.000Z" },
+                { type: "usage", text: "100 in · 50 out", timestamp: "2026-05-29T00:00:01.000Z" },
+                { type: "lifecycle", text: "Subagent completed", timestamp: "2026-05-29T00:00:02.000Z", status: "completed" },
+              ],
+            },
+            expanded: {
+              text: "run Subagent started\ntool read: test.ts\nusage 100 in · 50 out\ndone Subagent completed",
+              hiddenCount: 0,
+              lines: [
+                { type: "lifecycle", text: "Subagent started", timestamp: "2026-05-29T00:00:00.000Z" },
+                { type: "tool", text: "read: test.ts", timestamp: "2026-05-29T00:00:01.000Z" },
+                { type: "usage", text: "100 in · 50 out", timestamp: "2026-05-29T00:00:02.000Z" },
+                { type: "lifecycle", text: "Subagent completed", timestamp: "2026-05-29T00:00:03.000Z", status: "completed" },
+              ],
+            },
+            usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+          },
+        },
+      },
+      { expanded: true, isPartial: false },
+      { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+      context,
+    );
+
+    const lines = component.render(80);
+    const rendered = lines.join("\n");
+
+    // Metadata block present
+    expect(rendered).toContain("scout");
+    expect(rendered).toContain("12.3s");
+
+    // Exact separator lines: one after metadata, one between feed and output
+    const separator = "─────────────────────────";
+    expect(lines.filter((line: string) => line === separator)).toHaveLength(2);
+
+    // Activity feed content present — tool line from expanded view
+    expect(rendered).toContain("read: test.ts");
+
+    // Lifecycle lines present
+    expect(rendered).toContain("Subagent started");
+    expect(rendered).toContain("Subagent completed");
+
+    // Structure/order: metadata separator → feed → output separator → output text
+    const firstSeparatorIndex = lines.findIndex((line: string) => line === separator);
+    const feedIndex = lines.findIndex((line: string) => line.includes("read: test.ts"));
+    const secondSeparatorIndex = lines.findIndex(
+      (line: string, index: number) => index > feedIndex && line === separator,
+    );
+    const outputIndex = lines.findIndex((line: string) => line === "subagent output here");
+
+    expect(firstSeparatorIndex).toBeGreaterThanOrEqual(0);
+    expect(feedIndex).toBeGreaterThan(firstSeparatorIndex);
+    expect(secondSeparatorIndex).toBeGreaterThan(feedIndex);
+    expect(outputIndex).toBeGreaterThan(secondSeparatorIndex);
+  });
+
+  // ── Slice 3: Collapsed final result excludes activity feed ──
+
+  it("collapsed final render excludes activity feed when present in details", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "subagent output here" }],
+        details: {
+          agentId: "scout-a3f2b1c8",
+          agentType: "scout",
+          model: "minimax/MiniMax-M2.7",
+          duration: 12345,
+          usage: { input: 4231, output: 892, cacheRead: 512, cacheWrite: 0 },
+          activityFeed: {
+            collapsed: {
+              text: "run Subagent started\nusage …",
+              hiddenCount: 1,
+              lines: [
+                { type: "lifecycle", text: "Subagent started", timestamp: "2026-05-29T00:00:00.000Z" },
+                { type: "usage", text: "100 in · 50 out", timestamp: "2026-05-29T00:00:01.000Z" },
+                { type: "lifecycle", text: "Subagent completed", timestamp: "2026-05-29T00:00:02.000Z", status: "completed" },
+              ],
+            },
+            expanded: {
+              text: "run Subagent started\ntool read: test.ts\nusage 100 in · 50 out\ndone Subagent completed",
+              hiddenCount: 0,
+              lines: [
+                { type: "lifecycle", text: "Subagent started", timestamp: "2026-05-29T00:00:00.000Z" },
+                { type: "tool", text: "read: test.ts", timestamp: "2026-05-29T00:00:01.000Z" },
+                { type: "usage", text: "100 in · 50 out", timestamp: "2026-05-29T00:00:02.000Z" },
+                { type: "lifecycle", text: "Subagent completed", timestamp: "2026-05-29T00:00:03.000Z", status: "completed" },
+              ],
+            },
+            usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+          },
+        },
+      },
+      { expanded: false, isPartial: false },
+      { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+      context,
+    );
+
+    const lines = component.render(80);
+    const rendered = lines.join("\n");
+
+    // Metadata block present
+    expect(rendered).toContain("scout");
+    expect(rendered).toContain("12.3s");
+
+    // No activity feed content — tool lines should NOT appear
+    expect(rendered).not.toContain("read: test.ts");
+    expect(rendered).not.toContain("Subagent started");
+
+    // Output text is present
+    expect(lines).toContain("subagent output here");
+
+    // Exact separator lines: collapsed mode only has the metadata/output separator
+    const separator = "─────────────────────────";
+    expect(lines.filter((line: string) => line === separator)).toHaveLength(1);
+  });
+
+  // ── Slice 5: Graceful degradation when activityFeed absent ──
+
+  it("final render succeeds when details has no activityFeed field (graceful degradation)", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "legacy output" }],
+        details: {
+          agentId: "scout-legacy-1",
+          agentType: "scout",
+          model: "test/model",
+          duration: 500,
+          usage: { input: 100 },
+          // no activityFeed field — legacy/spawner doesn't provide it
+        },
+      },
+      { expanded: true, isPartial: false },
+      { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+      context,
+    );
+
+    const lines = component.render(80);
+    const rendered = lines.join("\n");
+
+    // Metadata still renders normally
+    expect(rendered).toContain("scout");
+    expect(rendered).toContain("(id: legacy-1)");
+    expect(rendered).toContain("test/model");
+    expect(rendered).toContain("0.5s");
+    expect(rendered).toContain("100 input");
+
+    // Separator between metadata and output
+    expect(rendered).toContain("───");
+
+    // Output text is present
+    expect(rendered).toContain("legacy output");
+
+    // No activity feed text
+    expect(rendered).not.toContain("Subagent");
+    expect(rendered).not.toContain("read");
   });
 });
 

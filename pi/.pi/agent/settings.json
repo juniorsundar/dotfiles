@@ -1,9 +1,9 @@
 {
-  "defaultModel": "deepseek-v4-pro",
-  "defaultProvider": "ollama-cloud",
+  "defaultModel": "gpt-5.5",
+  "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.77.0",
+  "lastChangelogVersion": "0.78.0",
   "packages": [
     "git:github.com/mrexodia/kilo-pi-provider",
     "git:github.com/juicesharp/rpiv-mono",
@@ -25,7 +25,9 @@
     "opencode-go/qwen3.6-plus",
     "opencode-go/deepseek-v4-flash",
     "opencode-go/deepseek-v4-pro",
-    "openai-codex/gpt-5.4"
+    "openai-codex/gpt-5.4",
+    "opencode-go/mimo-v2.5",
+    "opencode-go/mimo-v2.5-pro"
   ],
   "theme": "atom-one-dark",
   "enableInstallTelemetry": false,

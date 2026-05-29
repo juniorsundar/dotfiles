@@ -84,7 +84,7 @@ describe("processStream", () => {
     const textDelta = (delta: string) =>
       JSON.stringify({ type: "message_update", assistantMessageEvent: { type: "text_delta", contentIndex: 1, delta } });
 
-    it("accumulates text_delta content and flushes on sentence boundaries", async () => {
+    it("does not emit assistant_text events from text_delta", async () => {
       const events = [
         JSON.stringify({ type: "agent_start" }),
         textDelta("Hello "),
@@ -97,11 +97,10 @@ describe("processStream", () => {
       const assistantEvents = results.filter(
         (r) => (r as Record<string, unknown>).type === "assistant_text",
       );
-      expect(assistantEvents.length).toBe(1);
-      expect(assistantEvents[0]).toMatchObject({ type: "assistant_text", text: "Hello world." });
+      expect(assistantEvents.length).toBe(0);
     });
 
-    it("flushes on ! and ? boundaries", async () => {
+    it("does not emit assistant_text for varied punctuation", async () => {
       const events = [
         JSON.stringify({ type: "agent_start" }),
         textDelta("Wow! "),
@@ -115,13 +114,10 @@ describe("processStream", () => {
       const assistantEvents = results.filter(
         (r) => (r as Record<string, unknown>).type === "assistant_text",
       );
-      expect(assistantEvents.length).toBe(3);
-      expect(assistantEvents[0]).toMatchObject({ text: "Wow!" });
-      expect(assistantEvents[1]).toMatchObject({ text: "Really?" });
-      expect(assistantEvents[2]).toMatchObject({ text: "Okay." });
+      expect(assistantEvents.length).toBe(0);
     });
 
-    it("does not flush incomplete sentences", async () => {
+    it("does not emit assistant_text from incomplete trailing text", async () => {
       const events = [JSON.stringify({ type: "agent_start" }), textDelta("Still drafting")];
       const stream = processStream(linesFrom(events));
       const results: unknown[] = [];
@@ -134,31 +130,64 @@ describe("processStream", () => {
     });
   });
 
-  // ── Slice 4: Thinking Suppression ──
-  describe("thinking suppression", () => {
+  // ── Slice 4: Thinking Visibility ──
+  describe("thinking visibility", () => {
     const thinkingEvent = (thinkType: string, delta?: string) =>
       JSON.stringify({ type: "message_update", assistantMessageEvent: { type: thinkType, contentIndex: 0, delta } });
 
-    it("suppresses thinking_delta", async () => {
-      const events = [JSON.stringify({ type: "agent_start" }), thinkingEvent("thinking_delta", "secret")];
+    it("emits readable thinking_delta content", async () => {
+      const events = [JSON.stringify({ type: "agent_start" }), thinkingEvent("thinking_delta", "I should inspect the files first. ")];
       const stream = processStream(linesFrom(events));
       const results: unknown[] = [];
       for await (const event of stream) results.push(event);
-      expect(results.length).toBe(1);
-      expect(results[0]).toMatchObject({ type: "lifecycle" });
+      expect(results).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: "lifecycle" }),
+        expect.objectContaining({ type: "thinking", text: "I should inspect the files first." }),
+      ]));
     });
 
-    it("suppresses thinking_start and thinking_end", async () => {
+    it("does not emit Thinking started or Thinking complete markers", async () => {
       const events = [
         JSON.stringify({ type: "agent_start" }),
         thinkingEvent("thinking_start"),
+        thinkingEvent("thinking_delta", "I should inspect the files first. "),
         thinkingEvent("thinking_end"),
       ];
       const stream = processStream(linesFrom(events));
       const results: unknown[] = [];
       for await (const event of stream) results.push(event);
-      expect(results.length).toBe(1);
-      expect(results[0]).toMatchObject({ type: "lifecycle" });
+      const thinkingMarkers = results.filter(
+        (r) => (r as Record<string, unknown>).type === "thinking" &&
+          ((r as Record<string, unknown>).text === "Thinking started" || (r as Record<string, unknown>).text === "Thinking complete"),
+      );
+      expect(thinkingMarkers.length).toBe(0);
+      const thinkingContent = results.filter(
+        (r) => (r as Record<string, unknown>).type === "thinking" && (r as Record<string, unknown>).text === "I should inspect the files first.",
+      );
+      expect(thinkingContent.length).toBe(1);
+    });
+
+    it("does not duplicate final thinking content after streamed deltas", async () => {
+      const events = [
+        thinkingEvent("thinking_start"),
+        thinkingEvent("thinking_delta", "I should inspect the files first. "),
+        JSON.stringify({
+          type: "message_update",
+          assistantMessageEvent: {
+            type: "thinking_end",
+            contentIndex: 0,
+            content: "I should inspect the files first.",
+          },
+        }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: unknown[] = [];
+      for await (const event of stream) results.push(event);
+      const thoughtEvents = results.filter(
+        (event) => (event as Record<string, unknown>).type === "thinking" &&
+          (event as Record<string, unknown>).text === "I should inspect the files first.",
+      );
+      expect(thoughtEvents).toHaveLength(1);
     });
   });
 
@@ -222,7 +251,7 @@ describe("processStream", () => {
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
       expect(toolEvents[0]).toMatchObject({ type: "tool", status: "started" });
-      expect((toolEvents[0] as { text: string }).text).toContain("bash");
+      expect((toolEvents[0] as { text: string }).text).toBe("bash: ls -la /tmp");
     });
 
     it("handles tool_call as alias", async () => {
@@ -238,7 +267,7 @@ describe("processStream", () => {
       expect(toolEvents[0]).toMatchObject({ type: "tool", status: "started" });
     });
 
-    it("truncates summary to 120 characters", async () => {
+    it("truncates summary to 180 characters", async () => {
       const longArg = "x".repeat(200);
       const events = [
         JSON.stringify({ type: "tool_execution_start", toolCallId: "x", toolName: "bash", args: { command: longArg } }),
@@ -246,7 +275,53 @@ describe("processStream", () => {
       const stream = processStream(linesFrom(events));
       const results: unknown[] = [];
       for await (const event of stream) results.push(event);
-      expect((results[0] as { text: string }).text.length).toBeLessThanOrEqual(123);
+      expect((results[0] as { text: string }).text.length).toBeLessThanOrEqual(180);
+    });
+
+    it("deduplicates tool_execution_start when tool_call already fired for the same toolCallId", async () => {
+      const events = [
+        JSON.stringify({ type: "tool_call", toolCallId: "call_1", toolName: "read", args: { path: "/tmp/test" } }),
+        JSON.stringify({ type: "tool_execution_start", toolCallId: "call_1", toolName: "read", args: { path: "/tmp/test" } }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: unknown[] = [];
+      for await (const event of stream) results.push(event);
+
+      const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool" && (r as Record<string, unknown>).status === "started");
+      expect(toolEvents.length).toBe(1);
+    });
+
+    it("deduplicates tool_call when tool_execution_start already fired for the same toolCallId", async () => {
+      const events = [
+        JSON.stringify({ type: "tool_execution_start", toolCallId: "call_2", toolName: "bash", args: { command: "ls" } }),
+        JSON.stringify({ type: "tool_call", toolCallId: "call_2", toolName: "bash", args: { command: "ls" } }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: unknown[] = [];
+      for await (const event of stream) results.push(event);
+
+      const toolStarted = results.filter((r) => (r as Record<string, unknown>).type === "tool" && (r as Record<string, unknown>).status === "started");
+      const toolStartTexts = toolStarted.map((e) => (e as { text: string }).text);
+      const actualStarts = toolStartTexts.filter((t) => !t.includes("output →"));
+      expect(actualStarts.length).toBe(1);
+    });
+
+    it("still emits tool_execution_update and tool_execution_end after dedup", async () => {
+      const events = [
+        JSON.stringify({ type: "tool_call", toolCallId: "call_3", toolName: "bash", args: { command: "du" } }),
+        JSON.stringify({ type: "tool_execution_start", toolCallId: "call_3", toolName: "bash", args: { command: "du" } }),
+        JSON.stringify({ type: "tool_execution_update", toolCallId: "call_3", toolName: "bash", result: { content: [{ type: "text", text: "partial" }] } }),
+        JSON.stringify({ type: "tool_execution_end", toolCallId: "call_3", toolName: "bash", result: { content: [{ type: "text", text: "done" }] } }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: unknown[] = [];
+      for await (const event of stream) results.push(event);
+
+      const allTool = results.filter((r) => (r as Record<string, unknown>).type === "tool");
+      expect(allTool.length).toBe(3);
+
+      const toolSucceeded = results.filter((r) => (r as Record<string, unknown>).type === "tool" && (r as Record<string, unknown>).status === "succeeded");
+      expect(toolSucceeded.length).toBe(1);
     });
   });
 
@@ -262,7 +337,7 @@ describe("processStream", () => {
 
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
-      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "succeeded" });
+      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "succeeded", text: "bash completed → ok" });
     });
 
     it("emits tool event with status failed when result.isError is true", async () => {
@@ -275,7 +350,7 @@ describe("processStream", () => {
 
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
-      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "failed" });
+      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "failed", text: "bash failed → err" });
     });
 
     it("handles tool_result as alias", async () => {
@@ -289,6 +364,20 @@ describe("processStream", () => {
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
       expect(toolEvents[0]).toMatchObject({ type: "tool", status: "succeeded" });
+    });
+
+    it("deduplicates tool_execution_end when called twice for the same toolCallId", async () => {
+      const events = [
+        JSON.stringify({ type: "tool_execution_start", toolCallId: "d1", toolName: "bash", args: { command: "ls" } }),
+        JSON.stringify({ type: "tool_execution_end", toolCallId: "d1", toolName: "bash", result: {} }),
+        JSON.stringify({ type: "tool_execution_end", toolCallId: "d1", toolName: "bash", result: {} }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: unknown[] = [];
+      for await (const event of stream) results.push(event);
+
+      const toolSucceeded = results.filter((r) => (r as Record<string, unknown>).type === "tool" && (r as Record<string, unknown>).status === "succeeded");
+      expect(toolSucceeded.length).toBe(1);
     });
   });
 
@@ -403,13 +492,14 @@ describe("processStream", () => {
       expect((result as { partialText: string }).partialText).toBe("Partial draft");
     });
 
-    it("returns flushed text_delta content as partialText", async () => {
+    it("returns accumulated text_delta content as partialText", async () => {
       const { events, result } = await collectStream([
         JSON.stringify({ type: "message_update", assistantMessageEvent: { type: "text_delta", delta: "Flushed sentence. " } }),
       ]);
-      expect(events).toEqual([
-        expect.objectContaining({ type: "assistant_text", text: "Flushed sentence." }),
-      ]);
+      const assistantEvents = events.filter(
+        (e) => (e as Record<string, unknown>).type === "assistant_text",
+      );
+      expect(assistantEvents.length).toBe(0);
       expect(result.done).toBe(false);
       expect((result as { partialText: string }).partialText).toBe("Flushed sentence.");
     });
@@ -417,7 +507,7 @@ describe("processStream", () => {
 
   // ── Slice 10: Multi-byte + Partial Chunks ──
   describe("multi-byte and partial chunk handling", () => {
-    it("handles multi-byte UTF-8 characters in text_delta", async () => {
+    it("does not emit assistant_text from multi-byte text_delta", async () => {
       const textDelta = (delta: string) =>
         JSON.stringify({ type: "message_update", assistantMessageEvent: { type: "text_delta", contentIndex: 1, delta } });
 
@@ -432,8 +522,7 @@ describe("processStream", () => {
       const assistantEvents = results.filter(
         (r) => (r as Record<string, unknown>).type === "assistant_text",
       );
-      expect(assistantEvents.length).toBe(1);
-      expect(assistantEvents[0]).toMatchObject({ text: "こんにちは世界。" });
+      expect(assistantEvents.length).toBe(0);
     });
 
     it("handles lines that arrive as part of a multi-line JSON payload (gracefully)", async () => {
@@ -450,8 +539,7 @@ describe("processStream", () => {
       const assistantEvents = results.filter(
         (r) => (r as Record<string, unknown>).type === "assistant_text",
       );
-      expect(assistantEvents.length).toBe(1);
-      expect(assistantEvents[0]).toMatchObject({ text: "Line 1\nLine 2." });
+      expect(assistantEvents.length).toBe(0);
     });
 
     it("handles partial JSON lines split across chunks", async () => {
@@ -468,8 +556,11 @@ describe("processStream", () => {
 
       expect(results).toEqual(expect.arrayContaining([
         expect.objectContaining({ type: "lifecycle", status: "started" }),
-        expect.objectContaining({ type: "assistant_text", text: "Chunked." }),
       ]));
+      const assistantEvents = results.filter(
+        (r) => (r as Record<string, unknown>).type === "assistant_text",
+      );
+      expect(assistantEvents.length).toBe(0);
     });
   });
 });

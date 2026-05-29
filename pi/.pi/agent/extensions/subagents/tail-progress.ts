@@ -1,7 +1,7 @@
 import { statSync, readFileSync, existsSync } from "fs";
 
 export interface ProgressEvent {
-  type: "lifecycle" | "tool" | "assistant_text" | "terminal" | "usage";
+  type: "lifecycle" | "tool" | "assistant_text" | "thinking" | "terminal" | "usage";
   text: string;
   timestamp: string;
   status?: "started" | "succeeded" | "failed" | "completed";

@@ -16,10 +16,13 @@ export async function* processStream(
   input: AsyncIterable<string>,
 ): AsyncGenerator<ProgressEvent, StreamResult> {
   let lifecycleStartedEmitted = false;
-  let textBuffer = "";
+  let thinkingBuffer = "";
+  let thinkingBlockSawDelta = false;
   let streamedText = "";
   let finalText = "";
   let pending = "";
+  const startedToolIds = new Set<string>();
+  const completedToolIds = new Set<string>();
 
   const emitParsed = function* (
     parsed: Record<string, unknown>,
@@ -40,19 +43,45 @@ export async function* processStream(
 
       if (subType === "text_delta") {
         const delta = stringValue(assistantEvent?.delta);
-        textBuffer += delta;
         streamedText += delta;
-        for (const sentence of flushCompletedSentences()) {
+      }
+
+      if (subType === "thinking_start") {
+        thinkingBuffer = "";
+        thinkingBlockSawDelta = false;
+      }
+
+      if (subType === "thinking_delta") {
+        const delta = stringValue(assistantEvent?.delta);
+        if (delta) thinkingBlockSawDelta = true;
+        thinkingBuffer += delta;
+        const drained = drainReadableChunks(thinkingBuffer);
+        thinkingBuffer = drained.rest;
+        for (const thought of drained.chunks) {
           yield {
-            type: "assistant_text",
-            text: sentence,
+            type: "thinking",
+            text: thought,
             timestamp: timestamp(),
           };
         }
       }
 
-      // thinking_delta, thinking_start, thinking_end, and unknown sub-events are
-      // intentionally suppressed to match the old stream-filter.sh behavior.
+      if (subType === "thinking_end") {
+        const content = stringValue(assistantEvent?.content);
+        if (!thinkingBlockSawDelta && !thinkingBuffer && content) {
+          thinkingBuffer = content;
+        }
+        const drained = drainReadableChunks(thinkingBuffer, { force: true });
+        thinkingBuffer = drained.rest;
+        for (const thought of drained.chunks) {
+          yield {
+            type: "thinking",
+            text: thought,
+            timestamp: timestamp(),
+          };
+        }
+      }
+
       return undefined;
     }
 
@@ -70,22 +99,50 @@ export async function* processStream(
     }
 
     if (eventType === "tool_execution_start" || eventType === "tool_call") {
+      const toolCallId = stringValue(parsed.toolCallId) || stringValue(parsed.id);
+      if (toolCallId && startedToolIds.has(toolCallId)) {
+        return undefined;
+      }
+      if (toolCallId) {
+        startedToolIds.add(toolCallId);
+      }
       yield {
         type: "tool",
-        text: toolSummary(parsed),
+        text: toolStartSummary(parsed),
         timestamp: timestamp(),
         status: "started",
       };
       return undefined;
     }
 
+    if (eventType === "tool_execution_update") {
+      const toolName = stringValue(parsed.toolName) || "?";
+      const preview = toolResultPreview(parsed);
+      if (preview) {
+        yield {
+          type: "tool",
+          text: truncateDisplayText(`${toolName} output → ${preview}`, 220),
+          timestamp: timestamp(),
+          status: "started",
+        };
+      }
+      return undefined;
+    }
+
     if (eventType === "tool_execution_end" || eventType === "tool_result") {
+      const toolCallId = stringValue(parsed.toolCallId) || stringValue(parsed.id);
+      if (toolCallId && completedToolIds.has(toolCallId)) {
+        return undefined;
+      }
+      if (toolCallId) {
+        completedToolIds.add(toolCallId);
+      }
       const toolName = stringValue(parsed.toolName) || "?";
       const result = objectValue(parsed.result);
-      const isError = Boolean(result?.isError);
+      const isError = Boolean(parsed.isError ?? result?.isError);
       yield {
         type: "tool",
-        text: isError ? `Tool ${toolName} failed` : `Tool ${toolName} succeeded`,
+        text: toolCompletionSummary(toolName, parsed, isError),
         timestamp: timestamp(),
         status: isError ? "failed" : "succeeded",
       };
@@ -172,25 +229,43 @@ export async function* processStream(
     partialText: finalText || streamedText.trim(),
   };
 
-  function flushCompletedSentences(): string[] {
-    const sentences: string[] = [];
+  function drainReadableChunks(
+    buffer: string,
+    options: { force?: boolean } = {},
+  ): { chunks: string[]; rest: string } {
+    const chunks: string[] = [];
     const boundary = /([^.!?。！？]+[.!?。！？])(?:\s|$)/gu;
     let match: RegExpExecArray | null;
     let lastFlushEnd = 0;
 
-    while ((match = boundary.exec(textBuffer)) !== null) {
-      const sentence = match[1].trim();
-      if (sentence.length > 0) {
-        sentences.push(sentence);
+    while ((match = boundary.exec(buffer)) !== null) {
+      const chunk = cleanDisplayText(match[1]);
+      if (chunk.length > 0) {
+        chunks.push(chunk);
       }
       lastFlushEnd = match.index + match[0].length;
     }
 
-    if (lastFlushEnd > 0) {
-      textBuffer = textBuffer.slice(lastFlushEnd);
+    let rest = lastFlushEnd > 0 ? buffer.slice(lastFlushEnd) : buffer;
+
+    if (!options.force && rest.length > 240) {
+      const splitAt = chooseSplitPoint(rest, 220);
+      const chunk = cleanDisplayText(rest.slice(0, splitAt));
+      if (chunk.length > 0) {
+        chunks.push(chunk);
+      }
+      rest = rest.slice(splitAt);
     }
 
-    return sentences;
+    if (options.force) {
+      const chunk = cleanDisplayText(rest);
+      if (chunk.length > 0) {
+        chunks.push(chunk);
+      }
+      rest = "";
+    }
+
+    return { chunks, rest };
   }
 }
 
@@ -311,21 +386,100 @@ function sumUsageFromMessages(messagesValue: unknown): Usage | undefined {
   return total;
 }
 
-function toolSummary(parsed: Record<string, unknown>): string {
+function toolStartSummary(parsed: Record<string, unknown>): string {
   const toolName = stringValue(parsed.toolName) || "?";
-  const args = parsed.args ?? {};
-  let argsText: string;
-  try {
-    argsText = JSON.stringify(args);
-  } catch {
-    argsText = "{}";
+  const args = objectValue(parsed.args) ?? objectValue(parsed.input) ?? {};
+  return truncateDisplayText(`${toolName}: ${summarizeToolArgs(toolName, args)}`, 180);
+}
+
+function toolCompletionSummary(
+  toolName: string,
+  parsed: Record<string, unknown>,
+  isError: boolean,
+): string {
+  const preview = toolResultPreview(parsed);
+  const verb = isError ? "failed" : "completed";
+  return preview
+    ? truncateDisplayText(`${toolName} ${verb} → ${preview}`, 220)
+    : `${toolName} ${verb}`;
+}
+
+function summarizeToolArgs(
+  toolName: string,
+  args: Record<string, unknown>,
+): string {
+  const name = toolName.toLowerCase();
+
+  if (name === "bash") return cleanDisplayText(stringValue(args.command) || "(no command)");
+  if (name === "read") return cleanDisplayText(stringValue(args.path) || stringValue(args.file) || "(no path)");
+  if (name === "write") return cleanDisplayText(stringValue(args.path) || stringValue(args.file) || "(no path)");
+  if (name === "edit") {
+    const count = Array.isArray(args.edits) ? args.edits.length : undefined;
+    const suffix = typeof count === "number" ? ` (${count} edit${count === 1 ? "" : "s"})` : "";
+    return cleanDisplayText(`${stringValue(args.path) || "(no path)"}${suffix}`);
+  }
+  if (name === "grep") {
+    const pattern = stringValue(args.pattern) || stringValue(args.query) || "(no pattern)";
+    const path = stringValue(args.path) || stringValue(args.cwd);
+    return cleanDisplayText(path ? `${pattern} in ${path}` : pattern);
+  }
+  if (name === "find" || name === "ls") return cleanDisplayText(stringValue(args.path) || stringValue(args.cwd) || ".");
+  if (name === "web_search") return cleanDisplayText(stringValue(args.query) || "(no query)");
+  if (name === "web_fetch") return cleanDisplayText(stringValue(args.url) || "(no url)");
+  if (name === "subagent") {
+    const agentType = stringValue(args.agent_type) || stringValue(args.agentType) || "agent";
+    const prompt = stringValue(args.prompt) || stringValue(args.task);
+    return cleanDisplayText(prompt ? `${agentType} — ${prompt}` : agentType);
+  }
+  if (name === "ask_user_question") {
+    const questions = Array.isArray(args.questions) ? args.questions : [];
+    const first = objectValue(questions[0]);
+    return cleanDisplayText(stringValue(first?.question) || `${questions.length} question${questions.length === 1 ? "" : "s"}`);
+  }
+  if (name === "todo") {
+    const action = stringValue(args.action) || "todo";
+    const subject = stringValue(args.subject);
+    return cleanDisplayText(subject ? `${action} ${subject}` : action);
   }
 
-  let summary = `[${toolName}] ${argsText}`;
-  if (summary.length > 120) {
-    summary = `${summary.slice(0, 117)}...`;
+  return compactJson(args);
+}
+
+function toolResultPreview(parsed: Record<string, unknown>): string {
+  const result = objectValue(parsed.result) ?? objectValue(parsed.partialResult);
+  const text =
+    extractTextContent(result?.content) ||
+    extractTextContent(parsed.content) ||
+    stringValue(result?.content) ||
+    stringValue(parsed.content);
+  return truncateDisplayText(cleanDisplayText(text), 180);
+}
+
+function compactJson(value: unknown): string {
+  try {
+    return cleanDisplayText(JSON.stringify(value));
+  } catch {
+    return "{}";
   }
-  return summary;
+}
+
+function cleanDisplayText(value: string): string {
+  return value
+    .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "")
+    .replace(/[\t\r\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function truncateDisplayText(value: string, maxLength: number): string {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function chooseSplitPoint(value: string, preferred: number): number {
+  if (value.length <= preferred) return value.length;
+  const whitespace = value.lastIndexOf(" ", preferred);
+  return whitespace > 80 ? whitespace : preferred;
 }
 
 function timestamp(): string {

@@ -3,7 +3,7 @@ import { formatActivityFeed } from "./activity-feed-formatter";
 
 function makeEvent(
   overrides: Partial<{
-    type: "lifecycle" | "tool" | "assistant_text" | "terminal";
+    type: "lifecycle" | "tool" | "assistant_text" | "thinking" | "terminal" | "usage";
     text: string;
     timestamp: string;
     status: "started" | "succeeded" | "failed" | "completed";
@@ -28,8 +28,8 @@ describe("formatActivityFeed — tracer bullet", () => {
 
     const feed = formatActivityFeed([event]);
 
-    expect(feed.collapsed.text).toBe("Subagent started");
-    expect(feed.expanded.text).toBe("Subagent started");
+    expect(feed.collapsed.text).toBe("run Subagent started");
+    expect(feed.expanded.text).toBe("run Subagent started");
     expect(feed.collapsed.hiddenCount).toBe(0);
     expect(feed.expanded.hiddenCount).toBe(0);
     expect(feed.collapsed.lines).toEqual([
@@ -63,12 +63,12 @@ describe("formatActivityFeed — collapsed history", () => {
     ]);
     expect(feed.collapsed.text).toBe([
       "… 2 older events hidden …",
-      "event-3",
-      "event-4",
-      "event-5",
-      "event-6",
-      "event-7",
-      "event-8",
+      "say event-3",
+      "say event-4",
+      "say event-5",
+      "say event-6",
+      "say event-7",
+      "say event-8",
     ].join("\n"));
   });
 
@@ -82,7 +82,7 @@ describe("formatActivityFeed — collapsed history", () => {
     const feed = formatActivityFeed(events, { collapsedWindow: 6 });
 
     expect(feed.collapsed.hiddenCount).toBe(0);
-    expect(feed.collapsed.text).toBe(events.map((event) => event.text).join("\n"));
+    expect(feed.collapsed.text).toBe(events.map((event) => `say ${event.text}`).join("\n"));
     expect(feed.collapsed.lines.map((line) => line.text)).toEqual(
       events.map((event) => event.text),
     );
@@ -121,10 +121,10 @@ describe("formatActivityFeed — expanded history", () => {
 
     expect(feed.expanded.hiddenCount).toBe(0);
     expect(feed.expanded.text).toBe([
-      "Subagent started",
-      "[read] {\"path\":\"/tmp/test.txt\"}",
-      "Scanning codebase.",
-      "Subagent completed",
+      "run Subagent started",
+      "tool [read] {\"path\":\"/tmp/test.txt\"}",
+      "say Scanning codebase.",
+      "done Subagent completed",
     ].join("\n"));
     expect(feed.expanded.lines).toEqual([
       {
@@ -203,7 +203,15 @@ describe("formatActivityFeed — event categories", () => {
 
     const feed = formatActivityFeed(events, { collapsedWindow: 10 });
 
-    expect(feed.collapsed.text).toBe(events.map((event) => event.text).join("\n"));
+    expect(feed.collapsed.text).toBe([
+      "run Subagent started",
+      "tool [bash] {\"command\":\"ls -la\"}",
+      "ok Tool bash succeeded",
+      "fail Tool bash failed",
+      "say Scanning codebase.",
+      "done Subagent completed",
+      "fail Subagent failed: missing agent_end",
+    ].join("\n"));
     expect(feed.collapsed.lines).toEqual(events);
   });
 
@@ -217,10 +225,10 @@ describe("formatActivityFeed — event categories", () => {
 
     const feed = formatActivityFeed([event]);
 
-    expect(feed.collapsed.text).toBe("Tool bash succeeded");
+    expect(feed.collapsed.text).toBe("ok Tool bash succeeded");
     expect(feed.collapsed.text).not.toContain('"type"');
     expect(feed.collapsed.text).not.toContain('"timestamp"');
-    expect(feed.expanded.text).toBe("Tool bash succeeded");
+    expect(feed.expanded.text).toBe("ok Tool bash succeeded");
   });
 });
 
@@ -285,9 +293,9 @@ describe("formatActivityFeed — edge cases", () => {
     expect(feed.collapsed.hiddenCount).toBe(1);
     expect(feed.collapsed.text).toBe([
       "… 1 older event hidden …",
-      "event-2",
-      "event-3",
-      "event-4",
+      "say event-2",
+      "say event-3",
+      "say event-4",
     ].join("\n"));
     expect(feed.collapsed.lines.map((line) => line.text)).toEqual([
       "event-2",
@@ -309,6 +317,63 @@ describe("formatActivityFeed — edge cases", () => {
       hiddenCount: 2,
       lines: [],
     });
-    expect(feed.expanded.text).toBe("event-1\nevent-2");
+    expect(feed.expanded.text).toBe("say event-1\nsay event-2");
+  });
+});
+
+describe("formatActivityFeed — no assistant_text events", () => {
+  it("renders a feed with only tool, thinking, and lifecycle events without errors", () => {
+    const events = [
+      { type: "lifecycle" as const, text: "Subagent started", timestamp: "2026-01-01T00:00:00Z", status: "started" as const },
+      { type: "tool" as const, text: "bash completed \u2192 ok", timestamp: "2026-01-01T00:00:01Z", status: "succeeded" as const },
+      { type: "thinking" as const, text: "Analyzing...", timestamp: "2026-01-01T00:00:02Z" },
+      { type: "lifecycle" as const, text: "Subagent completed", timestamp: "2026-01-01T00:00:03Z", status: "completed" as const },
+    ];
+    const feed = formatActivityFeed(events);
+    expect(feed.collapsed.text).toBe([
+      "run Subagent started",
+      "ok bash completed \u2192 ok",
+      "think Analyzing...",
+      "done Subagent completed",
+    ].join("\n"));
+    expect(feed.expanded.text).toBe(feed.collapsed.text);
+    expect(feed.collapsed.lines).toHaveLength(4);
+    expect(feed.expanded.lines).toHaveLength(4);
+  });
+
+  it("renders a feed with usage but no assistant_text", () => {
+    const events = [
+      { type: "lifecycle" as const, text: "started", timestamp: "2026-01-01T00:00:00Z", status: "started" as const },
+      { type: "tool" as const, text: "read completed", timestamp: "2026-01-01T00:00:01Z", status: "succeeded" as const },
+      { type: "usage" as const, text: "Tokens: 100 input, 50 output", timestamp: "2026-01-01T00:00:02Z", input: 100, output: 50 },
+    ];
+    const feed = formatActivityFeed(events);
+    expect(feed.collapsed.text).toBe([
+      "run started",
+      "ok read completed",
+      "usage Tokens: 100 input, 50 output",
+    ].join("\n"));
+    expect(feed.usage).toEqual({ input: 100, output: 50 });
+  });
+});
+
+describe("formatActivityFeed — legacy assistant_text events", () => {
+  it("renders legacy Progress Files that contain assistant_text events", () => {
+    const events = [
+      { type: "lifecycle" as const, text: "Subagent started", timestamp: "2026-01-01T00:00:00Z", status: "started" as const },
+      { type: "assistant_text" as const, text: "Hello world.", timestamp: "2026-01-01T00:00:01Z" },
+      { type: "tool" as const, text: "bash completed", timestamp: "2026-01-01T00:00:02Z", status: "succeeded" as const },
+      { type: "assistant_text" as const, text: "Done.", timestamp: "2026-01-01T00:00:03Z" },
+      { type: "lifecycle" as const, text: "Subagent completed", timestamp: "2026-01-01T00:00:04Z", status: "completed" as const },
+    ];
+    const feed = formatActivityFeed(events);
+    expect(feed.collapsed.text).toBe([
+      "run Subagent started",
+      "say Hello world.",
+      "ok bash completed",
+      "say Done.",
+      "done Subagent completed",
+    ].join("\n"));
+    expect(feed.collapsed.lines).toHaveLength(5);
   });
 });
