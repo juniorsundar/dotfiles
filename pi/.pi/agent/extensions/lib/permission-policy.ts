@@ -37,14 +37,23 @@ export type ConfirmationDecision =
   | { action: "bypass" }
   | { action: "block"; reason: string };
 
+const PROFILE_ENV_KEY = "PI_PERMISSION_PROFILE";
+
 let currentProfile: Profile = DEFAULT_PROFILE;
 
+// Extensions are loaded via isolated n/jiti instances (moduleCache: false),
+// so module-level variables are NOT shared across extensions. We bridge state
+// through process.env so both permission-profiles and confirm-mutating-tools
+// always see the same profile.
 export function getCurrentProfile(): Profile {
+  const envProfile = process.env[PROFILE_ENV_KEY];
+  if (isProfile(envProfile)) return envProfile;
   return currentProfile;
 }
 
 export function setCurrentProfile(profile: Profile): void {
   currentProfile = profile;
+  process.env[PROFILE_ENV_KEY] = profile;
 }
 
 export function isProfile(value: unknown): value is Profile {
