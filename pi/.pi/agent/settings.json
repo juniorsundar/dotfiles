@@ -1,5 +1,5 @@
 {
-  "defaultModel": "deepseek-v4-pro",
+  "defaultModel": "mimo-v2.5",
   "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
@@ -33,54 +33,6 @@
   "enableInstallTelemetry": false,
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "doubleEscapeAction": "tree",
-  "subagents": {
-    "agentOverrides": {
-      "delegate": {
-        "defaultProgress": true
-      },
-      "oracle": {
-        "model": "openai-codex/gpt-5.5",
-        "thinking": "xhigh",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "openai-codex/gpt-5.4"
-        ]
-      },
-      "reviewer": {
-        "model": "openai-codex/gpt-5.5",
-        "thinking": "high",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "openai-codex/gpt-5.4"
-        ]
-      },
-      "worker": {
-        "model": "ollama-cloud/deepseek-v4-pro",
-        "thinking": "high",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "minimax/MiniMax-M2.7"
-        ]
-      },
-      "criteria-auditor": {
-        "model": "minimax/MiniMax-M2.7",
-        "thinking": "medium",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "ollama-cloud/deepseek-v4-flash"
-        ]
-      },
-      "checkpoint-reviewer": {
-        "model": "ollama-cloud/deepseek-v4-flash",
-        "thinking": "high",
-        "defaultProgress": true,
-        "fallbackModels": [
-          "opencode-go/deepseek-v4-flash",
-          "minimax/MiniMax-M2.7"
-        ]
-      }
-    }
-  },
   "images": {
     "blockImages": false
   }
