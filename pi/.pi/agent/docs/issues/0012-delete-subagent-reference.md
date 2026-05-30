@@ -10,9 +10,9 @@ Delete `docs/subagent-reference.md` from both `~/.pi/agent/docs/` and `dotfiles/
 
 ### Acceptance criteria
 
-- [ ] `docs/subagent-reference.md` is deleted from `~/.pi/agent/docs/`
-- [ ] `docs/subagent-reference.md` is deleted from `dotfiles/pi/.pi/agent/docs/`
-- [ ] No other files reference `subagent-reference.md` as a living document
+- [x] `docs/subagent-reference.md` is deleted from `~/.pi/agent/docs/`
+- [x] `docs/subagent-reference.md` is deleted from `dotfiles/pi/.pi/agent/docs/`
+- [x] No other files reference `subagent-reference.md` as a living document
 
 ### Blocked by
 

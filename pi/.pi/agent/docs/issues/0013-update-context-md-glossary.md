@@ -14,9 +14,9 @@ Update `docs/CONTEXT.md` to reflect the new architecture:
 
 ### Acceptance criteria
 
-- [ ] `CONTEXT.md` contains no references to `subagent-reference.md` as a current document
-- [ ] The glossary notes that agent descriptions are auto-loaded from agent definitions into the tool description
-- [ ] All existing glossary entries remain accurate after the refactor
+- [x] `CONTEXT.md` contains no references to `subagent-reference.md` as a current document
+- [x] The glossary notes that agent descriptions are auto-loaded from agent definitions into the tool description
+- [x] All existing glossary entries remain accurate after the refactor
 
 ### Blocked by
 

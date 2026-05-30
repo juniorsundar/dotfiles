@@ -9,7 +9,7 @@ A disposable child `pi` process spawned to perform a bounded task, then collecte
 _Avoid_: Worker, child process, delegate process (those are agent types, not the generic concept)
 
 **Agent Type**:
-A named role (e.g. scout, worker, reviewer) defined by a `.md` file in the agents directory with YAML frontmatter specifying tools, model, system prompt, timeout, and inheritance flags.
+A named role (e.g. scout, worker, reviewer) defined by a `.md` file in the agents directory with YAML frontmatter specifying tools, model, system prompt, description, timeout, and inheritance flags.
 _Avoid_: Agent class, agent profile
 
 **Agent Definition**:
@@ -47,6 +47,10 @@ _Avoid_: Run ID, execution ID
 **Orphan Process**:
 A `pi` child process whose parent spawner crashed without cleaning up. Detected on startup by scanning task directories for process.json files whose PIDs are still alive. Reaped by the first spawnSubagent call in a new session.
 _Avoid_: Zombie, leaked process, stale subagent
+
+**Tool Description**:
+The auto-generated description text for the `subagent` tool, built once at extension registration. It iterates all agent definitions in `agents/*.md`, extracts each `description` field from YAML frontmatter, and produces a bullet list of available agent types with their descriptions. Agents without a `description` field are listed by name only.
+_Avoid_: Agent list, capability matrix, agent catalog
 
 ## Flagged ambiguities
 

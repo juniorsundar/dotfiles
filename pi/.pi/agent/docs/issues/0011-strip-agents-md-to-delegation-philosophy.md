@@ -24,12 +24,12 @@ Rewrite `AGENTS.md` (both `~/.pi/agent/AGENTS.md` and `dotfiles/pi/.pi/agent/AGE
 
 ### Acceptance criteria
 
-- [ ] `AGENTS.md` contains no agent-specific capability matrix or routing table
-- [ ] Risk controls use role-based language, not specific agent names
-- [ ] Example chains are present with agent names, noted as illustrative
-- [ ] Prompt contract template is preserved unchanged
-- [ ] Both copies (`~/.pi/agent/` and `dotfiles/pi/.pi/agent/`) are updated identically
-- [ ] The file is noticeably shorter than before
+- [x] `AGENTS.md` contains no agent-specific capability matrix or routing table
+- [x] Risk controls use role-based language, not specific agent names
+- [x] Example chains are present with agent names, noted as illustrative
+- [x] Prompt contract template is preserved unchanged
+- [x] Both copies (`~/.pi/agent/` and `dotfiles/pi/.pi/agent/`) are updated identically
+- [x] The file is noticeably shorter than before
 
 ### Blocked by
 

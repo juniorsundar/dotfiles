@@ -1,6 +1,6 @@
 # Pi Agent Guidelines
 
-Keep this loaded file compact. It contains delegation philosophy; the tool description on the `subagent` tool provides agent names and descriptions. Read `docs/subagent-reference.md` only when fuller examples or detailed guidance are needed.
+Keep this loaded file compact. It contains delegation philosophy; the tool description on the `subagent` tool provides agent names and descriptions.
 
 ## Core Rule
 

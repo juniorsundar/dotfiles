@@ -1,5 +1,5 @@
 {
-  "defaultModel": "mimo-v2.5",
+  "defaultModel": "deepseek-v4-pro",
   "defaultProvider": "opencode-go",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
