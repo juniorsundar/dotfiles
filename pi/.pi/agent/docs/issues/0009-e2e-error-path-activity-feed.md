@@ -20,15 +20,15 @@ This is a verification and integration slice. It assumes #0005 (no assistant_tex
 
 ## Acceptance criteria
 
-- [ ] Timeout path: final result includes accumulated activity feed and error output.
-- [ ] Crash path: final result includes accumulated activity feed (if any) and error output.
-- [ ] Cancellation path: final result includes accumulated activity feed and error output.
-- [ ] Expanded final rendering for each error path shows metadata + activity feed + error output.
-- [ ] Collapsed final rendering for each error path shows metadata + error output (no feed).
-- [ ] LLM-facing content for each error path is the error message only (no feed text).
-- [ ] Usage is captured for each error path where events were emitted before failure.
-- [ ] End-to-end integration tests cover all three error paths.
-- [ ] `npm test` passes with all tests green.
+- [x] Timeout path: final result includes accumulated activity feed and error output.
+- [x] Crash path: final result includes accumulated activity feed (if any) and error output.
+- [x] Cancellation path: final result includes accumulated activity feed and error output.
+- [x] Expanded final rendering for each error path shows metadata + activity feed + error output.
+- [x] Collapsed final rendering for each error path shows metadata + error output (no feed).
+- [x] LLM-facing content for each error path is the error message only (no feed text).
+- [x] Usage is captured for each error path where events were emitted before failure.
+- [x] End-to-end integration tests cover all three error paths.
+- [x] `npm test` passes with all tests green.
 
 ## Blocked by
 
