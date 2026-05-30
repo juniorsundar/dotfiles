@@ -19,12 +19,12 @@ The `description` field is already parsed by `parseAgentDefinitionFile()` in `ag
 
 ### Acceptance criteria
 
-- [ ] `buildToolDescription()` iterates agent definitions and extracts their `description` field
-- [ ] The tool description includes a bullet list of agent types with their descriptions
-- [ ] Agents without a `description` field are listed by name only (graceful degradation)
-- [ ] Agents with invalid or missing definition files are handled without crashing
-- [ ] The tool description is built once at registration, not re-parsed on every call
-- [ ] Existing subagent tests in `index.test.ts` continue to pass
+- [x] `buildToolDescription()` iterates agent definitions and extracts their `description` field
+- [x] The tool description includes a bullet list of agent types with their descriptions
+- [x] Agents without a `description` field are listed by name only (graceful degradation)
+- [x] Agents with invalid or missing definition files are handled without crashing
+- [x] The tool description is built once at registration, not re-parsed on every call
+- [x] Existing subagent tests in `index.test.ts` continue to pass
 
 ### Blocked by
 

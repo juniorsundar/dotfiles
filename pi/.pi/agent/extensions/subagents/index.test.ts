@@ -812,6 +812,173 @@ describe("subagents entry point", () => {
 
     warnSpy.mockRestore();
   });
+
+  // ── Slice 1: buildToolDescription includes agent descriptions ──
+
+  it("buildToolDescription returns bullet list with agent names and descriptions", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", {
+      description: "Fast codebase recon that returns compressed context for handoff",
+    });
+    writeAgentDef(agentsDir, "worker", {
+      description: "Bounded implementation with clear scope and validation",
+    });
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc = toolCall.description as string;
+
+    // Should start with the standard prefix
+    expect(desc).toMatch(/^Delegate work to a subagent/);
+
+    // Should include bullet list entries with descriptions
+    expect(desc).toContain("- scout: Fast codebase recon");
+    expect(desc).toContain("- worker: Bounded implementation");
+  });
+
+  it("buildToolDescription shows '(none found)' when agents directory is empty", () => {
+    const agentsDir = makeAgentsDir(); // empty directory
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc = toolCall.description as string;
+
+    expect(desc).toContain("(none found)");
+  });
+
+  // ── Slice 2: Graceful degradation — agent without description field ──
+
+  it("buildToolDescription lists agent by name only when description is absent", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", {
+      description: "Fast codebase recon",
+    });
+    writeAgentDef(agentsDir, "worker"); // no description field
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc = toolCall.description as string;
+
+    // Scout should have its description
+    expect(desc).toContain("- scout: Fast codebase recon");
+    // Worker should be listed by name only (no colon with empty description)
+    expect(desc).toContain("- worker");
+    expect(desc).not.toContain("- worker:");
+  });
+
+  it("buildToolDescription treats empty string description as absent", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { description: "" });
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc = toolCall.description as string;
+
+    // Empty description should render as name only, no colon
+    expect(desc).toContain("- scout");
+    expect(desc).not.toContain("- scout:");
+  });
+
+  it("buildToolDescription trims whitespace-only description and treats as absent", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", { description: "   " });
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc = toolCall.description as string;
+
+    // Whitespace-only description should render as name only
+    expect(desc).toContain("- scout");
+    expect(desc).not.toContain("- scout:");
+  });
+
+  // ── Slice 3: Graceful degradation — invalid definition file doesn't crash ──
+
+  it("buildToolDescription handles invalid definition files without crashing", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", {
+      description: "Fast codebase recon",
+    });
+    // Write an invalid agent definition (no YAML frontmatter)
+    writeFileSync(join(agentsDir, "broken.md"), "This is not a valid agent definition.", "utf-8");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc = toolCall.description as string;
+
+    // Scout should still have its description
+    expect(desc).toContain("- scout: Fast codebase recon");
+    // Broken agent should be listed by name only (no crash)
+    expect(desc).toContain("- broken");
+  });
+
+  it("buildToolDescription handles missing definition files without crashing", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", {
+      description: "Fast codebase recon",
+    });
+    // Simulate a corrupt file that exists but fails parsing
+    // (e.g. file with no YAML frontmatter)
+    writeFileSync(join(agentsDir, "corrupt.md"), "no frontmatter here", "utf-8");
+
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir });
+
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc = toolCall.description as string;
+
+    // Scout should still be listed correctly
+    expect(desc).toContain("- scout: Fast codebase recon");
+    // Corrupt agent should be listed by name only (parse failed gracefully)
+    expect(desc).toContain("- corrupt");
+    expect(desc).not.toContain("- corrupt:");
+  });
+
+  // ── Slice 4: Caching — description built once at registration ──
+
+  it("buildToolDescription is called once at registration, not on every tool invocation", () => {
+    const agentsDir = makeAgentsDir();
+    writeAgentDef(agentsDir, "scout", {
+      description: "Fast codebase recon",
+    });
+
+    const parseSpy = vi.spyOn(agentDefParserModule, "parseAgentDefinitionFile");
+
+    const pi = mockExtensionAPI();
+    // parseAgentDefinitionFile is called for each agent during registration
+    const callsBeforeRegistration = parseSpy.mock.calls.length;
+    subagentEntryPoint(pi as any, { agentsDir });
+    const callsAfterRegistration = parseSpy.mock.calls.length;
+
+    // parseAgentDefinitionFile was called during registration
+    expect(callsAfterRegistration).toBeGreaterThan(callsBeforeRegistration);
+
+    // The description is set and doesn't change — no more parse calls
+    const toolCall = pi.registerTool.mock.calls[0][0];
+    const desc1 = toolCall.description as string;
+    const totalCallsAfterFirstAccess = parseSpy.mock.calls.length;
+
+    // Accessing description again (it's a static string, already built)
+    const desc2 = toolCall.description as string;
+
+    // No additional parseAgentDefinitionFile calls from accessing description
+    expect(parseSpy.mock.calls.length).toBe(totalCallsAfterFirstAccess);
+    expect(desc1).toBe(desc2);
+
+    parseSpy.mockRestore();
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

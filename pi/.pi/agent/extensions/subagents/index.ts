@@ -208,8 +208,21 @@ function scheduleDeferredInvalidate(context: any): void {
 
 function buildToolDescription(agentsDir: string): string {
   const agents = listAvailableAgents(agentsDir);
-  const types = agents.length > 0 ? agents.join(", ") : "(none found)";
-  return `Delegate work to a subagent. Available agent types: ${types}.`;
+  if (agents.length === 0) {
+    return "Delegate work to a subagent. Available agent types: (none found).";
+  }
+
+  const entries = agents.map((name) => {
+    try {
+      const def = parseAgentDefinitionFile(name, agentsDir);
+      const desc = typeof def.description === "string" ? def.description.trim() : undefined;
+      return desc ? `- ${name}: ${desc}` : `- ${name}`;
+    } catch {
+      return `- ${name}`;
+    }
+  });
+
+  return `Delegate work to a subagent. Available agent types:\n${entries.join("\n")}`;
 }
 
 /** Format wall-clock duration in milliseconds to a human-readable string (e.g. "12.3s"). */
