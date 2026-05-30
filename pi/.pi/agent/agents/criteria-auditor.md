@@ -1,6 +1,6 @@
 ---
 name: criteria-auditor
-description: "Cross-references acceptance criteria from issue docs against test files and implementation. Emits a coverage matrix showing which criteria have dedicated tests and which are untested. Use after each TDD slice or after plan creation to catch missing test coverage before implementation."
+description: Cross-references acceptance criteria from issue docs against test files and implementation. Emits a coverage matrix showing which criteria have dedicated tests and which are untested. Use after each TDD slice or after plan creation to catch missing test coverage before implementation.
 tools: read, grep, find, ls
 thinking: medium
 model: minimax/MiniMax-M2.7
