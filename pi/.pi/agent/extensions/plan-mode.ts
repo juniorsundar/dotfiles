@@ -20,9 +20,9 @@
  *   - [1.2] Step description
  *   🔍 **Review**: What to verify
  *
- * Progress markers:
- *   [DONE:x.y]  — step x.y completed
- *   [PHASE_DONE:x] — phase x fully completed and reviewed
+ * Progress tracking:
+ *   Use the shared todo tool as the visible source of truth for phases/steps.
+ *   PLAN.md remains the durable plan document.
  */
 
 import {
@@ -431,11 +431,10 @@ const PLAN_CORE_TOOLS = new Set([
   PLAN_FILE_TOOL,
   "questionnaire",
   "ask_user_question",
-  "Agent",
-  "get_subagent_result",
-  "steer_subagent",
+  "todo",
+  "subagent",
 ]);
-const READ_ONLY_SUBAGENTS = new Set(["explore", "plan", "scout", "reviewer"]);
+const PLANNING_SUBAGENTS = new Set(["scout", "planner"]);
 
 function isPlanToolName(name: string): boolean {
   return (
@@ -450,7 +449,7 @@ function isPlanToolName(name: string): boolean {
 
 function getSubagentType(input: unknown): string | undefined {
   if (!input || typeof input !== "object") return undefined;
-  const type = (input as { subagent_type?: unknown }).subagent_type;
+  const type = (input as { agent_type?: unknown }).agent_type;
   return typeof type === "string" ? type.toLowerCase() : undefined;
 }
 
@@ -636,8 +635,9 @@ Available planning tools: ${tools}
 Restrictions:
 - edit/write are disabled
 - bash is restricted to read-only allowlisted commands
-- Subagents: only Explore, Plan, Scout, or Reviewer (read-only)
-- plan_file is the only write tool, scoped to ./PLAN.md
+- Subagents: only scout or planner for read-only planning work
+- plan_file is the only file-write tool, scoped to ./PLAN.md
+- todo is available for visible phase/step tracking; use it instead of plan-mode widgets
 
 Plan persistence:
 - ./PLAN.md status: ${planFileStatus}
@@ -646,59 +646,38 @@ Plan persistence:
 
 function executionPrompt(
   phases: ParsedPhase[],
-  progress: PlanProgress,
+  _progress: PlanProgress,
   planTitle: string,
 ): string {
-  const completedSteps = progress.steps.filter((s) => s.completed).length;
-  const totalSteps = progress.steps.length;
-  const completedPhases = progress.phases.filter((p) => p.completed).length;
-  const totalPhases = phases.length;
+  const phaseSummary = phases
+    .map((phase) => {
+      const steps = phase.steps
+        .map((step) => `  - [${step.id}] ${step.text}`)
+        .join("\n");
+      return [
+        `## Phase ${phase.number}: ${phase.name}`,
+        `Files: ${phase.locations.length > 0 ? phase.locations.join(", ") : "see PLAN.md"}`,
+        steps || "  - No concrete steps parsed; read PLAN.md for details.",
+        `Review: ${phase.review || "(no specific review criteria)"}`,
+      ].join("\n");
+    })
+    .join("\n\n");
 
-  // Find current phase
-  let currentPhase: ParsedPhase | null = null;
-  let phaseInstruction = "";
-  for (const phase of phases) {
-    const phaseProgress = progress.phases.find(
-      (p) => p.number === phase.number,
-    );
-    if (phaseProgress?.completed) continue;
-
-    currentPhase = phase;
-
-    // Build step list for current phase
-    const phaseSteps = phase.steps
-      .map((s) => {
-        const stepProgress = progress.steps.find((sp) => sp.id === s.id);
-        const marker = stepProgress?.completed ? "✓" : "☐";
-        return `  ${marker} [${s.id}] ${s.text}`;
-      })
-      .join("\n");
-
-    phaseInstruction = `
-
-You are currently executing Phase ${phase.number}: ${phase.name}
-Files: ${phase.locations.length > 0 ? phase.locations.join(", ") : "see plan"}
-
-Steps:
-${phaseSteps}
-
-Review criteria for this phase:
-${phase.review || "(no specific review criteria)"}
-
-After completing each step, include [DONE:${phase.steps[0]?.phase ?? phase.number}.${phase.steps[0]?.step ?? 1}] in your response.
-After completing ALL steps in this phase and verifying the review criteria, include [PHASE_DONE:${phase.number}].`;
-    break;
-  }
-
-  return `[EXECUTING APPROVED PLAN — Phase ${completedPhases + 1}/${totalPhases}]
+  return `[EXECUTING APPROVED PLAN]
 
 Plan: ${planTitle}
-Progress: ${completedSteps}/${totalSteps} steps, ${completedPhases}/${totalPhases} phases complete.
-${phaseInstruction}
 
-After each step, include [DONE:X.Y] in your response.
-After all steps in a phase are done and review criteria verified, include [PHASE_DONE:X].
-Then proceed to the next phase.`;
+Use the todo tool as the visible source of truth for phase/step progress:
+- If todos for this plan are not already present, create them from PLAN.md before editing.
+- Prefer one todo per phase for small plans, or one todo per concrete step for detailed plans.
+- Keep exactly one todo in_progress at a time.
+- Mark each todo completed immediately after its work and review criteria are satisfied.
+- When all work is done, update PLAN.md to \`> Status: complete\` with plan_file.
+
+Do not emit [DONE:x.y] or [PHASE_DONE:x] progress markers; update the todo list instead.
+
+Approved phases from PLAN.md:
+${phaseSummary}`;
 }
 
 // ── Extension ────────────────────────────────────────────────────────────────
@@ -792,15 +771,10 @@ export default function planModeExtension(pi: ExtensionAPI): void {
   }
 
   function updateStatus(ctx: ExtensionContext): void {
-    if (executionMode && steps.length > 0) {
-      const completedSteps = steps.filter((s) => s.completed).length;
-      const completedPhases = phases.filter((p) => p.completed).length;
+    if (executionMode) {
       ctx.ui.setStatus(
         "plan-mode",
-        ctx.ui.theme.fg(
-          "accent",
-          `📋 ${completedPhases}/${phases.length} phases · ${completedSteps}/${steps.length}`,
-        ),
+        ctx.ui.theme.fg("accent", "plan:executing"),
       );
     } else if (planModeEnabled) {
       const stageLabel =
@@ -811,52 +785,15 @@ export default function planModeExtension(pi: ExtensionAPI): void {
             : "planning";
       ctx.ui.setStatus(
         "plan-mode",
-        ctx.ui.theme.fg("warning", `⏸ ${stageLabel}`),
+        ctx.ui.theme.fg("warning", `plan:${stageLabel}`),
       );
     } else {
       ctx.ui.setStatus("plan-mode", undefined);
     }
 
-    if (executionMode && steps.length > 0) {
-      const completedSteps = steps.filter((s) => s.completed).length;
-      const completedPhases = phases.filter((p) => p.completed).length;
-
-      // Find current phase and step
-      let currentPhaseName = "";
-      let currentStepId = "";
-      for (const phase of phases) {
-        if (!phase.completed) {
-          const plan = readPlanFile(ctx.cwd);
-          currentPhaseName =
-            plan?.phases.find((p) => p.number === phase.number)?.name ?? "";
-          for (const step of steps.filter(
-            (s) => getPhaseForStep(
-              plan?.allSteps ?? [],
-              s.id,
-            ) === phase.number,
-          )) {
-            if (!step.completed) {
-              currentStepId = step.id;
-              break;
-            }
-          }
-          break;
-        }
-      }
-
-      ctx.ui.setWidget("plan-mode", [
-        `📋 ${completedPhases}/${phases.length} phases · ${completedSteps}/${steps.length} steps`,
-        ...(currentPhaseName
-          ? [`Phase: ${currentPhaseName}`, `Step: ${currentStepId}`]
-          : []),
-      ]);
-    } else if (planModeEnabled) {
-      ctx.ui.setWidget("plan-mode", [
-        `🔍 PLAN MODE: ${planningStage === "ready" ? "plan ready for review" : "asking questions until scope is clear"}`,
-      ]);
-    } else {
-      ctx.ui.setWidget("plan-mode", undefined);
-    }
+    // The shared todo UI is the visible phase/step tracker. Keep plan mode from
+    // adding a second persistent widget with duplicate progress information.
+    ctx.ui.setWidget("plan-mode", undefined);
   }
 
   function enterPlanMode(ctx: ExtensionContext): void {
@@ -940,12 +877,12 @@ export default function planModeExtension(pi: ExtensionAPI): void {
       };
     }
 
-    if (event.toolName === "Agent") {
+    if (event.toolName === "subagent") {
       const subagentType = getSubagentType(event.input);
-      if (!subagentType || !READ_ONLY_SUBAGENTS.has(subagentType)) {
+      if (!subagentType || !PLANNING_SUBAGENTS.has(subagentType)) {
         return {
           block: true,
-          reason: `Plan mode only allows read-only subagents (Explore, Plan, Scout, Reviewer). Requested: ${subagentType ?? "unknown"}`,
+          reason: `Plan mode only allows planning subagents (scout or planner). Requested: ${subagentType ?? "unknown"}`,
         };
       }
       return;
@@ -1052,7 +989,7 @@ Use plan_file action=read to review the current plan if needed.`,
             customType: "plan-execution-context",
             content: `[EXECUTING APPROVED PLAN — NEARLY COMPLETE]
 
-All tracked steps are complete. Verify any remaining review criteria and include [PHASE_DONE:N] for any unmarked phases.
+All internally tracked legacy steps are complete. Verify any remaining review criteria, mark the corresponding todos complete, and update PLAN.md to complete when finished.
 
 Completed phases: ${completedPhases || "none yet"}`,
             display: false,
@@ -1183,7 +1120,7 @@ Completed phases: ${completedPhases || "none yet"}`,
         pi.sendMessage(
           {
             customType: "plan-mode-execute",
-            content: `The user approved the plan. Execute it now, starting with Phase 1${plan?.phases[0] ? `: ${plan.phases[0].name}` : ""}.`,
+            content: `The user approved the plan. Execute it now, starting with Phase 1${plan?.phases[0] ? `: ${plan.phases[0].name}` : ""}. Use the todo tool to track phases and steps instead of plan-mode progress markers.`,
             display: true,
           },
           { triggerTurn: true },

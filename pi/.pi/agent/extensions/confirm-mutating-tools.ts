@@ -12,6 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createHash } from "node:crypto";
+import { evaluateConfirmation, getCurrentProfile } from "./lib/permission-policy";
 
 /**
  * Confirm Mutating Tools Extension
@@ -42,6 +43,18 @@ export default function (pi: ExtensionAPI) {
     }
 
     if (isSubagentChild()) {
+      return undefined;
+    }
+
+    const confirmation = evaluateConfirmation(
+      getCurrentProfile(),
+      event.toolName,
+      event.input,
+    );
+    if (confirmation.action === "block") {
+      return { block: true, reason: confirmation.reason };
+    }
+    if (confirmation.action === "bypass") {
       return undefined;
     }
 
