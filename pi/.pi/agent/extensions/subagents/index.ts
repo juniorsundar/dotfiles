@@ -1,8 +1,9 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
+import { Container, Text } from "@earendil-works/pi-tui";
 import type { Component } from "@earendil-works/pi-tui";
 import { spawnSubagent, listAvailableAgents } from "./spawner";
-import type { ActivityFeedLine, ActivityFeedOutput } from "./activity-feed-formatter";
+import { isToolBlock, type ActivityFeedOutput } from "./activity-feed-formatter";
+import { renderActivityFeed } from "./activity-feed-renderer";
 import { parseAgentDefinitionFile } from "./agent-definition-parser";
 import { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
@@ -131,69 +132,6 @@ function sameUsage(a: ActivityFeedOutput["usage"] | undefined, b: ActivityFeedOu
     a?.output === b?.output &&
     a?.cacheRead === b?.cacheRead &&
     a?.cacheWrite === b?.cacheWrite;
-}
-
-function formatFeedForRender(
-  feed: ActivityFeedOutput,
-  expanded: boolean,
-  theme: { fg: (color: string, text: string) => string },
-): string {
-  const view = expanded ? feed.expanded : feed.collapsed;
-  const lines: string[] = [];
-
-  if (!expanded && view.hiddenCount > 0) {
-    lines.push(theme.fg("dim", formatHiddenCount(view.hiddenCount)));
-  }
-
-  for (const line of view.lines) {
-    lines.push(styleActivityLine(line, theme));
-  }
-
-  return lines.join("\n");
-}
-
-function styleActivityLine(
-  line: ActivityFeedLine,
-  theme: { fg: (color: string, text: string) => string },
-): string {
-  const text = `${activityLinePrefix(line)} ${line.text}`;
-
-  if (line.type === "tool") {
-    if (line.status === "failed") return theme.fg("error", text);
-    if (line.status === "succeeded") return theme.fg("success", text);
-    return theme.fg("accent", text);
-  }
-  if (line.type === "thinking") return theme.fg("muted", text);
-  if (line.type === "assistant_text") return theme.fg("toolOutput", text);
-  if (line.type === "usage") return theme.fg("dim", text);
-  if (line.type === "lifecycle" || line.type === "terminal") {
-    if (line.status === "failed") return theme.fg("error", text);
-    if (line.status === "completed") return theme.fg("success", text);
-    return theme.fg("dim", text);
-  }
-  return text;
-}
-
-function activityLinePrefix(line: ActivityFeedLine): string {
-  if (line.type === "tool") {
-    if (line.status === "succeeded") return "ok";
-    if (line.status === "failed") return "fail";
-    return "tool";
-  }
-  if (line.type === "thinking") return "think";
-  if (line.type === "assistant_text") return "say";
-  if (line.type === "usage") return "usage";
-  if (line.type === "lifecycle") return line.status === "completed" ? "done" : "run";
-  if (line.type === "terminal") {
-    if (line.status === "failed") return "fail";
-    if (line.status === "completed") return "done";
-    return "term";
-  }
-  return "info";
-}
-
-function formatHiddenCount(hiddenCount: number): string {
-  return `… ${hiddenCount} older event${hiddenCount === 1 ? "" : "s"} hidden …`;
 }
 
 function scheduleDeferredInvalidate(context: any): void {
@@ -409,6 +347,22 @@ export default function subagentEntryPoint(
         if (changed) {
           scheduleDeferredInvalidate(context);
         }
+
+        // Spinner timer management
+        const hasInProgressTool = details?.expanded?.lines?.some(
+          (line) => isToolBlock(line) && line.status === "started",
+        );
+        if (hasInProgressTool && !state.spinnerTimer) {
+          state.spinnerFrame ??= 0;
+          state.spinnerTimer = setInterval(() => {
+            state.spinnerFrame = (state.spinnerFrame + 1) % 4;
+            context.invalidate();
+          }, 80);
+        } else if (!hasInProgressTool && state.spinnerTimer) {
+          clearInterval(state.spinnerTimer);
+          delete state.spinnerTimer;
+          delete state.spinnerFrame;
+        }
       }
 
       const outputText = Array.isArray(result?.content)
@@ -419,35 +373,48 @@ export default function subagentEntryPoint(
         : "";
 
       if (options?.isPartial && result?.details?.collapsed && result?.details?.expanded) {
-        const renderedFeed = formatFeedForRender(
+        return renderActivityFeed(
           result.details as ActivityFeedOutput,
           Boolean(options?.expanded),
-          { fg: theme.fg.bind(theme) },
+          {
+            bold: typeof theme.bold === "function" ? theme.bold.bind(theme) : (value: string) => value,
+            fg: theme.fg.bind(theme),
+          },
+          context.state?.spinnerFrame,
         );
-        text.setText(renderedFeed || outputText);
-        return text;
       }
 
-      // For final (non-partial) results with metadata, render metadata block + separator + output
+      // For final (non-partial) results, clear spinner timer and render metadata block + separator + output
+      if (!options?.isPartial) {
+        // Clear spinner timer on final render
+        const state = context.state ?? (context.state = {});
+        if (state.spinnerTimer) {
+          clearInterval(state.spinnerTimer);
+          delete state.spinnerTimer;
+          delete state.spinnerFrame;
+        }
+      }
+
       if (!options?.isPartial && result?.details && typeof result.details.duration === "number") {
-        const metadataBlock = formatMetadataBlock(result.details, {
-          bold: theme.bold.bind(theme),
+        const themeFns = {
+          bold: typeof theme.bold === "function" ? theme.bold.bind(theme) : (value: string) => value,
           fg: theme.fg.bind(theme),
-        });
+        };
+        const metadataBlock = formatMetadataBlock(result.details, themeFns);
 
         const feed = result.details.activityFeed;
         const feedValid = feed && typeof feed === "object" && "expanded" in feed && "collapsed" in feed;
         if (options?.expanded && feedValid) {
-          const renderedFeed = formatFeedForRender(feed as ActivityFeedOutput, true, { fg: theme.fg.bind(theme) });
-          const separatorDim = theme.fg("dim", "─────────────────────────");
-          text.setText(`${metadataBlock}
-${renderedFeed}
-${separatorDim}
-${outputText}`);
-        } else {
-          text.setText(`${metadataBlock}
-${outputText}`);
+          const container = new Container();
+          container.addChild(new Text(metadataBlock, 0, 0));
+          container.addChild(renderActivityFeed(feed as ActivityFeedOutput, true, themeFns));
+          container.addChild(new Text(theme.fg("dim", "─────────────────────────"), 0, 0));
+          container.addChild(new Text(outputText, 0, 0));
+          return container;
         }
+
+        text.setText(`${metadataBlock}
+${outputText}`);
       } else {
         text.setText(outputText);
       }

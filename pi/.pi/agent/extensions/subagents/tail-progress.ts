@@ -5,6 +5,10 @@ export interface ProgressEvent {
   text: string;
   timestamp: string;
   status?: "started" | "succeeded" | "failed" | "completed";
+  toolCallId?: string;
+  toolName?: string;
+  toolArgs?: Record<string, unknown>;
+  toolResultPreview?: string;
   input?: number;
   output?: number;
   cacheRead?: number;

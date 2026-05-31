@@ -25,7 +25,32 @@ vi.mock("@earendil-works/pi-tui", () => {
     invalidate() {}
   }
 
-  return { Text };
+  class Markdown {
+    text: string;
+    constructor(text = "", _paddingX = 0, _paddingY = 0, _theme?: unknown) {
+      this.text = text;
+    }
+    setText(text: string) {
+      this.text = text;
+    }
+    render(_width: number): string[] {
+      return this.text.split("\n");
+    }
+    invalidate() {}
+  }
+
+  class Container {
+    children: any[] = [];
+    addChild(child: any) {
+      this.children.push(child);
+    }
+    render(width: number): string[] {
+      return this.children.flatMap((child) => child.render(width));
+    }
+    invalidate() {}
+  }
+
+  return { Text, Markdown, Container };
 });
 
 // ── Module import ──
@@ -1272,6 +1297,77 @@ describe("renderResult — live partial update state", () => {
     return pi.registerTool.mock.calls[0][0];
   }
 
+  it("renders partial tool activity feeds through a Container-based renderer", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: true,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component: any = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "progress" }],
+        details: {
+          collapsed: {
+            text: "",
+            hiddenCount: 0,
+            lines: [
+              {
+                type: "tool",
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-05-29T00:00:00.000Z",
+                status: "succeeded",
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+                toolResultPreview: "file contents",
+              },
+            ],
+          },
+          expanded: {
+            text: "",
+            hiddenCount: 0,
+            lines: [
+              {
+                type: "tool",
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-05-29T00:00:00.000Z",
+                status: "succeeded",
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+                toolResultPreview: "file contents",
+              },
+            ],
+          },
+        },
+      },
+      { expanded: false, isPartial: true },
+      {
+        bold: (t: string) => `BOLD(${t})`,
+        fg: (c: string, t: string) => `FG_${c.toUpperCase()}(${t})`,
+      } as any,
+      context,
+    );
+
+    expect(component.constructor.name).toBe("Container");
+    expect(component.render(80)).toEqual([
+      "● BOLD(FG_ACCENT(read)) ✓",
+      "FG_DIM(└ /tmp/test.txt)",
+      "FG_DIM(└─╼ file contents)",
+    ]);
+  });
+
   it("stores partial Activity Feed usage and tool count in context.state, then defers invalidation", async () => {
     const pi = mockExtensionAPI();
     subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
@@ -1652,6 +1748,75 @@ describe("renderResult — live partial update state", () => {
     expect(outputIndex).toBeGreaterThan(secondSeparatorIndex);
   });
 
+  it("expanded final render routes thinking feed lines through markdown blocks", () => {
+    const pi = mockExtensionAPI();
+    subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+    const toolDef = extractToolDef(pi);
+    const context = {
+      args: { agent_type: "scout", prompt: "test" },
+      toolCallId: "tcid-1",
+      invalidate: vi.fn(),
+      lastComponent: undefined,
+      state: {},
+      cwd: "/test",
+      executionStarted: true,
+      argsComplete: true,
+      isPartial: false,
+      expanded: false,
+      showImages: false,
+      isError: false,
+    } as any;
+
+    const component = toolDef.renderResult(
+      {
+        content: [{ type: "text", text: "subagent output here" }],
+        details: {
+          agentId: "scout-a3f2b1c8",
+          agentType: "scout",
+          model: "minimax/MiniMax-M2.7",
+          duration: 12345,
+          usage: { input: 4231, output: 892, cacheRead: 512, cacheWrite: 0 },
+          activityFeed: {
+            collapsed: {
+              text: "◇ thinking\n- collapsed note",
+              hiddenCount: 0,
+              lines: [
+                {
+                  type: "thinking",
+                  text: "- collapsed note",
+                  timestamp: "2026-05-29T00:00:00.000Z",
+                  renderMarkdown: true,
+                },
+              ],
+            },
+            expanded: {
+              text: "◇ thinking\n- expanded note",
+              hiddenCount: 0,
+              lines: [
+                {
+                  type: "thinking",
+                  text: "- expanded note",
+                  timestamp: "2026-05-29T00:00:01.000Z",
+                  renderMarkdown: true,
+                },
+              ],
+            },
+            usage: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0 },
+          },
+        },
+      },
+      { expanded: true, isPartial: false },
+      { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+      context,
+    );
+
+    expect(component.render(80)).toEqual(expect.arrayContaining([
+      "◇ thinking",
+      "- expanded note",
+      "subagent output here",
+    ]));
+  });
+
   // ── Slice 3: Collapsed final result excludes activity feed ──
 
   it("collapsed final render excludes activity feed when present in details", () => {
@@ -1787,6 +1952,488 @@ describe("renderResult — live partial update state", () => {
     // No activity feed text
     expect(rendered).not.toContain("Subagent");
     expect(rendered).not.toContain("read");
+  });
+
+  // ── Spinner timer: starts on in-progress tool, ticks frame, calls invalidate ──
+
+  it("starts spinner timer when partial feed has in-progress tool, tick increments frame and calls invalidate", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const invalidate = vi.fn();
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate,
+        lastComponent: undefined,
+        state: {},
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: true,
+        expanded: false,
+        showImages: false,
+        isError: false,
+      } as any;
+
+      toolDef.renderResult(
+        {
+          content: [{ type: "text", text: "progress" }],
+          details: {
+            collapsed: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "started" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+              }],
+            },
+            expanded: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "started" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+              }],
+            },
+          },
+        },
+        { expanded: false, isPartial: true },
+        { bold: (t: string) => `BOLD(${t})`, fg: (_c: string, t: string) => t } as any,
+        context,
+      );
+
+      // Timer was started
+      expect(context.state.spinnerTimer).toBeDefined();
+      expect(context.state.spinnerFrame).toBe(0);
+
+      // Advance one tick (80ms)
+      vi.advanceTimersByTime(80);
+      expect(context.state.spinnerFrame).toBe(1);
+      expect(invalidate).toHaveBeenCalledTimes(1);
+
+      // Advance another tick
+      vi.advanceTimersByTime(80);
+      expect(context.state.spinnerFrame).toBe(2);
+      expect(invalidate).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("passes spinnerFrame from context.state to renderActivityFeed for in-progress tools", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate: vi.fn(),
+        lastComponent: undefined,
+        state: {},
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: true,
+        expanded: false,
+        showImages: false,
+        isError: false,
+      } as any;
+
+      const component: any = toolDef.renderResult(
+        {
+          content: [{ type: "text", text: "progress" }],
+          details: {
+            collapsed: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "started" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+              }],
+            },
+            expanded: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "started" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+              }],
+            },
+          },
+        },
+        { expanded: false, isPartial: true },
+        {
+          bold: (t: string) => `BOLD(${t})`,
+          fg: (c: string, t: string) => `FG_${c.toUpperCase()}(${t})`,
+        } as any,
+        context,
+      );
+
+      // spinnerFrame=0 → ◐ rendered
+      const rendered = (component as any).render(80);
+      expect(rendered[0]).toContain("◐");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // ── Spinner timer: cleared on tool completion ──
+
+  it("clears spinner timer when all tools in partial feed complete", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const invalidate = vi.fn();
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate,
+        lastComponent: undefined,
+        state: {
+          // Simulate a previously started timer
+          spinnerTimer: setInterval(() => {}, 80),
+          spinnerFrame: 2,
+        },
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: true,
+        expanded: false,
+        showImages: false,
+        isError: false,
+      } as any;
+
+      toolDef.renderResult(
+        {
+          content: [{ type: "text", text: "progress" }],
+          details: {
+            collapsed: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "succeeded" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+                toolResultPreview: "file contents",
+              }],
+            },
+            expanded: {
+              text: "",
+              hiddenCount: 0,
+              lines: [],
+            },
+          },
+        },
+        { expanded: false, isPartial: true },
+        { bold: (t: string) => `BOLD(${t})`, fg: (_c: string, t: string) => t } as any,
+        context,
+      );
+
+      // Timer should be cleared
+      expect(context.state.spinnerTimer).toBeUndefined();
+      expect(context.state.spinnerFrame).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // ── Spinner timer: cleared on final render ──
+
+  it("clears spinner timer on final (non-partial) render with error result", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const invalidate = vi.fn();
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate,
+        lastComponent: undefined,
+        state: {
+          spinnerTimer: setInterval(() => {}, 80),
+          spinnerFrame: 3,
+        },
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: false,
+        expanded: false,
+        showImages: false,
+        isError: true,
+      } as any;
+
+      toolDef.renderResult(
+        { content: [{ type: "text", text: "error occurred" }], details: { error: true } },
+        { expanded: false, isPartial: false },
+        { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+        context,
+      );
+
+      // Timer should be cleared on final render, even for error results
+      expect(context.state.spinnerTimer).toBeUndefined();
+      expect(context.state.spinnerFrame).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("clears spinner timer on final (non-partial) render", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const invalidate = vi.fn();
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate,
+        lastComponent: undefined,
+        state: {
+          spinnerTimer: setInterval(() => {}, 80),
+          spinnerFrame: 3,
+        },
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: false,
+        expanded: false,
+        showImages: false,
+        isError: false,
+      } as any;
+
+      toolDef.renderResult(
+        { content: [{ type: "text", text: "final output" }], details: { agentId: "scout-1" } },
+        { expanded: false, isPartial: false },
+        { fg: (_c: string, t: string) => t, bold: (t: string) => t } as any,
+        context,
+      );
+
+      // Timer should be cleared on final render
+      expect(context.state.spinnerTimer).toBeUndefined();
+      expect(context.state.spinnerFrame).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // ── Spinner timer: not started when feed has no in-progress tools ──
+
+  it("does not start spinner timer when partial feed has no in-progress tools", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate: vi.fn(),
+        lastComponent: undefined,
+        state: {},
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: true,
+        expanded: false,
+        showImages: false,
+        isError: false,
+      } as any;
+
+      toolDef.renderResult(
+        {
+          content: [{ type: "text", text: "progress" }],
+          details: {
+            collapsed: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read completed",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "succeeded" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+                toolResultPreview: "contents",
+              }],
+            },
+            expanded: {
+              text: "",
+              hiddenCount: 0,
+              lines: [],
+            },
+          },
+        },
+        { expanded: false, isPartial: true },
+        { bold: (t: string) => `BOLD(${t})`, fg: (_c: string, t: string) => t } as any,
+        context,
+      );
+
+      // No in-progress tools, timer should not be created
+      expect(context.state.spinnerTimer).toBeUndefined();
+      expect(context.state.spinnerFrame).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // ── Spinner timer: reuses existing timer, does not create duplicate ──
+
+  it("keeps spinner timer when in-progress tool is only in expanded.lines (scrolled out of collapsed window)", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const invalidate = vi.fn();
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate,
+        lastComponent: undefined,
+        state: {},
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: true,
+        expanded: false,
+        showImages: false,
+        isError: false,
+      } as any;
+
+      toolDef.renderResult(
+        {
+          content: [{ type: "text", text: "progress" }],
+          details: {
+            // In-progress tool is only in expanded, NOT in collapsed
+            // (simulates a tool that scrolled out of the collapsed window)
+            collapsed: {
+              text: "",
+              hiddenCount: 5,
+              lines: [],
+            },
+            expanded: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "started" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+              }],
+            },
+          },
+        },
+        { expanded: false, isPartial: true },
+        { bold: (t: string) => `BOLD(${t})`, fg: (_c: string, t: string) => t } as any,
+        context,
+      );
+
+      // Timer should still be started (tool is in expanded.lines)
+      expect(context.state.spinnerTimer).toBeDefined();
+      expect(context.state.spinnerFrame).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not create a second timer when one already exists", () => {
+    vi.useFakeTimers();
+    try {
+      const pi = mockExtensionAPI();
+      subagentEntryPoint(pi as any, { agentsDir: makeAgentsDir() });
+      const toolDef = extractToolDef(pi);
+      const invalidate = vi.fn();
+      const existingTimer = setInterval(() => {}, 80);
+      const context = {
+        args: { agent_type: "scout", prompt: "test" },
+        toolCallId: "tcid-1",
+        invalidate,
+        lastComponent: undefined,
+        state: {
+          spinnerTimer: existingTimer,
+          spinnerFrame: 1,
+        },
+        cwd: "/test",
+        executionStarted: true,
+        argsComplete: true,
+        isPartial: true,
+        expanded: false,
+        showImages: false,
+        isError: false,
+      } as any;
+
+      toolDef.renderResult(
+        {
+          content: [{ type: "text", text: "progress" }],
+          details: {
+            collapsed: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "started" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+              }],
+            },
+            expanded: {
+              text: "",
+              hiddenCount: 0,
+              lines: [{
+                type: "tool" as const,
+                text: "read: /tmp/test.txt",
+                timestamp: "2026-01-01T00:00:01Z",
+                status: "started" as const,
+                toolName: "read",
+                toolArgs: { path: "/tmp/test.txt" },
+              }],
+            },
+          },
+        },
+        { expanded: false, isPartial: true },
+        { bold: (t: string) => `BOLD(${t})`, fg: (_c: string, t: string) => t } as any,
+        context,
+      );
+
+      // Timer should still be the same instance
+      expect(context.state.spinnerTimer).toBe(existingTimer);
+      expect(context.state.spinnerFrame).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

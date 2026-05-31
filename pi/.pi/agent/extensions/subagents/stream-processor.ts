@@ -1,4 +1,5 @@
 import type { ProgressEvent } from "./tail-progress";
+import { cleanDisplayText } from "./activity-feed-tool-formatting";
 
 export type StreamResult =
   | { done: true; finalText: string }
@@ -111,6 +112,9 @@ export async function* processStream(
         text: toolStartSummary(parsed),
         timestamp: timestamp(),
         status: "started",
+        toolCallId: toolCallId || undefined,
+        toolName: stringValue(parsed.toolName) || undefined,
+        toolArgs: objectValue(parsed.args) ?? objectValue(parsed.input),
       };
       return undefined;
     }
@@ -118,12 +122,16 @@ export async function* processStream(
     if (eventType === "tool_execution_update") {
       const toolName = stringValue(parsed.toolName) || "?";
       const preview = toolResultPreview(parsed);
+      const toolCallId = stringValue(parsed.toolCallId) || stringValue(parsed.id);
       if (preview) {
         yield {
           type: "tool",
           text: truncateDisplayText(`${toolName} output → ${preview}`, 220),
           timestamp: timestamp(),
           status: "started",
+          toolCallId: toolCallId || undefined,
+          toolName: stringValue(parsed.toolName) || undefined,
+          toolResultPreview: preview || undefined,
         };
       }
       return undefined;
@@ -140,11 +148,15 @@ export async function* processStream(
       const toolName = stringValue(parsed.toolName) || "?";
       const result = objectValue(parsed.result);
       const isError = Boolean(parsed.isError ?? result?.isError);
+      const preview = toolResultPreview(parsed);
       yield {
         type: "tool",
         text: toolCompletionSummary(toolName, parsed, isError),
         timestamp: timestamp(),
         status: isError ? "failed" : "succeeded",
+        toolCallId: toolCallId || undefined,
+        toolName: stringValue(parsed.toolName) || undefined,
+        toolResultPreview: preview || undefined,
       };
       return undefined;
     }
@@ -389,7 +401,22 @@ function sumUsageFromMessages(messagesValue: unknown): Usage | undefined {
 function toolStartSummary(parsed: Record<string, unknown>): string {
   const toolName = stringValue(parsed.toolName) || "?";
   const args = objectValue(parsed.args) ?? objectValue(parsed.input) ?? {};
-  return truncateDisplayText(`${toolName}: ${summarizeToolArgs(toolName, args)}`, 180);
+  return truncateDisplayText(`${toolName}: ${toolArgPreview(args)}`, 180);
+}
+
+function toolArgPreview(args: Record<string, unknown>): string {
+  const preview =
+    stringValue(args.command) ||
+    stringValue(args.path) ||
+    stringValue(args.file) ||
+    stringValue(args.pattern) ||
+    stringValue(args.query) ||
+    stringValue(args.url) ||
+    stringValue(args.prompt) ||
+    stringValue(args.task) ||
+    stringValue(args.subject);
+
+  return preview ? cleanDisplayText(preview) : cleanDisplayText(JSON.stringify(args));
 }
 
 function toolCompletionSummary(
@@ -404,71 +431,23 @@ function toolCompletionSummary(
     : `${toolName} ${verb}`;
 }
 
-function summarizeToolArgs(
-  toolName: string,
-  args: Record<string, unknown>,
-): string {
-  const name = toolName.toLowerCase();
-
-  if (name === "bash") return cleanDisplayText(stringValue(args.command) || "(no command)");
-  if (name === "read") return cleanDisplayText(stringValue(args.path) || stringValue(args.file) || "(no path)");
-  if (name === "write") return cleanDisplayText(stringValue(args.path) || stringValue(args.file) || "(no path)");
-  if (name === "edit") {
-    const count = Array.isArray(args.edits) ? args.edits.length : undefined;
-    const suffix = typeof count === "number" ? ` (${count} edit${count === 1 ? "" : "s"})` : "";
-    return cleanDisplayText(`${stringValue(args.path) || "(no path)"}${suffix}`);
-  }
-  if (name === "grep") {
-    const pattern = stringValue(args.pattern) || stringValue(args.query) || "(no pattern)";
-    const path = stringValue(args.path) || stringValue(args.cwd);
-    return cleanDisplayText(path ? `${pattern} in ${path}` : pattern);
-  }
-  if (name === "find" || name === "ls") return cleanDisplayText(stringValue(args.path) || stringValue(args.cwd) || ".");
-  if (name === "web_search") return cleanDisplayText(stringValue(args.query) || "(no query)");
-  if (name === "web_fetch") return cleanDisplayText(stringValue(args.url) || "(no url)");
-  if (name === "subagent") {
-    const agentType = stringValue(args.agent_type) || stringValue(args.agentType) || "agent";
-    const prompt = stringValue(args.prompt) || stringValue(args.task);
-    return cleanDisplayText(prompt ? `${agentType} — ${prompt}` : agentType);
-  }
-  if (name === "ask_user_question") {
-    const questions = Array.isArray(args.questions) ? args.questions : [];
-    const first = objectValue(questions[0]);
-    return cleanDisplayText(stringValue(first?.question) || `${questions.length} question${questions.length === 1 ? "" : "s"}`);
-  }
-  if (name === "todo") {
-    const action = stringValue(args.action) || "todo";
-    const subject = stringValue(args.subject);
-    return cleanDisplayText(subject ? `${action} ${subject}` : action);
-  }
-
-  return compactJson(args);
-}
-
 function toolResultPreview(parsed: Record<string, unknown>): string {
   const result = objectValue(parsed.result) ?? objectValue(parsed.partialResult);
+  const resultError = objectValue(result?.error);
+  const parsedError = objectValue(parsed.error);
   const text =
     extractTextContent(result?.content) ||
     extractTextContent(parsed.content) ||
     stringValue(result?.content) ||
-    stringValue(parsed.content);
+    stringValue(parsed.content) ||
+    stringValue(result?.error) ||
+    stringValue(resultError?.message) ||
+    stringValue(result?.message) ||
+    stringValue(result?.stderr) ||
+    stringValue(parsed.error) ||
+    stringValue(parsedError?.message) ||
+    stringValue(parsed.message);
   return truncateDisplayText(cleanDisplayText(text), 180);
-}
-
-function compactJson(value: unknown): string {
-  try {
-    return cleanDisplayText(JSON.stringify(value));
-  } catch {
-    return "{}";
-  }
-}
-
-function cleanDisplayText(value: string): string {
-  return value
-    .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "")
-    .replace(/[\t\r\n]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 function truncateDisplayText(value: string, maxLength: number): string {

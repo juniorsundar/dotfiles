@@ -22,7 +22,32 @@ vi.mock("@earendil-works/pi-tui", () => {
     invalidate() {}
   }
 
-  return { Text };
+  class Markdown {
+    text: string;
+    constructor(text = "", _paddingX = 0, _paddingY = 0, _theme?: unknown) {
+      this.text = text;
+    }
+    setText(text: string) {
+      this.text = text;
+    }
+    render(_width: number): string[] {
+      return this.text.split("\n");
+    }
+    invalidate() {}
+  }
+
+  class Container {
+    children: any[] = [];
+    addChild(child: any) {
+      this.children.push(child);
+    }
+    render(width: number): string[] {
+      return this.children.flatMap((child) => child.render(width));
+    }
+    invalidate() {}
+  }
+
+  return { Text, Markdown, Container };
 });
 
 // ── Test helpers ──
@@ -213,9 +238,10 @@ exec tail -f /dev/null
     expect(expandedRendered).toContain("1,500 input");
     expect(expandedRendered).toContain("200 output");
 
-    // Activity feed visible — lifecycle and tool lines
+    // Activity feed visible — lifecycle and tool block lines
     expect(expandedRendered).toContain("Subagent started");
-    expect(expandedRendered).toContain("read: test.ts");
+    expect(expandedRendered).toContain("● BOLD(FG_ACCENT(read)) ✓");
+    expect(expandedRendered).toContain("FG_DIM(└ test.ts)");
 
     // Two separators: one after metadata, one between feed and output
     const separator = "FG_DIM(─────────────────────────)";
@@ -394,7 +420,8 @@ exit 1
 
     // Activity feed visible
     expect(expandedRendered).toContain("Subagent started");
-    expect(expandedRendered).toContain("bash: ls");
+    expect(expandedRendered).toContain("● BOLD(FG_ACCENT(bash))");
+    expect(expandedRendered).toContain("FG_DIM(└ ls)");
 
     // Two separators
     const separator = "FG_DIM(─────────────────────────)";
@@ -570,7 +597,8 @@ exec tail -f /dev/null
 
     // Activity feed visible
     expect(expandedRendered).toContain("Subagent started");
-    expect(expandedRendered).toContain("grep: TODO");
+    expect(expandedRendered).toContain("● BOLD(FG_ACCENT(grep))");
+    expect(expandedRendered).toContain("FG_DIM(└ TODO)");
 
     // Two separators
     const separator = "FG_DIM(─────────────────────────)";

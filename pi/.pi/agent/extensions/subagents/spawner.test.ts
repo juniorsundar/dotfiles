@@ -516,10 +516,10 @@ exit 0
     const nonEmptyCalls = progressCalls.filter((c) => c.expanded.lines.length > 0);
     expect(nonEmptyCalls.length).toBeGreaterThanOrEqual(1);
 
-    // The final progress snapshot should have all events (may arrive in batches)
+    // The final progress snapshot should have all merged events (may arrive in batches)
     const lastNonEmpty = nonEmptyCalls[nonEmptyCalls.length - 1];
-    // Events: lifecycle(started), tool(started), tool(succeeded), lifecycle(completed)
-    expect(lastNonEmpty.expanded.lines.length).toBe(4);
+    // Events merge to: lifecycle(started), tool(completed block), lifecycle(completed)
+    expect(lastNonEmpty.expanded.lines.length).toBe(3);
     expect(lastNonEmpty.expanded.lines[0]).toMatchObject({
       type: "lifecycle",
       text: "Subagent started",
@@ -527,8 +527,8 @@ exit 0
     expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text.includes("read: looking at file"))).toBe(true);
     expect(lastNonEmpty.expanded.lines.some((l: { text: string }) => l.text === "Subagent completed")).toBe(true);
 
-    // Collapsed view should be formatted
-    expect(lastNonEmpty.collapsed.lines.length).toBe(4);
+    // Collapsed view uses the default merged-event window (3), so all merged lines fit
+    expect(lastNonEmpty.collapsed.lines.length).toBe(3);
     expect(lastNonEmpty.collapsed.hiddenCount).toBe(0);
 
     // Output should still be canonical
@@ -1019,8 +1019,8 @@ exit 0
     // activityFeed should be present
     expect(result.activityFeed).toBeDefined();
 
-    // Expanded should contain all events: lifecycle(started), tool(started), tool(succeeded), usage, lifecycle(completed)
-    expect(result.activityFeed!.expanded.lines.length).toBe(5);
+    // Expanded should contain all merged events: lifecycle(started), tool(completed block), usage, lifecycle(completed)
+    expect(result.activityFeed!.expanded.lines.length).toBe(4);
     expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
       type: "lifecycle",
       text: "Subagent started",
@@ -1032,9 +1032,9 @@ exit 0
       text: "Subagent completed",
     });
 
-    // Collapsed view should be formatted and have same count (under window)
-    expect(result.activityFeed!.collapsed.lines.length).toBe(5);
-    expect(result.activityFeed!.collapsed.hiddenCount).toBe(0);
+    // Collapsed view uses the default merged-event window (3), so one older merged line is hidden
+    expect(result.activityFeed!.collapsed.lines.length).toBe(3);
+    expect(result.activityFeed!.collapsed.hiddenCount).toBe(1);
 
     // Usage should still be available
     expect(result.usage).toBeDefined();
@@ -1082,8 +1082,8 @@ exit 0
     });
 
     expect(result.activityFeed).toBeDefined();
-    // Should contain lifecycle(started), tool(started), tool(succeeded), lifecycle(completed)
-    expect(result.activityFeed!.expanded.lines.length).toBe(4);
+    // Should contain lifecycle(started), tool(completed block), lifecycle(completed)
+    expect(result.activityFeed!.expanded.lines.length).toBe(3);
     expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
       type: "lifecycle",
       text: "Subagent started",
@@ -1172,8 +1172,8 @@ exit 1
 
     // activityFeed should contain events accumulated before crash
     expect(result.activityFeed).toBeDefined();
-    // Should have at least lifecycle(started), tool(started), tool(succeeded)
-    expect(result.activityFeed!.expanded.lines.length).toBeGreaterThanOrEqual(3);
+    // Should have at least lifecycle(started) and a merged failed tool block
+    expect(result.activityFeed!.expanded.lines.length).toBeGreaterThanOrEqual(2);
     expect(result.activityFeed!.expanded.lines[0]).toMatchObject({
       type: "lifecycle",
       text: "Subagent started",

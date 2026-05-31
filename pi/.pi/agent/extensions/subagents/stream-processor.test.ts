@@ -240,7 +240,7 @@ describe("processStream", () => {
 
   // ── Slice 6: tool_execution_start ──
   describe("tool_execution_start", () => {
-    it("emits a tool event with status started and truncated summary", async () => {
+    it("emits a tool event with status started, structured tool data, and truncated summary", async () => {
       const events = [
         JSON.stringify({ type: "tool_execution_start", toolCallId: "call_123", toolName: "bash", args: { command: "ls -la /tmp" } }),
       ];
@@ -250,11 +250,17 @@ describe("processStream", () => {
 
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
-      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "started" });
+      expect(toolEvents[0]).toMatchObject({
+        type: "tool",
+        status: "started",
+        toolCallId: "call_123",
+        toolName: "bash",
+        toolArgs: { command: "ls -la /tmp" },
+      });
       expect((toolEvents[0] as { text: string }).text).toBe("bash: ls -la /tmp");
     });
 
-    it("handles tool_call as alias", async () => {
+    it("handles tool_call as alias and preserves structured start fields", async () => {
       const events = [
         JSON.stringify({ type: "tool_call", toolCallId: "call_1", toolName: "read", args: { path: "/tmp/test" } }),
       ];
@@ -264,7 +270,12 @@ describe("processStream", () => {
 
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
-      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "started" });
+      expect(toolEvents[0]).toMatchObject({
+        type: "tool",
+        status: "started",
+        toolName: "read",
+        toolArgs: { path: "/tmp/test" },
+      });
     });
 
     it("truncates summary to 180 characters", async () => {
@@ -276,6 +287,25 @@ describe("processStream", () => {
       const results: unknown[] = [];
       for await (const event of stream) results.push(event);
       expect((results[0] as { text: string }).text.length).toBeLessThanOrEqual(180);
+    });
+
+    it("emits structured tool data for tool_execution_update without requiring a start event", async () => {
+      const events = [
+        JSON.stringify({ type: "tool_execution_update", toolCallId: "u1", toolName: "bash", result: { content: [{ type: "text", text: "partial" }] } }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: unknown[] = [];
+      for await (const event of stream) results.push(event);
+
+      expect(results).toEqual([
+        expect.objectContaining({
+          type: "tool",
+          status: "started",
+          toolName: "bash",
+          toolResultPreview: "partial",
+          text: "bash output → partial",
+        }),
+      ]);
     });
 
     it("deduplicates tool_execution_start when tool_call already fired for the same toolCallId", async () => {
@@ -306,7 +336,7 @@ describe("processStream", () => {
       expect(actualStarts.length).toBe(1);
     });
 
-    it("still emits tool_execution_update and tool_execution_end after dedup", async () => {
+    it("still emits tool_execution_update and tool_execution_end after dedup, carrying toolName on updates", async () => {
       const events = [
         JSON.stringify({ type: "tool_call", toolCallId: "call_3", toolName: "bash", args: { command: "du" } }),
         JSON.stringify({ type: "tool_execution_start", toolCallId: "call_3", toolName: "bash", args: { command: "du" } }),
@@ -320,6 +350,15 @@ describe("processStream", () => {
       const allTool = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(allTool.length).toBe(3);
 
+      const toolStarted = allTool.find((r) => (r as Record<string, unknown>).status === "started" && (r as Record<string, unknown>).text === "bash output → partial") as Record<string, unknown> | undefined;
+      expect(toolStarted).toMatchObject({
+        type: "tool",
+        status: "started",
+        toolName: "bash",
+        toolResultPreview: "partial",
+        text: "bash output → partial",
+      });
+
       const toolSucceeded = results.filter((r) => (r as Record<string, unknown>).type === "tool" && (r as Record<string, unknown>).status === "succeeded");
       expect(toolSucceeded.length).toBe(1);
     });
@@ -327,7 +366,7 @@ describe("processStream", () => {
 
   // ── Slice 7: tool_execution_end ──
   describe("tool_execution_end", () => {
-    it("emits tool event with status succeeded when result.isError is falsy", async () => {
+    it("emits tool event with status succeeded, toolName, and toolResultPreview when result.isError is falsy", async () => {
       const events = [
         JSON.stringify({ type: "tool_execution_end", toolCallId: "c1", toolName: "bash", result: { content: [{ type: "text", text: "ok" }] } }),
       ];
@@ -337,7 +376,14 @@ describe("processStream", () => {
 
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
-      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "succeeded", text: "bash completed → ok" });
+      expect(toolEvents[0]).toMatchObject({
+        type: "tool",
+        status: "succeeded",
+        toolCallId: "c1",
+        text: "bash completed → ok",
+        toolName: "bash",
+        toolResultPreview: "ok",
+      });
     });
 
     it("emits tool event with status failed when result.isError is true", async () => {
@@ -353,7 +399,25 @@ describe("processStream", () => {
       expect(toolEvents[0]).toMatchObject({ type: "tool", status: "failed", text: "bash failed → err" });
     });
 
-    it("handles tool_result as alias", async () => {
+    it("extracts failed tool error text from result.error when no text content exists", async () => {
+      const events = [
+        JSON.stringify({ type: "tool_execution_end", toolCallId: "c2b", toolName: "bash", result: { isError: true, error: "permission denied" } }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: unknown[] = [];
+      for await (const event of stream) results.push(event);
+
+      const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
+      expect(toolEvents.length).toBe(1);
+      expect(toolEvents[0]).toMatchObject({
+        type: "tool",
+        status: "failed",
+        text: "bash failed → permission denied",
+        toolResultPreview: "permission denied",
+      });
+    });
+
+    it("handles tool_result as alias and preserves structured completion fields", async () => {
       const events = [
         JSON.stringify({ type: "tool_result", toolCallId: "c3", toolName: "read", result: { content: [{ type: "text", text: "c" }] } }),
       ];
@@ -363,7 +427,12 @@ describe("processStream", () => {
 
       const toolEvents = results.filter((r) => (r as Record<string, unknown>).type === "tool");
       expect(toolEvents.length).toBe(1);
-      expect(toolEvents[0]).toMatchObject({ type: "tool", status: "succeeded" });
+      expect(toolEvents[0]).toMatchObject({
+        type: "tool",
+        status: "succeeded",
+        toolName: "read",
+        toolResultPreview: "c",
+      });
     });
 
     it("deduplicates tool_execution_end when called twice for the same toolCallId", async () => {
@@ -382,6 +451,38 @@ describe("processStream", () => {
   });
 
   // ── Slice 8: agent_end ──
+  describe("non-tool event shape preservation", () => {
+    it("keeps lifecycle, thinking, and usage events free of tool metadata fields", async () => {
+      const events = [
+        JSON.stringify({ type: "agent_start" }),
+        JSON.stringify({ type: "message_update", assistantMessageEvent: { type: "thinking_delta", delta: "Plan first. " } }),
+        JSON.stringify({
+          type: "message_end",
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "answer" }],
+            usage: { input: 10, output: 5, cacheRead: 1, cacheWrite: 0 },
+          },
+        }),
+      ];
+      const stream = processStream(linesFrom(events));
+      const results: Record<string, unknown>[] = [];
+      for await (const event of stream) results.push(event as Record<string, unknown>);
+
+      const nonToolEvents = results.filter((event) => event.type !== "tool");
+      expect(nonToolEvents).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: "lifecycle", text: "Subagent started", status: "started" }),
+        expect.objectContaining({ type: "thinking", text: "Plan first." }),
+        expect.objectContaining({ type: "usage", input: 10, output: 5, cacheRead: 1, cacheWrite: 0 }),
+      ]));
+      for (const event of nonToolEvents) {
+        expect(event.toolName).toBeUndefined();
+        expect(event.toolArgs).toBeUndefined();
+        expect(event.toolResultPreview).toBeUndefined();
+      }
+    });
+  });
+
   describe("agent_end", () => {
     it("emits lifecycle completed event", async () => {
       const events = [

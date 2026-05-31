@@ -84,6 +84,73 @@ describe("tailProgress — tracer bullet", () => {
 // ── Slice 2: Incremental reading — only new lines after last read position ──
 
 describe("tailProgress — incremental reading", () => {
+  it("yields structured tool metadata fields when present in progress.jsonl", async () => {
+    const workDir = makeWorkDir();
+    const filePath = makeProgressFile(workDir);
+
+    writeFileSync(
+      filePath,
+      JSON.stringify({
+        type: "tool",
+        text: "bash: ls -la /tmp",
+        timestamp: "2026-01-01T00:00:00Z",
+        status: "started",
+        toolName: "bash",
+        toolArgs: { command: "ls -la /tmp" },
+        toolResultPreview: "file-a file-b",
+      }) + "\n",
+      "utf-8",
+    );
+
+    const controller = new AbortController();
+    const iterator = tailProgress(filePath, { signal: controller.signal, pollIntervalMs: 10 })[Symbol.asyncIterator]();
+    const result = await iterator.next();
+
+    expect(result.done).toBe(false);
+    expect(result.value).toMatchObject({
+      type: "tool",
+      text: "bash: ls -la /tmp",
+      status: "started",
+      toolName: "bash",
+      toolArgs: { command: "ls -la /tmp" },
+      toolResultPreview: "file-a file-b",
+    });
+
+    controller.abort();
+  });
+
+  it("accepts legacy progress events that omit structured tool metadata fields", async () => {
+    const workDir = makeWorkDir();
+    const filePath = makeProgressFile(workDir);
+
+    writeFileSync(
+      filePath,
+      JSON.stringify({
+        type: "tool",
+        text: "bash completed → ok",
+        timestamp: "2026-01-01T00:00:00Z",
+        status: "succeeded",
+      }) + "\n",
+      "utf-8",
+    );
+
+    const controller = new AbortController();
+    const iterator = tailProgress(filePath, { signal: controller.signal, pollIntervalMs: 10 })[Symbol.asyncIterator]();
+    const result = await iterator.next();
+
+    expect(result.done).toBe(false);
+    expect(result.value).toMatchObject({
+      type: "tool",
+      text: "bash completed → ok",
+      status: "succeeded",
+    });
+    expect(result.value?.toolName).toBeUndefined();
+    expect(result.value?.toolArgs).toBeUndefined();
+    expect(result.value?.toolResultPreview).toBeUndefined();
+
+    controller.abort();
+  });
+
   it("emits only newly appended events, not previously read content", async () => {
     const workDir = makeWorkDir();
     const filePath = makeProgressFile(workDir);
@@ -199,6 +266,41 @@ describe("tailProgress — invalid line handling", () => {
     expect(events[0]).toMatchObject({ type: "lifecycle", text: "event-1" });
     expect(events[1]).toMatchObject({ type: "tool", text: "event-3" });
 
+    controller.abort();
+    await tailerPromise;
+  });
+
+  it("skips valid JSON lines that are missing required fields", async () => {
+    const workDir = makeWorkDir();
+    const filePath = makeProgressFile(workDir);
+
+    const warnCalls: string[] = [];
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation((msg) => {
+      warnCalls.push(String(msg));
+    });
+
+    const controller = new AbortController();
+    const events: unknown[] = [];
+    const tailerPromise = (async () => {
+      for await (const event of tailProgress(filePath, { signal: controller.signal, pollIntervalMs: 10 })) {
+        events.push(event);
+      }
+    })();
+
+    await new Promise((r) => setTimeout(r, 30));
+
+    writeFileSync(
+      filePath,
+      JSON.stringify({ type: "tool", text: "missing timestamp" }) + "\n",
+      "utf-8",
+    );
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(events.length).toBe(0);
+    expect(warnCalls.some((m) => m.includes("missing fields"))).toBe(true);
+
+    warnSpy.mockRestore();
     controller.abort();
     await tailerPromise;
   });

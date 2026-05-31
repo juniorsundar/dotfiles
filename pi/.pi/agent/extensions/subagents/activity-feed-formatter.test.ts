@@ -43,6 +43,74 @@ describe("formatActivityFeed — tracer bullet", () => {
 });
 
 describe("formatActivityFeed — collapsed history", () => {
+  it("uses a default collapsed window of 3 events", () => {
+    const events = Array.from({ length: 5 }, (_, index) => ({
+      type: "assistant_text" as const,
+      text: `event-${index + 1}`,
+      timestamp: `2026-01-01T00:00:0${index}Z`,
+    }));
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.collapsed.hiddenCount).toBe(2);
+    expect(feed.collapsed.lines.map((line) => line.text)).toEqual([
+      "event-3",
+      "event-4",
+      "event-5",
+    ]);
+  });
+
+  it("keeps a merged tool block in collapsed view when the start event is older than the raw window", () => {
+    const events = [
+      {
+        type: "lifecycle" as const,
+        text: "Subagent started",
+        timestamp: "2026-01-01T00:00:00Z",
+        status: "started" as const,
+      },
+      {
+        type: "tool" as const,
+        text: "read: /tmp/test.txt",
+        timestamp: "2026-01-01T00:00:01Z",
+        status: "started" as const,
+        toolName: "read",
+        toolArgs: { path: "/tmp/test.txt" },
+      },
+      {
+        type: "assistant_text" as const,
+        text: "Working...",
+        timestamp: "2026-01-01T00:00:02Z",
+      },
+      {
+        type: "thinking" as const,
+        text: "Analyzing...",
+        timestamp: "2026-01-01T00:00:03Z",
+      },
+      {
+        type: "tool" as const,
+        text: "read completed → file contents",
+        timestamp: "2026-01-01T00:00:04Z",
+        status: "succeeded" as const,
+        toolName: "read",
+        toolResultPreview: "file contents",
+      },
+    ];
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.collapsed.hiddenCount).toBe(1);
+    expect(feed.collapsed.text).toBe([
+      "… 1 older event hidden …",
+      "● read ✓",
+      "└ /tmp/test.txt",
+      "└─╼ file contents",
+      "say Working...",
+      "◇ thinking",
+      "Analyzing...",
+    ].join("\n"));
+    expect(feed.collapsed.text).not.toContain("ok read completed");
+  });
+
   it("keeps a bounded recent history and indicates hidden older events", () => {
     const events = Array.from({ length: 8 }, (_, index) => ({
       type: "assistant_text" as const,
@@ -155,6 +223,183 @@ describe("formatActivityFeed — expanded history", () => {
   });
 });
 
+describe("formatActivityFeed — tool block tracer bullet", () => {
+  it("merges a completed tool call into one block with params and result text", () => {
+    const events = [
+      {
+        type: "tool" as const,
+        text: "read: /tmp/test.txt",
+        timestamp: "2026-01-01T00:00:01Z",
+        status: "started" as const,
+        toolName: "read",
+        toolArgs: { path: "/tmp/test.txt" },
+      },
+      {
+        type: "tool" as const,
+        text: "read completed → file contents",
+        timestamp: "2026-01-01T00:00:02Z",
+        status: "succeeded" as const,
+        toolName: "read",
+        toolResultPreview: "file contents",
+      },
+    ];
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.collapsed.text).toBe([
+      "● read ✓",
+      "└ /tmp/test.txt",
+      "└─╼ file contents",
+    ].join("\n"));
+    expect(feed.expanded.text).toBe(feed.collapsed.text);
+    expect(feed.collapsed.lines).toHaveLength(1);
+    expect(feed.collapsed.lines[0]).toEqual(expect.objectContaining({
+      type: "tool",
+      status: "succeeded",
+      toolName: "read",
+      toolArgs: { path: "/tmp/test.txt" },
+      toolResultPreview: "file contents",
+    }));
+  });
+});
+
+describe("formatActivityFeed — in-progress tool blocks", () => {
+  it("renders an in-progress tool call as a block without a status marker", () => {
+    const events = [
+      {
+        type: "tool" as const,
+        text: "read: /tmp/test.txt",
+        timestamp: "2026-01-01T00:00:01Z",
+        status: "started" as const,
+        toolName: "read",
+        toolArgs: { path: "/tmp/test.txt" },
+      },
+    ];
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.collapsed.text).toBe([
+      "● read",
+      "└ /tmp/test.txt",
+    ].join("\n"));
+    expect(feed.expanded.text).toBe(feed.collapsed.text);
+  });
+
+  it("renders a failed tool call with a failure marker and error preview", () => {
+    const events = [
+      {
+        type: "tool" as const,
+        text: "read: /tmp/test.txt",
+        timestamp: "2026-01-01T00:00:01Z",
+        status: "started" as const,
+        toolName: "read",
+        toolArgs: { path: "/tmp/test.txt" },
+      },
+      {
+        type: "tool" as const,
+        text: "read failed → permission denied",
+        timestamp: "2026-01-01T00:00:02Z",
+        status: "failed" as const,
+        toolName: "read",
+        toolResultPreview: "permission denied",
+      },
+    ];
+
+    const feed = formatActivityFeed(events);
+
+    expect(feed.collapsed.text).toBe([
+      "● read ✗",
+      "└ /tmp/test.txt",
+      "└─╼ permission denied",
+    ].join("\n"));
+    expect(feed.expanded.text).toBe(feed.collapsed.text);
+  });
+
+  it("merges concurrent same-name tool calls by toolCallId without separate completion lines", () => {
+    const events = [
+      {
+        type: "tool" as const,
+        text: "bash: ls",
+        timestamp: "2026-01-01T00:00:01Z",
+        status: "started" as const,
+        toolName: "bash",
+        toolArgs: { command: "ls" },
+        toolCallId: "call-1",
+      },
+      {
+        type: "tool" as const,
+        text: "bash: pwd",
+        timestamp: "2026-01-01T00:00:02Z",
+        status: "started" as const,
+        toolName: "bash",
+        toolArgs: { command: "pwd" },
+        toolCallId: "call-2",
+      },
+      {
+        type: "tool" as const,
+        text: "bash completed → /tmp/project",
+        timestamp: "2026-01-01T00:00:03Z",
+        status: "succeeded" as const,
+        toolName: "bash",
+        toolResultPreview: "/tmp/project",
+        toolCallId: "call-2",
+      },
+      {
+        type: "tool" as const,
+        text: "bash completed → file-a",
+        timestamp: "2026-01-01T00:00:04Z",
+        status: "succeeded" as const,
+        toolName: "bash",
+        toolResultPreview: "file-a",
+        toolCallId: "call-1",
+      },
+    ];
+
+    const feed = formatActivityFeed(events, { collapsedWindow: 10 });
+
+    expect(feed.expanded.text).toBe([
+      "● bash ✓",
+      "└ ls",
+      "└─╼ file-a",
+      "● bash ✓",
+      "└ pwd",
+      "└─╼ /tmp/project",
+    ].join("\n"));
+    expect(feed.expanded.text).not.toContain("ok bash completed");
+    expect(feed.expanded.lines).toHaveLength(2);
+  });
+});
+
+describe("formatActivityFeed — thinking metadata", () => {
+  it("marks thinking lines for markdown rendering without changing assistant_text lines", () => {
+    const events = [
+      makeEvent({
+        type: "thinking",
+        text: "- inspect `activity-feed-renderer.ts`",
+        timestamp: "2026-01-01T00:00:00Z",
+      }),
+      makeEvent({
+        type: "assistant_text",
+        text: "Working...",
+        timestamp: "2026-01-01T00:00:01Z",
+      }),
+    ];
+
+    const feed = formatActivityFeed(events, { collapsedWindow: 10 });
+
+    expect(feed.collapsed.lines[0]).toEqual(expect.objectContaining({
+      type: "thinking",
+      renderMarkdown: true,
+    }));
+    expect(feed.collapsed.lines[1]).toEqual(expect.objectContaining({
+      type: "assistant_text",
+      text: "Working...",
+    }));
+    expect(feed.collapsed.lines[1]).not.toHaveProperty("renderMarkdown");
+    expect(feed.expanded.lines).toEqual(feed.collapsed.lines);
+  });
+});
+
 describe("formatActivityFeed — event categories", () => {
   it("preserves readable user-facing text and structured metadata for each progress-event category", () => {
     const events = [
@@ -229,6 +474,38 @@ describe("formatActivityFeed — event categories", () => {
     expect(feed.collapsed.text).not.toContain('"type"');
     expect(feed.collapsed.text).not.toContain('"timestamp"');
     expect(feed.expanded.text).toBe("ok Tool bash succeeded");
+  });
+
+  it("passes tool metadata fields through unchanged on ActivityFeedLine", () => {
+    const event = {
+      type: "tool" as const,
+      text: "bash: ls -la /tmp",
+      timestamp: "2026-01-01T00:00:02Z",
+      status: "started" as const,
+      toolName: "bash",
+      toolArgs: { command: "ls -la /tmp" },
+      toolResultPreview: "file-a file-b",
+    };
+
+    const feed = formatActivityFeed([event]);
+
+    expect(feed.collapsed.lines).toEqual([
+      {
+        type: "tool",
+        text: "bash: ls -la /tmp",
+        timestamp: "2026-01-01T00:00:02Z",
+        status: "started",
+        toolName: "bash",
+        toolArgs: { command: "ls -la /tmp" },
+        toolResultPreview: "file-a file-b",
+      },
+    ]);
+    expect(feed.expanded.lines).toEqual(feed.collapsed.lines);
+    expect(feed.collapsed.text).toBe([
+      "● bash",
+      "└ ls -la /tmp",
+      "└─╼ file-a file-b",
+    ].join("\n"));
   });
 });
 
@@ -321,6 +598,58 @@ describe("formatActivityFeed — edge cases", () => {
   });
 });
 
+describe("formatActivityFeed — thinking block text output", () => {
+  it("renders consecutive thinking events as separate blocks while keeping tool and assistant styles distinct", () => {
+    const events = [
+      {
+        type: "thinking" as const,
+        text: "- inspect renderer",
+        timestamp: "2026-01-01T00:00:00Z",
+      },
+      {
+        type: "thinking" as const,
+        text: "- verify formatter",
+        timestamp: "2026-01-01T00:00:01Z",
+      },
+      {
+        type: "tool" as const,
+        text: "read: /tmp/test.txt",
+        timestamp: "2026-01-01T00:00:02Z",
+        status: "started" as const,
+        toolName: "read",
+        toolArgs: { path: "/tmp/test.txt" },
+      },
+      {
+        type: "tool" as const,
+        text: "read completed → file contents",
+        timestamp: "2026-01-01T00:00:03Z",
+        status: "succeeded" as const,
+        toolName: "read",
+        toolResultPreview: "file contents",
+      },
+      {
+        type: "assistant_text" as const,
+        text: "Working...",
+        timestamp: "2026-01-01T00:00:04Z",
+      },
+    ];
+
+    const feed = formatActivityFeed(events, { collapsedWindow: 10 });
+
+    expect(feed.collapsed.text).toBe([
+      "◇ thinking",
+      "- inspect renderer",
+      "◇ thinking",
+      "- verify formatter",
+      "● read ✓",
+      "└ /tmp/test.txt",
+      "└─╼ file contents",
+      "say Working...",
+    ].join("\n"));
+    expect(feed.expanded.text).toBe(feed.collapsed.text);
+  });
+});
+
 describe("formatActivityFeed — no assistant_text events", () => {
   it("renders a feed with only tool, thinking, and lifecycle events without errors", () => {
     const events = [
@@ -329,11 +658,12 @@ describe("formatActivityFeed — no assistant_text events", () => {
       { type: "thinking" as const, text: "Analyzing...", timestamp: "2026-01-01T00:00:02Z" },
       { type: "lifecycle" as const, text: "Subagent completed", timestamp: "2026-01-01T00:00:03Z", status: "completed" as const },
     ];
-    const feed = formatActivityFeed(events);
+    const feed = formatActivityFeed(events, { collapsedWindow: 10 });
     expect(feed.collapsed.text).toBe([
       "run Subagent started",
       "ok bash completed \u2192 ok",
-      "think Analyzing...",
+      "◇ thinking",
+      "Analyzing...",
       "done Subagent completed",
     ].join("\n"));
     expect(feed.expanded.text).toBe(feed.collapsed.text);
@@ -366,7 +696,7 @@ describe("formatActivityFeed — legacy assistant_text events", () => {
       { type: "assistant_text" as const, text: "Done.", timestamp: "2026-01-01T00:00:03Z" },
       { type: "lifecycle" as const, text: "Subagent completed", timestamp: "2026-01-01T00:00:04Z", status: "completed" as const },
     ];
-    const feed = formatActivityFeed(events);
+    const feed = formatActivityFeed(events, { collapsedWindow: 10 });
     expect(feed.collapsed.text).toBe([
       "run Subagent started",
       "say Hello world.",
