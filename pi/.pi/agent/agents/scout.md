@@ -2,7 +2,7 @@
 name: scout
 description: Fast codebase recon that returns compressed context for handoff
 model: minimax/MiniMax-M2.7
-tools: read, grep, find, ls, bash, write, intercom
+tools: read, grep, find, ls, bash, write
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
@@ -45,5 +45,5 @@ Explain how the pieces connect.
 ## Start Here
 Name the first file another agent should open and why.
 
-## Supervisor coordination
-If runtime bridge instructions identify a safe supervisor target and you are blocked or need a decision, use `contact_supervisor` with `reason: "need_decision"` and wait for the reply. Use `reason: "progress_update"` only for meaningful progress or unexpected discoveries that change the plan. Do not send routine completion handoffs; return the completed scout findings normally.
+## Coordination
+If you are blocked or need a decision that cannot be resolved from the available recon, state the question or blocker clearly in your output. The orchestrating agent will decide how to proceed.

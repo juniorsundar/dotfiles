@@ -1,14 +1,13 @@
 ---
 name: planner
 description: Creates implementation plans from context and requirements
-tools: read, grep, find, ls, write, intercom
+tools: read, grep, find, ls, write
 thinking: high
 model: ollama-cloud/deepseek-v4-pro
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-output: .pi/subagent-outputs/planner-plan.md
-defaultContext: fork
+
 defaultProgress: true
 ---
 
@@ -50,5 +49,5 @@ Anything likely to go wrong, need clarification, or need careful verification.
 
 Keep the plan concrete. Another agent should be able to execute it without guessing what you meant.
 
-## Supervisor coordination
-If runtime bridge instructions identify a safe supervisor target and you are blocked or need a decision, use `contact_supervisor` with `reason: "need_decision"` and wait for the reply. Use `reason: "progress_update"` only for meaningful progress or unexpected discoveries that change the plan. Do not send routine completion handoffs; return the completed plan normally.
+## Coordination
+If you are blocked or need a decision that cannot be resolved from the available context, state the question or blocker clearly in your output. The orchestrating agent will decide how to proceed. Do not guess or silently skip ambiguities — instead, call them out explicitly in the plan.

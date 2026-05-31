@@ -2,10 +2,9 @@
 name: commit-pr-assistant
 description: Prepare commit messages, PR summaries, changelogs, and reviewer notes from current git diffs without loading the main session context.
 model: minimax/MiniMax-M2.7
-defaultContext: fresh
 inheritProjectContext: true
 inheritSkills: false
-skills: commit-pr-assistant
+inheritExtensions: false
 tools: read, bash
 thinking: medium
 ---
