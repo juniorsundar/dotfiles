@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-pro",
-  "defaultProvider": "ollama-cloud",
+  "defaultModel": "gpt-5.4",
+  "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.78.0",
