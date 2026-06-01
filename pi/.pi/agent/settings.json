@@ -1,6 +1,6 @@
 {
-  "defaultModel": "deepseek-v4-flash",
-  "defaultProvider": "opencode-go",
+  "defaultModel": "minimax-m3",
+  "defaultProvider": "ollama-cloud",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.78.0",
