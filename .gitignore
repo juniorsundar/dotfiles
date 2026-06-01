@@ -13,7 +13,7 @@ ssh/.ssh/authorized_keys
 /pi/.pi/agent/run-history.jsonl
 /pi/.pi/agent/.direnv
 /pi/.pi/agent/node_modules
-/pi/.pi/agent/.pi/subagent-outputs
-/pi/.pi/agent/.pi/subagents
-/pi/.pi/.pi/subagents
-/.pi/subagents
+/pi/.pi/agent/.pi/*
+/pi/.pi/.pi/*
+/.pi/*
+/pi/.pi/agent/extensions/subagents/node_modules
