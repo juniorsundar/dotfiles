@@ -1,34 +1,5 @@
 {
   "providers": {
-    "llamacpp-local": {
-      "api": "openai-completions",
-      "apiKey": "not-needed",
-      "baseUrl": "http://100.64.0.5:8080/v1",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "thinkingFormat": "qwen-chat-template"
-      },
-      "models": [
-        {
-          "contextWindow": 131072,
-          "cost": {
-            "cacheRead": 0,
-            "cacheWrite": 0,
-            "input": 0,
-            "output": 0
-          },
-          "id": "Qwen 3.6 35B (Local)",
-          "input": [
-            "text"
-          ],
-          "maxTokens": 32768,
-          "name": "Qwen3.6-35B-A3B-UD-Q4_K_M.gguf",
-          "reasoning": true
-        }
-      ],
-      "name": "Llama.cpp (Local)"
-    },
     "ollama": {
       "api": "openai-completions",
       "apiKey": "ollama",
@@ -68,6 +39,16 @@
           "id": "glm-5.1:cloud",
           "input": [
             "text"
+          ],
+          "reasoning": true
+        },
+        {
+          "_launch": true,
+          "contextWindow": 262144,
+          "id": "qwen3.6:35b",
+          "input": [
+            "text",
+            "image"
           ],
           "reasoning": true
         }
