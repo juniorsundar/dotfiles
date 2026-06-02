@@ -180,3 +180,7 @@ if command -v direnv >/dev/null 2>&1; then
 
 add-zsh-hook precmd _source_project_zsh
 fi
+
+if command -v mise >/dev/null 2>&1; then
+    eval "$(mise activate zsh)"
+fi
