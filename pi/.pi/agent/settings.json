@@ -1,23 +1,15 @@
 {
-  "defaultModel": "Qwen3.6-35B-A3B-UD-Q4_K_M.gguf",
-  "defaultProvider": "llamacpp-local",
+  "defaultModel": "glm-5.1:cloud",
+  "defaultProvider": "ollama",
   "defaultThinkingLevel": "high",
-  "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.78.0",
-  "packages": [
-    "git:github.com/juicesharp/rpiv-mono",
-    "npm:@juicesharp/rpiv-todo",
-    "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:@sherif-fanous/pi-atom-one",
-    "npm:pi-ollama-cloud-provider"
-  ],
+  "doubleEscapeAction": "tree",
+  "enableInstallTelemetry": false,
   "enabledModels": [
     "openai-codex/gpt-5.5",
     "minimax/MiniMax-M2.7",
-    "ollama-cloud/deepseek-v4-pro",
-    "ollama-cloud/deepseek-v4-flash",
-    "ollama-cloud/glm-5.1",
-    "ollama-cloud/qwen3.5:397b",
+    "ollama/deepseek-v4-pro:cloud",
+    "ollama/deepseek-v4-flash:cloud",
+    "ollama/glm-5.1:cloud",
     "opencode-go/glm-5.1",
     "opencode-go/kimi-k2.6",
     "opencode-go/qwen3.6-plus",
@@ -28,11 +20,17 @@
     "opencode-go/mimo-v2.5-pro",
     "llamacpp-local/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
   ],
-  "theme": "atom-one-dark",
-  "enableInstallTelemetry": false,
-  "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
-  "doubleEscapeAction": "tree",
+  "hideThinkingBlock": false,
   "images": {
     "blockImages": false
-  }
+  },
+  "lastChangelogVersion": "0.78.0",
+  "packages": [
+    "git:github.com/juicesharp/rpiv-mono",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@sherif-fanous/pi-atom-one"
+  ],
+  "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv \u003e/dev/null 2\u003e\u00261; then eval \"$(direnv export bash 2\u003e/dev/null)\"; fi",
+  "theme": "atom-one-dark"
 }
