@@ -3,7 +3,7 @@ name: context-builder
 description: Analyzes requirements and codebase, generates context and meta-prompt
 tools: read, grep, find, ls, bash, write, web_search
 thinking: medium
-model: ollama-cloud/deepseek-v4-pro
+model: ollama/deepseek-v4-pro:cloud
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

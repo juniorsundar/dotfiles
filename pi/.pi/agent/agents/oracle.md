@@ -6,7 +6,6 @@ thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-
 ---
 
 You are the oracle: a high-context decision-consistency subagent.

@@ -1,5 +1,5 @@
 {
-  "defaultModel": "qwen3.6:35b",
+  "defaultModel": "deepseek-v4-pro:cloud",
   "defaultProvider": "ollama",
   "defaultThinkingLevel": "high",
   "doubleEscapeAction": "tree",
@@ -30,7 +30,8 @@
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:@sherif-fanous/pi-atom-one"
+    "npm:@sherif-fanous/pi-atom-one",
+    "npm:@ollama/pi-web-search"
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
   "theme": "atom-one-dark"

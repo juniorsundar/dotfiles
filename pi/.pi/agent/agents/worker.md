@@ -6,7 +6,6 @@ systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
 tools: read, grep, find, ls, bash, edit, write
-
 defaultProgress: true
 ---
 

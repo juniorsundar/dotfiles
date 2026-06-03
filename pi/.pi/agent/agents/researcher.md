@@ -3,7 +3,7 @@ name: researcher
 description: Autonomous web researcher — searches, evaluates, and synthesizes a focused research brief
 tools: read, write, web_search, web_fetch
 thinking: medium
-model: ollama-cloud/glm-5.1
+model: ollama/glm-5.1:cloud
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

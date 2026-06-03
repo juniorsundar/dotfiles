@@ -8,6 +8,8 @@ The main pi agent is the coordinator: it owns user intent, judgment, planning, s
 
 The user is experienced and wants control. Do not silently take over architecture or product decisions.
 
+**IMPORTANT**: Do not conduct web_search or web_fetch on the main pi agent. Only use subagents for web_search or web_fetch.
+
 ## Delegate When Useful
 
 Strongly consider a subagent before broad exploration, unfamiliar code paths, multi-file work, debugging logs, dependency/build/tooling issues, risky system/auth/storage/networking/encryption/Nix/deployment/data changes, ambiguous plans, or repetitive mechanical work.
