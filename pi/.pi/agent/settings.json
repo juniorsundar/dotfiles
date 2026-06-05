@@ -31,9 +31,18 @@
     "git:github.com/juicesharp/rpiv-mono",
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:@sherif-fanous/pi-atom-one",
-    "npm:@ollama/pi-web-search"
+    "npm:@sherif-fanous/pi-atom-one"
   ],
   "shellCommandPrefix": "export DIRENV_LOG_FORMAT=''; if command -v direnv >/dev/null 2>&1; then eval \"$(direnv export bash 2>/dev/null)\"; fi",
-  "theme": "atom-one-dark"
+  "theme": "atom-one-dark",
+  "deepresearch": {
+    "model": "tongyi-deepresearch:30b",
+    "provider": "ollama",
+    "ollamaHost": "http://100.64.0.5:11434",
+    "systemPrompt": null,
+    "options": {
+      "temperature": 0.1,
+      "num_predict": 4096
+    }
+  }
 }

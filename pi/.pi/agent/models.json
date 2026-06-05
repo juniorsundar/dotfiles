@@ -51,6 +51,16 @@
             "image"
           ],
           "reasoning": true
+        },
+        {
+          "_launch": true,
+          "contextWindow": 131072,
+          "id": "tongyi-deepresearch:30b",
+          "input": [
+            "text",
+            "image"
+          ],
+          "reasoning": false
         }
       ]
     }
