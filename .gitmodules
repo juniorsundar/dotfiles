@@ -7,3 +7,6 @@
 [submodule "fonts"]
 	path = fonts/.local/share/fonts
 	url = https://github.com/juniorsundar/fonts
+[submodule "pi"]
+	path = pi/.pi/agent
+	url = https://github.com/juniorsundar/pi-config
