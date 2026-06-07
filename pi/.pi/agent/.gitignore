@@ -1,0 +1,8 @@
+/.direnv
+/.pi
+/auth.json
+/cache
+/git
+/node_modules
+/npm
+/sessions
