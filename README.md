@@ -1,23 +1,17 @@
 ```bash
-git init --bare $HOME/.dotfiles
-alias config='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
-config config status.showUntrackedFiles no
-```
+# Install gnu-stow (apt install stow ...)
+# Install git (apt install git ...)
 
+# Clone dotfiles repo
+git clone https://github.com/juniorsundar/dotfiles.git $HOME/dotfiles
 
-```bash
-config status
-config add .vimrc
-config commit -m "Add vimrc"
-config add .config/redshift.conf
-config commit -m "Add redshift config"
-config push
-```
+cd $HOME/dotfiles
 
+# Symlink out the configs that you want
+stow lazygit
 
-```bash
-git clone --bare https://github.com/juniorsundar/.dotfiles.git $HOME/.dotfiles
-alias config='/usr/bin/git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME"'
-config checkout
-config config --local status.showUntrackedFiles no
+# If stow fails because the folder already exists
+stow --adopt lazygit
+git checkout main
+stow lazygit
 ```
