@@ -18,6 +18,11 @@ use = "llanosrocas/yaziline"
 rev = "25161c1"
 hash = "5c7802a9ac249be88729978e3b9525bc"
 
+[[plugin.deps]]
+use = "Joao-Queiroga/drag"
+rev = "3dff129"
+hash = "4e3f1669b6454a80fdc61b2b4f9305b0"
+
 [[flavor.deps]]
 use = "BennyOe/onedark"
 rev = "668d71d"
