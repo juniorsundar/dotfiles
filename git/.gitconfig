@@ -29,3 +29,6 @@
     colorMoved = default
 [safe]
     directory = /etc/nixos
+[alias]
+    hdiff = "-c core.pager=\"hunk pager\" diff"
+    hshow = "-c core.pager=\"hunk pager\" show"
