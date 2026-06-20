@@ -30,5 +30,5 @@
 [safe]
     directory = /etc/nixos
 [alias]
-    hdiff = "-c core.pager=\"hunk pager\" diff"
-    hshow = "-c core.pager=\"hunk pager\" show"
+    hdiff = "-c pager.diff=\"hunk pager\" diff"
+    hshow = "-c pager.show=\"hunk pager\" show"
