@@ -16,6 +16,11 @@ on   = [ "c", "M" ]
 run  = "plugin chmod"
 desc = "Chmod on selected files"
 
+[[mgr.prepend_keymap]]
+on   = [ "M", "s" ]
+run  = "plugin sshfs -- menu"
+desc = "Open SSHFS options"
+
 [mgr]
 
 keymap = [
