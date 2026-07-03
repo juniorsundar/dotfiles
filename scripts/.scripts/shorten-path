@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Shorten a directory path Fish-shell style.
+# - Replace $HOME with ~
+# - Keep last N components at full length (default 1)
+# - Truncate all others to first N chars (default 1)
+# - Preserve leading dots for hidden directories
+#
+# Usage: shorten-path <full-path-or-session-name>
+
+input="$1"
+dir_length=1
+full_dirs=1
+
+# Strip the  Nerd Font prefix if present (from the nv script)
+prefix=""
+if [[ "$input" == ""* ]]; then
+    prefix=""
+    input="${input# }"
+fi
+
+# Replace HOME with ~
+if [[ "$input" == "$HOME"* ]]; then
+    input="~${input#$HOME}"
+fi
+
+# Split by /
+IFS='/' read -ra parts <<< "$input"
+
+result=()
+total=${#parts[@]}
+
+for i in "${!parts[@]}"; do
+    part="${parts[$i]}"
+    # Keep empty parts (leading ~ or /)
+    if [[ -z "$part" ]]; then
+        result+=("")
+        continue
+    fi
+
+    # How many components from the end stay full?
+    from_end=$((total - 1 - i))
+    if [[ $from_end -lt $full_dirs ]]; then
+        # Last N components — keep full
+        result+=("$part")
+    else
+        # Truncate: preserve leading dot, then take first N chars
+        if [[ "$part" == .* ]]; then
+            shortened=".${part:1:$dir_length}"
+        else
+            shortened="${part:0:$dir_length}"
+        fi
+        result+=("$shortened")
+    fi
+done
+
+# Rejoin with /
+out=""
+for part in "${result[@]}"; do
+    if [[ -n "$out" ]]; then
+        out="$out/$part"
+    else
+        out="$part"
+    fi
+done
+
+echo "${prefix}${out}"
