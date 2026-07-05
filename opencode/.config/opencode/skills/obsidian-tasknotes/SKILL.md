@@ -1,168 +1,88 @@
 ---
 name: obsidian-tasknotes
-description: Use when manipulating Obsidian TaskNotes tasks via the obsidian CLI — reading, creating, updating status/priority, time tracking, Pomodoro, and vault search. Trigger keywords: tasknotes, obsidian, task status, task priority, capture task, time tracking, pomodoro, follow-up, in-progress.
+description: >-
+  Manipulate Obsidian TaskNotes tasks, track time, run Pomodoro sessions,
+  and search the vault via the obsidian CLI.
+  Use when the user mentions tasks, task status/priority, time tracking,
+  Pomodoro, vault search, follow-ups, or asks to capture a task.
 ---
 
 # Obsidian TaskNotes via CLI
 
 This vault uses **Obsidian** with the **TaskNotes** plugin. The `obsidian` CLI
-connects to the running Obsidian app to manipulate tasks.
+connects to the running Obsidian app to read, create, and update tasks.
 
-## Reference: the tasknotes vault
+## User Intent → Command
 
-Tasks live in `task_notes/tasks/` as individual `.md` files with YAML frontmatter.
-Each task has at minimum: `status`, `priority`, `tags`, and often `scheduled`, `due`, `dateCreated`, `dateModified`.
+| User says... | Run this command |
+|---|---|
+| "Capture a task: \<text\>" | `obsidian tasknotes:capture text="..."` |
+| "Exact capture, no NLP" | `obsidian tasknotes:capture literal=true text="..."` |
+| "What tasks are pending?" | `obsidian tasks todo` |
+| "Show me all tasks" | `obsidian tasks format=tsv` |
+| "What's in task X?" | `obsidian read file="X"` |
+| "Mark task X as done/in-progress/..." | `obsidian property:set name=status value="\<val\>" path="task_notes/tasks/X.md"` |
+| "Change task X priority" | `obsidian property:set name=priority value=\<val\> path="..."` |
+| "Tick checkbox on line N" | `obsidian task path="..." line=N done` |
+| "Search for Y in vault" | `obsidian search text="Y"` |
+| "Search Y with context" | `obsidian search:context text="Y"` |
+| "Backlinks to note X" | `obsidian backlinks file="X"` |
+| "Links from note X" | `obsidian links file="X"` |
+| "List vault files" | `obsidian files` |
+| "List files in folder F" | `obsidian files folder="F"` |
+| "Start time tracking on X" | `obsidian tasknotes:start-time path="..."` |
+| "Stop time tracking" | `obsidian tasknotes:stop-time path="..."` |
+| "Check time status" | `obsidian tasknotes:time-status` |
+| "Start a 25min Pomodoro" | `obsidian tasknotes:pomodoro duration-minutes=25` |
+| "Check Pomodoro status" | `obsidian tasknotes:pomodoro-status` |
+| "Cancel Pomodoro" | `obsidian tasknotes:pomodoro-cancel` |
+| "Open note X" | `obsidian open path="..."` |
+| "Show file metadata for X" | `obsidian file path="..."` |
 
-### Common status values
+## Decision Rules
 
-| Status         | Meaning                                |
-|----------------|----------------------------------------|
-| `todo`         | Not yet started                        |
-| `in-progress`  | Actively working                       |
-| `follow-up`    | Needs follow-up attention              |
-| `done`         | Completed                              |
-| `cancelled`    | No longer relevant                     |
-| `open`         | Created but not yet prioritized        |
+### `property:set` vs `task ... done`
 
-### Common priority values
+| Operation | What it changes | When to use |
+|---|---|---|
+| `property:set name=status value="..."` | YAML frontmatter | **TaskNotes tasks** (files in `task_notes/tasks/`) |
+| `task ... line=N done/todo` | `[ ]`/`[x]` checkbox in note body | Ad-hoc checklists in any note |
 
-`low`, `normal`, `high`, `critical`
+### `path=` vs `file=`
 
----
+- `path=` — vault-relative path. Fast, exact.
+- `file=` — Obsidian resolves like a `[[wikilink]]`. Use when only the note name is known.
 
-## Common operations
+### Capture: NLP vs literal
 
-### 1. Read a task note
+- **NLP** (default): `text="Buy groceries due:tomorrow #errands"` — parsed for title, dates, tags.
+- **Literal**: `literal=true` — stores text as-is. Use `title=`, `priority=`, `tags=` explicitly.
 
-```bash
-obsidian read path="task_notes/tasks/<task-name>.md"
-```
+## Task Model
 
-Or by filename (like a wikilink):
+Tasks: `task_notes/tasks/<name>.md` with YAML frontmatter.
 
-```bash
-obsidian read file="<task-name>"
-```
+- **Status**: `todo`, `in-progress`, `follow-up`, `done`, `cancelled`, `open`
+- **Priority**: `low`, `normal`, `high`, `critical`
 
-### 2. Change task status
+## Error Recovery
 
-```bash
-obsidian property:set name=status value="follow-up" path="task_notes/tasks/<task-name>.md"
-```
+| Problem | Action |
+|---|---|
+| `obsidian: command not found` | Tell user CLI not installed |
+| Can't connect to Obsidian | Ask user to open Obsidian app |
+| Path/file not found | `glob "task_notes/tasks/*<fragment>*"` to locate |
+| Missing frontmatter property | Read file first to check fields |
 
-### 3. Change task priority
+## Response Format
 
-```bash
-obsidian property:set name=priority value="high" path="task_notes/tasks/<task-name>.md"
-```
+This vault uses Obsidian Flavored Markdown. In responses:
 
-### 4. Capture a new task (with NLP)
+- Use `[[wikilink syntax]]` for note references
+- Always leave blank line before Markdown tables
+- Math: `$inline$` and `$$display$$` (not `\(...\)`)
 
-```bash
-obsidian tasknotes:capture text="Implement retry mechanism for encryption failure" priority=high tags="SSRC,BUG"
-```
+## See Also
 
-Common flags:
-- `text=<...>` — free-text parsed by NLP (title, details, due dates, tags, etc.)
-- `title=<...>` — explicit title (overrides NLP)
-- `priority=<low|normal|high|critical>`
-- `status=<todo|in-progress|follow-up|done|cancelled|open>`
-- `tags=<tag1,tag2>` — comma-separated (overrides NLP-derived tags)
-- `due=<YYYY-MM-DD>` — due date
-- `scheduled=<YYYY-MM-DD>` — scheduled date
-- `contexts=<ctx1,ctx2>` — comma-separated contexts
-- `literal` — treat `text` as literal title, skip NLP
-
-### 5. List tasks in the vault
-
-All tasks:
-```bash
-obsidian tasks format=tsv
-```
-
-Tasks in a specific file:
-```bash
-obsidian tasks path="task_notes/tasks/<task-name>.md" format=json
-```
-
-Incomplete tasks:
-```bash
-obsidian tasks todo
-```
-
-### 6. Toggle / mark a task done
-
-By file + line number:
-```bash
-obsidian task path="task_notes/tasks/<task-name>.md" line=<N> done
-```
-
-### 7. Search vault
-
-```bash
-obsidian search query="search terms" path="task_notes/tasks"
-```
-
-With context lines:
-```bash
-obsidian search:context query="search terms" path="task_notes/tasks" limit=10
-```
-
-### 8. Time tracking
-
-```bash
-# Start tracking
-obsidian tasknotes:start-time path="task_notes/tasks/<task-name>.md"
-
-# Stop tracking
-obsidian tasknotes:stop-time path="task_notes/tasks/<task-name>.md"
-
-# Check active sessions
-obsidian tasknotes:time-status
-```
-
-### 9. Pomodoro
-
-```bash
-# Check status
-obsidian tasknotes:pomodoro action=status
-
-# Start a session
-obsidian tasknotes:pomodoro action=start path="task_notes/tasks/<task-name>.md"
-
-# Stop / pause / resume
-obsidian tasknotes:pomodoro action=stop
-obsidian tasknotes:pomodoro action=pause
-obsidian tasknotes:pomodoro action=resume
-
-# Breaks
-obsidian tasknotes:pomodoro action=short-break
-obsidian tasknotes:pomodoro action=long-break
-```
-
-### 10. Vault navigation
-
-```bash
-# List files in the vault
-obsidian files ext=md
-
-# Get backlinks to a note
-obsidian backlinks file="<task-name>"
-
-# See outgoing links from a note
-obsidian links file="<task-name>"
-
-# Get file info
-obsidian file path="task_notes/tasks/<task-name>.md"
-```
-
----
-
-## Notes & conventions
-
-- Always use `path=` for exact paths, `file=` for wikilink-style resolution.
-- Quote values with spaces: `name="My Task"`.
-- Task file paths are relative to the vault root: `task_notes/tasks/<task-name>.md`.
-- Status values are lowercase hyphenated: `in-progress`, `follow-up`.
-- The CLI connects to the **running** Obsidian instance. Obsidian must be open.
-- After modifying a task, the change is live in the vault immediately.
+- `REFERENCE.md` — all commands with full syntax and flags
+- `EXAMPLES.md` — end-to-end workflow scenarios
