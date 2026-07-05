@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
 
-session_name=" $(pwd)"
-PARAMS="$@"
+# tmux rejects dots in session names; keep the original readable path shape.
+session_name=" ${PWD//./_}"
 
-FINAL_CMD="nvim $PARAMS"
-
-if command -v direnv &> /dev/null && [ -f ".envrc" ]; then
-    
-    if direnv export bash >/dev/null 2>&1; then
-        FINAL_CMD="direnv exec . nvim $PARAMS"
-    fi
+if command -v direnv &> /dev/null && [ -f ".envrc" ] && direnv export bash >/dev/null 2>&1; then
+    CMD=(direnv exec . nvim "$@")
+else
+    CMD=(nvim "$@")
 fi
 
 if [ -n "$TMUX" ]; then
-    eval "$FINAL_CMD"
+    "${CMD[@]}"
 else
+    printf -v FINAL_CMD '%q ' "${CMD[@]}"
     tmux new-session -A -s "$session_name" "$FINAL_CMD"
 fi

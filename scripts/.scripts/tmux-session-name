@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+name="$1"
+icon=" "
+
+shorten_path() {
+    local path="$1"
+    local home="${HOME%/}"
+
+    if [[ "$path" == "$home" ]]; then
+        path="~"
+    elif [[ "$path" == "$home/"* ]]; then
+        path="~/${path#"$home/"}"
+    fi
+
+    IFS='/' read -ra parts <<< "$path"
+
+    local out=""
+    local last_index=$((${#parts[@]} - 1))
+    local i part short
+
+    for i in "${!parts[@]}"; do
+        part="${parts[$i]}"
+
+        if (( i == 0 )) && [[ -z "$part" ]]; then
+            out="/"
+            continue
+        fi
+
+        if (( i == last_index )) || [[ "$part" == "~" || -z "$part" ]]; then
+            short="$part"
+        elif [[ "$part" == .* || "$part" == _* ]]; then
+            short="${part:0:2}"
+        else
+            short="${part:0:1}"
+        fi
+
+        if [[ "$out" == "/" || -z "$out" ]]; then
+            out+="$short"
+        else
+            out+="/$short"
+        fi
+    done
+
+    printf '%s' "$out"
+}
+
+if [[ "$name" == "$icon"* ]]; then
+    printf '%s%s\n' "$icon" "$(shorten_path "${name#"$icon"}")"
+else
+    printf '%s\n' "$name"
+fi
