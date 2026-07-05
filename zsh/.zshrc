@@ -20,6 +20,14 @@ if [[ "$PROMPT_THEME" == "starship" ]]; then
     fi
 fi
 
+if [[ "$INSIDE_EMACS" = 'ghostel' ]]; then
+    e()   { ghostel_cmd find-file-other-window "$@"; }
+
+    dow() { ghostel_cmd dired-other-window "$@"; }
+
+    gst() { ghostel_cmd magit-status-setup-buffer "$(pwd)"; }
+fi
+
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
