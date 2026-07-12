@@ -60,13 +60,13 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 ;; (setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16 :weight 'semi-light)
-(setq doom-font (font-spec :family "IosevkaTerm Nerd Font" :size 16 :weight 'semi-light)
-      doom-variable-pitch-font (font-spec :family "Iosevka Aile" :size 19))
+(setq doom-font (font-spec :family "Lilex Nerd Font" :size 14 :weight 'semi-light)
+      doom-variable-pitch-font (font-spec :family "IBM Plex Sans" :size 15))
 ;; Ensure the italic face is only italic and not underlined
 (set-face-attribute 'italic nil
                     :underline nil
                     :slant 'italic
-                    :family "IosevkaTerm Nerd Font")
+                    :family "Lilex Nerd Font")
 
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
@@ -74,8 +74,6 @@
 ;; wasn't installed correctly. Font issues are rarely Doom issues!
 (map! :leader :desc "Find text" :n "f t" #'consult-ripgrep)
 (map! :leader :desc "Find line" :n "f l" #'consult-line)
-
-(add-to-list 'exec-path (expand-file-name "~/.local/share/nvim/mason/bin"))
 
 (after! emacs
   (setq display-line-numbers-type 'relative)
@@ -90,17 +88,17 @@
   (defvar my/org-heading-height-3 1.1)
   (custom-set-faces
    `(org-document-title ((t (:inherit bold
-                             ,@(when my/org-enlarge-headings
-                                 `(:height ,my/org-heading-height-1))))))
+                                      ,@(when my/org-enlarge-headings
+                                          `(:height ,my/org-heading-height-1))))))
    `(org-level-1 ((t (:inherit bold
-                      ,@(when my/org-enlarge-headings
-                          `(:height ,my/org-heading-height-1))))))
+                               ,@(when my/org-enlarge-headings
+                                   `(:height ,my/org-heading-height-1))))))
    `(org-level-2 ((t (:inherit bold
-                      ,@(when my/org-enlarge-headings
-                          `(:height ,my/org-heading-height-2))))))
+                               ,@(when my/org-enlarge-headings
+                                   `(:height ,my/org-heading-height-2))))))
    `(org-level-3 ((t (:weight normal
-                      ,@(when my/org-enlarge-headings
-                          `(:height ,my/org-heading-height-3)))))))
+                              ,@(when my/org-enlarge-headings
+                                  `(:height ,my/org-heading-height-3)))))))
 
   (setq org-todo-keywords
         '((sequence "TODO(t)" "DOING(d!)" "HOLD(h)" "|" "DONE(D)" "CANCELLED(c)" "MAYBE(m)")))
@@ -135,7 +133,7 @@
       (overlay-put overlay 'face face)
       (overlay-put overlay 'line-prefix
                    nil)
-                   ;; (propertize " " 'face face 'display '(space :align-to 0)))
+      ;; (propertize " " 'face face 'display '(space :align-to 0)))
       (overlay-put overlay 'after-string
                    (propertize " " 'face face 'display '(space :align-to right-margin)))))
   (defun highlight-org-block-region ()
@@ -233,37 +231,31 @@
 
   )
 
-(after! evil
-  (defvar evil-window-map (make-sparse-keymap)
-    "Keymap for Evil window commands.")
-
-  ;; Basic window movement bindings
-  (define-key evil-window-map (kbd "h") 'evil-window-left)
-  (define-key evil-window-map (kbd "l") 'evil-window-right)
-  (define-key evil-window-map (kbd "j") 'evil-window-down)
-  (define-key evil-window-map (kbd "k") 'evil-window-up)
-  (define-key evil-window-map (kbd "w") 'evil-window-next)
-
-  )
-(evil-define-key 'normal 'global (kbd "C-w") evil-window-map)
-
-;; Set Nerd Font for symbols
-(let ((font-spec (font-spec :family "Symbols Nerd Font Mono" :size 14)))
-  (set-fontset-font t 'unicode font-spec nil 'prepend)
-  (set-fontset-font t '(#x1F000 . #x1F02F) font-spec)  ;; Mahjong Tiles
-  (set-fontset-font t '(#x1F0A0 . #x1F0FF) font-spec)  ;; Playing Cards
-  (set-fontset-font t '(#x1F300 . #x1F5FF) font-spec)  ;; Misc Symbols and Pictographs
-  (set-fontset-font t '(#x1F600 . #x1F64F) font-spec)  ;; Emoticons
-  (set-fontset-font t '(#x1F680 . #x1F6FF) font-spec)  ;; Transport and Map
-  (set-fontset-font t '(#x1F700 . #x1F77F) font-spec)  ;; Alchemical Symbols
-  (set-fontset-font t '(#x1F780 . #x1F7FF) font-spec)  ;; Geometric Shapes Extended
-  (set-fontset-font t '(#x1F800 . #x1F8FF) font-spec)  ;; Supplemental Arrows-C
-  (set-fontset-font t '(#x1F900 . #x1F9FF) font-spec)  ;; Supplemental Symbols and Pictographs
-  (set-fontset-font t '(#x1FA00 . #x1FA6F) font-spec)  ;; Chess Symbols
-  (set-fontset-font t '(#x1FA70 . #x1FAFF) font-spec)  ;; Symbols and Pictographs Extended-A
-  (set-fontset-font t '(#x2600 . #x26FF) font-spec)    ;; Miscellaneous Symbols
-  (set-fontset-font t '(#x2700 . #x27BF) font-spec))  ;; Dingbats
-
 (after! eglot
   (setq eglot-code-action-indications '(mode-line))
+  )
+
+(after! doom-modeline
+  (setq doom-modeline-height 25)
+  (setq doom-modeline-bar-width 0.1)
+  (setq doom-modeline-buffer-name t)
+  (setq doom-modeline-vcs-max-length 25)
+  (setq doom-modeline-persp-name t)
+  (setq doom-modeline-persp-icon t)
+  (setq doom-modeline-modal nil)
+  (setq doom-modeline-percent-position nil)
+  (setq doom-modeline-buffer-file-name-style 'buffer-name)
+  (setq doom-modeline-project-detection 'project)
+  (setq doom-modeline-icon t)
+  (setq doom-modeline-buffer-encoding nil)
+  (setq doom-modeline-enable-word-count t)
+  )
+
+(use-package! spacious-padding
+  :ensure t
+  :if (display-graphic-p)
+  :custom
+  (spacious-padding-subtle-frame-lines t)
+  :config
+  (spacious-padding-mode t)
   )

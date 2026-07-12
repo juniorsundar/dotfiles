@@ -15,11 +15,9 @@
 ;;    :repo "juniorsundar/catppuccin-emacs"
 ;;    :files ("*.el" "src/lisp/*.el")))
 
-(package! fontaine)
-
 (package! org-modern)
-
-(package! rg)
+(package! spacious-padding)
+(package! solaire-mode :disable t)
 
 ;; To install a package directly from a remote git repo, you must specify a
 ;; `:recipe'. You'll find documentation on what `:recipe' accepts here:
