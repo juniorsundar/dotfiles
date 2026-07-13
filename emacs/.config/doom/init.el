@@ -43,6 +43,7 @@
        ;;neotree           ; a project drawer, like NERDTree for vim
        ophints           ; highlight the region an operation acts on
        (popup +defaults)   ; tame sudden yet inevitable temporary windows
+       ;;smooth-scroll     ; So smooth you won't believe it's not butter
        ;;tabs              ; a tab bar for Emacs
        ;;treemacs          ; a project drawer, like neotree but cooler
        ;;unicode           ; extended unicode support for various languages
@@ -64,11 +65,14 @@
        ;;parinfer          ; turn lisp into python, sort of
        ;;rotate-text       ; cycle region at point between text candidates
        snippets          ; my elves. They type so I don't have to
+       ;;(whitespace +guess +trim)  ; a butler for your whitespace
        ;;word-wrap         ; soft wrapping with language-aware indent
 
        :emacs
        dired             ; making dired pretty [functional]
        ;;electric          ; smarter, keyword-based electric-indent
+       ;;eww               ; the internet is gross
+       tramp             ; remote files at your arthritic fingertips
        ibuffer         ; interactive buffer management
        undo              ; persistent, smarter undo for your inevitable mistakes
        vc                ; version-control and Emacs, sitting in a tree
@@ -77,7 +81,8 @@
        ;;eshell            ; the elisp shell that works everywhere
        ;;shell             ; simple shell REPL for Emacs
        ;;term              ; basic terminal emulator for Emacs
-       ;;vterm             ; the best terminal emulation in Emacs
+       ;;vterm             ; almost the best terminal emulation in Emacs
+       ghostel           ; the best terminal emulation in Emacs
 
        :checkers
        ;;syntax              ; tasing you for every semicolon you forget
@@ -95,12 +100,12 @@
        ;;ein               ; tame Jupyter notebooks with emacs
        (eval +overlay)     ; run code, run (also, repls)
        lookup              ; navigate your code and its documentation
+       ;;llm               ; when I said you needed friends, I didn't mean...
        lsp                ; M-x vscode
        magit             ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
        ;;pass              ; password manager for nerds
        ;;pdf               ; pdf enhancements
-       ;;prodigy           ; FIXME managing external services & code builders
        ;;terraform         ; infrastructure as code
        ;;tmux              ; an API for interacting with tmux
        ;;tree-sitter       ; syntax and parsing, sitting in a tree...

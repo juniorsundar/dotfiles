@@ -1,6 +1,5 @@
 ---
 description: Codebase exploration subagent. Traces execution flows, maps dependencies, and analyzes file structures. Gathers FULL context, returns COMPRESSED findings.
-model: minimax/MiniMax-M2.7
 mode: subagent
 tools:
   write: false

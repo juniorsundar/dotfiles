@@ -259,3 +259,12 @@
   :config
   (spacious-padding-mode t)
   )
+
+(after! dired
+  (defun dired-sudo-here ()
+    (interactive)
+    (dired-other-window
+     (concat "/sudo::" (expand-file-name default-directory))))
+
+  (map! :leader :desc "Dired sudo here" :mode dired-mode :n "s R" #'dired-sudo-here)
+  )
