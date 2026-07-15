@@ -1,6 +1,15 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "plugin": ["@simonwjackson/opencode-direnv", "opencode-omniroute-auth"],
+    "plugin": [
+        "@simonwjackson/opencode-direnv",
+        [
+            "./plugins/omniroute/dist/index.js",
+            {
+                "providerId": "omniroute",
+                "baseURL": "http://localhost:20128"
+            }
+        ]
+    ],
     "permission": {
         "edit": "ask",
         "write": "ask",
