@@ -41,6 +41,22 @@
                     "name": "Qwen3.7 Plus"
                 },
             }
+        },
+        "omr-office": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "OmniRoute Office",
+            "options": {
+                "baseURL": "http://100.77.160.81:20128/v1/",
+                "apiKey": "sk-9b1556b560f39dfe-6484f7-13901139",
+                "headers": {
+                    "Authorization": "Bearer custom-token"
+                }
+            },
+            "models": {
+                "llamacpp/gpt-oss-120b-MXFP4-00001-of-00002.gguf": {
+                    "name": "GPT-OSS-120b"
+                }
+            }
         }
     }
 }
