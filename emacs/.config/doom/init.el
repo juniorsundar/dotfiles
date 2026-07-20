@@ -22,11 +22,11 @@
 
        :completion
        ;;company           ; the ultimate code completion backend
-       (corfu +icons +orderless +dabbrev)  ; complete with cap(f), cape and a flying feather!
+       (corfu +orderless)  ; complete with cap(f), cape and a flying feather!
        ;;helm              ; the *other* search engine for love and life
        ;;ido               ; the other *other* search engine...
        ;;ivy               ; a search engine for love and life
-       (vertico +icons)           ; the search engine of the future
+       vertico           ; the search engine of the future
 
        :ui
        ;;deft              ; notational velocity for Emacs
@@ -54,7 +54,7 @@
        ;;zen               ; distraction-free coding or writing
 
        :editor
-       ;; (evil +everywhere); come to the dark side, we have cookies
+       (evil +everywhere); come to the dark side, we have cookies
        ;;file-templates    ; auto-snippets for empty files
        fold              ; (nigh) universal code folding
        ;;(format +onsave)  ; automated prettiness
