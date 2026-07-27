@@ -9,7 +9,7 @@ All supported features are listed [here](#features). More presets are available 
 
 ## Requirements
 
-- yazi version >= [26.1.22](https://github.com/sxyazi/yazi/releases/tag/v26.1.22).
+- yazi version >= [26.5.6](https://github.com/sxyazi/yazi/releases/tag/v26.5.6).
 - Font with symbol support. For example [Nerd Fonts](https://www.nerdfonts.com/).
 
 ## Compatibility
@@ -24,6 +24,7 @@ This setup allows shipping stable versions on time, while giving early access to
 
 |                                  yaziline                                  | yazi                                                                                      |
 | :------------------------------------------------------------------------: | ----------------------------------------------------------------------------------------- |
+| [v2.5.5](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.5) | [v26.5.6](https://github.com/sxyazi/yazi/releases/tag/v26.5.6)                            |
 | [v2.5.4](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.4) | [v26.5.6](https://github.com/sxyazi/yazi/releases/tag/v26.5.6)                            |
 | [v2.5.3](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.3) | [v26.1.22](https://github.com/sxyazi/yazi/releases/tag/v26.1.22)                          |
 | [v2.5.2](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.2) | [v26.1.22](https://github.com/sxyazi/yazi/releases/tag/v26.1.22)                          |
@@ -59,7 +60,7 @@ This is default config, if you want to see presets go to [this section](#presets
 ```lua
 require("yaziline"):setup({
   color = "#98c379",
-  secondary_color = "#5A6078",
+  secondary_color = "#5a6078",
   default_files_color = "darkgray", -- color of the file counter when it's inactive
   selected_files_color = "white",
   yanked_files_color = "green",
@@ -82,13 +83,15 @@ require("yaziline"):setup({
 })
 ```
 
-By default yaziline uses color values from your `theme.toml`:
+By default yaziline uses color values from `theme.toml`:
 
-- mode and position font color: th.which.mask.bg
-- default_files_color: which.separator_style.fg
-- selected_files_color: mgr.count_selected.bg
-- yanked_files_color: mgr.count_copied.bg
-- cut_files_color: mgr.count_cut.bg
+- mode and position text color (fg): `th.which.mask.bg`
+- mode, position, and percent background / primary color: `style.main.bg`
+- secondary_color (separators, modified date, empty dir label): `which.separator_style.fg`
+- default_files_color: `secondary_color`, falling back to `which.separator_style.fg`, falling back to "darkgray"
+- selected_files_color: `mgr.count_selected.bg`
+- yanked_files_color: `mgr.count_copied.bg`
+- cut_files_color: `mgr.count_cut.bg`
 
 ```
  MODE  size  long_file...name.md  S 0 Y 0

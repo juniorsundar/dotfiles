@@ -1,22 +1,22 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "39aaf6d"
+rev = "4c63ed3"
 hash = "88e56a64b7ce7c4314427452343fef17"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:piper"
-rev = "39aaf6d"
-hash = "12126fca34f9f1802bb57b88292f57af"
+rev = "4c63ed3"
+hash = "e0d59bd47866a6a574c74574097e5070"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:chmod"
-rev = "39aaf6d"
-hash = "f0c8c378184d5f8abd1b095a443d336d"
+rev = "4c63ed3"
+hash = "5b1c276b75cae91cbbdbe7863f39a540"
 
 [[plugin.deps]]
 use = "llanosrocas/yaziline"
-rev = "25161c1"
-hash = "5c7802a9ac249be88729978e3b9525bc"
+rev = "c975c26"
+hash = "f5e051378c7ee472234ed2abdf0252e7"
 
 [[plugin.deps]]
 use = "Joao-Queiroga/drag"
@@ -28,7 +28,5 @@ use = "uhs-robert/sshfs"
 rev = "a8b8903"
 hash = "8c1b36103121a66b37308afaf7124575"
 
-[[flavor.deps]]
-use = "BennyOe/onedark"
-rev = "668d71d"
-hash = "1e647ba2d7c6e6f2bafe858ad9a4e50a"
+[flavor]
+deps = []

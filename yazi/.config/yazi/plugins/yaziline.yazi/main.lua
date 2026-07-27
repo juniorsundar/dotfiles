@@ -30,6 +30,7 @@ local function setup(_, options)
     color = options.color or nil,
     secondary_color = options.secondary_color or nil,
     default_files_color = options.default_files_color
+      or options.secondary_color
       or th.which.separator_style:fg()
       or "darkgray",
     selected_files_color = options.selected_files_color
@@ -39,6 +40,7 @@ local function setup(_, options)
       or th.mgr.count_copied:bg()
       or "green",
     cut_files_color = options.cut_files_color or th.mgr.count_cut:bg() or "red",
+    mask_color = th.which.mask:bg(),
   }
 
   local current_separator_style = config.separator_styles
@@ -55,7 +57,7 @@ local function setup(_, options)
       ui.Span(current_separator_style.separator_head)
         :fg(config.color or style.main:bg()),
       ui.Span(" " .. mode .. " ")
-        :fg(th.which.mask:bg())
+        :fg(config.mask_color)
         :bg(config.color or style.main:bg()),
     })
   end
@@ -138,7 +140,7 @@ local function setup(_, options)
 
     return ui.Line({
       ui.Span(" " .. current_separator_style.separator_close_thin .. " ")
-        :fg(th.which.separator_style:fg()),
+        :fg(config.secondary_color or th.which.separator_style:fg()),
       ui.Span(config.select_symbol .. " " .. files_selected .. " ")
         :fg(selected_fg),
       ui.Span(yanked_text .. "  "):fg(yanked_fg),
@@ -160,7 +162,7 @@ local function setup(_, options)
         .. " "
         .. current_separator_style.separator_open_thin
         .. " "
-    ):fg(th.which.separator_style:fg())
+    ):fg(config.secondary_color or th.which.separator_style:fg())
   end
 
   function Status:percent()
@@ -201,7 +203,7 @@ local function setup(_, options)
       ui.Span(
         string.format(" %2d/%-2d ", math.min(cursor + 1, length), length)
       )
-        :fg(th.which.mask:bg())
+        :fg(config.mask_color)
         :bg(config.color or style.main:bg()),
       ui.Span(current_separator_style.separator_tail)
         :fg(config.color or style.main:bg()),
