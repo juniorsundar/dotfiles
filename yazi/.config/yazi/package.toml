@@ -28,5 +28,7 @@ use = "uhs-robert/sshfs"
 rev = "a8b8903"
 hash = "8c1b36103121a66b37308afaf7124575"
 
-[flavor]
-deps = []
+[[flavor.deps]]
+use = "matt-dong-123/base16"
+rev = "ed79352"
+hash = "94659ef90cd557d05dbda7076fbbb3f4"
