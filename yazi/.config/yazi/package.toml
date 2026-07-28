@@ -28,7 +28,5 @@ use = "uhs-robert/sshfs"
 rev = "a8b8903"
 hash = "8c1b36103121a66b37308afaf7124575"
 
-[[flavor.deps]]
-use = "azzamsa/modus-vivendi"
-rev = "150e2c0"
-hash = "f3a129c07df999214d70c535c0f6774e"
+[flavor]
+deps = []

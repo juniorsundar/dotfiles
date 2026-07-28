@@ -1,8 +1,15 @@
 {
     "editor.fontFamily": "'Lilex Nerd Font', monospace",
-    "workbench.colorTheme": "Moonfly",
+    "workbench.colorTheme": "Doom Emacs",
     "terminal.integrated.fontFamily": "Lilex Nerd Font",
     "terminal.integrated.fontLigatures.enabled": true,
     "workbench.sideBar.location": "right",
-    "pendant.runtimeSource": "external"
+    "pendant.runtimeSource": "external",
+    "terminal.integrated.profiles.linux": {
+        "zsh": {
+            "path": "/run/current-system/sw/bin/zsh",
+            "args": ["-l"]
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "zsh"
 }
