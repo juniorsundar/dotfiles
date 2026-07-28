@@ -12,3 +12,4 @@ rust-lang.rust-analyzer
 tamasfe.even-better-toml
 tuttieee.emacs-mcx
 twxs.cmake
+zenyui.vscode-pi-bridge

@@ -3,5 +3,6 @@
     "workbench.colorTheme": "Moonfly",
     "terminal.integrated.fontFamily": "Lilex Nerd Font",
     "terminal.integrated.fontLigatures.enabled": true,
-    "workbench.sideBar.location": "right"
+    "workbench.sideBar.location": "right",
+    "pendant.runtimeSource": "external"
 }
