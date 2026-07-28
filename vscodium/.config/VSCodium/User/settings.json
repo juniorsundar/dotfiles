@@ -11,5 +11,7 @@
             "args": ["-l"]
         }
     },
-    "terminal.integrated.defaultProfile.linux": "zsh"
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "editor.stickyScroll.enabled": false,
+    "editor.minimap.enabled": false
 }
