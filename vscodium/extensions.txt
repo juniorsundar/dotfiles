@@ -1,0 +1,5 @@
+arrterian.nix-env-selector
+jnoortheen.nix-ide
+mirrrjr.moonfly
+mkhl.direnv
+pinage404.nix-extension-pack
