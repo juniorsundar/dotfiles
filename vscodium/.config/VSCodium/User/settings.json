@@ -2,5 +2,6 @@
     "editor.fontFamily": "'Lilex Nerd Font', monospace",
     "workbench.colorTheme": "Moonfly",
     "terminal.integrated.fontFamily": "Lilex Nerd Font",
-    "terminal.integrated.fontLigatures.enabled": true
+    "terminal.integrated.fontLigatures.enabled": true,
+    "workbench.sideBar.location": "right"
 }

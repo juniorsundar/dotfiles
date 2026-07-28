@@ -1,5 +1,14 @@
 arrterian.nix-env-selector
+fill-labs.dependi
+golang.go
 jnoortheen.nix-ide
+llvm-vs-code-extensions.vscode-clangd
+mhutchie.git-graph
 mirrrjr.moonfly
 mkhl.direnv
+ms-azuretools.vscode-containers
 pinage404.nix-extension-pack
+rust-lang.rust-analyzer
+tamasfe.even-better-toml
+tuttieee.emacs-mcx
+twxs.cmake
