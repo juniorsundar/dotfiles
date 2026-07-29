@@ -127,5 +127,9 @@
     {
         "key": "ctrl+alt+up",
         "command": "workbench.action.increaseViewHeight"
+    },
+    {
+        "key": "ctrl+x ctrl+g",
+        "command": "editor.action.openLink"
     }
 ]

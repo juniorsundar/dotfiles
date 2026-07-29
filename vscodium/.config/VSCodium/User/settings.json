@@ -18,5 +18,7 @@
     "terminal.integrated.stickyScroll.enabled": false,
     "claudeCode.preferredLocation": "panel",
     "piContext.enabled": true,
-    "breadcrumbs.enabled": false
+    "breadcrumbs.enabled": false,
+    "obsidianPreview.vaultPath": "/home/juniorsundar/Dropbox/vault",
+    "workbench.iconTheme": "material-icon-theme"
 }

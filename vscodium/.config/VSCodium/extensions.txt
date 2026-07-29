@@ -9,6 +9,12 @@ mhutchie.git-graph
 mkhl.direnv
 ms-azuretools.vscode-containers
 pinage404.nix-extension-pack
+pkief.material-icon-theme
+robole.markdown-snippets
+robole.marky-dynamic
+robole.marky-edit
+robole.marky-markdown
+robole.marky-stats
 rust-lang.rust-analyzer
 stevesevets.doom-emacs-theme
 tamasfe.even-better-toml
