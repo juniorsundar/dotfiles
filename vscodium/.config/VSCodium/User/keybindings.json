@@ -95,5 +95,37 @@
         "key": "ctrl+k ctrl+i",
         "command": "-editor.action.showHover",
         "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+alt+left",
+        "command": "workbench.action.moveEditorToPreviousGroup"
+    },
+    {
+        "key": "ctrl+alt+left",
+        "command": "-workbench.action.moveEditorToPreviousGroup"
+    },
+    {
+        "key": "ctrl+shift+alt+right",
+        "command": "workbench.action.moveEditorToNextGroup"
+    },
+    {
+        "key": "ctrl+alt+right",
+        "command": "-workbench.action.moveEditorToNextGroup"
+    },
+    {
+        "key": "ctrl+alt+left",
+        "command": "workbench.action.decreaseViewWidth"
+    },
+    {
+        "key": "ctrl+alt+right",
+        "command": "workbench.action.increaseViewWidth"
+    },
+    {
+        "key": "ctrl+alt+down",
+        "command": "workbench.action.decreaseViewHeight"
+    },
+    {
+        "key": "ctrl+alt+up",
+        "command": "workbench.action.increaseViewHeight"
     }
 ]

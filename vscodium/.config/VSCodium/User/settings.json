@@ -15,5 +15,8 @@
     "editor.stickyScroll.enabled": false,
     "editor.minimap.enabled": false,
     "editor.lineNumbers": "relative",
-    "terminal.integrated.stickyScroll.enabled": false
+    "terminal.integrated.stickyScroll.enabled": false,
+    "claudeCode.preferredLocation": "panel",
+    "piContext.enabled": true,
+    "breadcrumbs.enabled": false
 }
