@@ -1,0 +1,116 @@
+import { describe, expect, it } from "vitest";
+
+import { type FileSourcingWorkspace, sourceWorkspaceFiles } from "./fileSourcing.js";
+
+describe("sourceWorkspaceFiles", () => {
+  it("produces candidates from workspace files with no excludes", async () => {
+    const workspace: FileSourcingWorkspace = {
+      folders: [{ uriPath: "/home/user/project" }],
+      findFiles: async (_include: string, _exclude: string) => [
+        "/home/user/project/src/main.ts",
+        "/home/user/project/package.json",
+      ],
+      readFile: async () => "",
+    };
+
+    const results = await sourceWorkspaceFiles(workspace);
+
+    expect(results).toEqual([
+      {
+        candidate: {
+          id: "/home/user/project/src/main.ts",
+          name: "main.ts",
+          directory: "src",
+          relativePath: "src/main.ts",
+        },
+        absPath: "/home/user/project/src/main.ts",
+      },
+      {
+        candidate: {
+          id: "/home/user/project/package.json",
+          name: "package.json",
+          directory: "",
+          relativePath: "package.json",
+        },
+        absPath: "/home/user/project/package.json",
+      },
+    ]);
+  });
+
+  it("applies baseline excludes merged with .gitignore, ignoring negated patterns", async () => {
+    let capturedExclude: string | undefined;
+    const workspace: FileSourcingWorkspace = {
+      folders: [{ uriPath: "/home/user/project" }],
+      findFiles: async (_include: string, exclude: string) => {
+        capturedExclude = exclude;
+        return [];
+      },
+      readFile: async (absPath: string) => {
+        if (absPath.endsWith(".gitignore")) {
+          return [
+            "",
+            "# dependencies",
+            "vendor/",
+            "",
+            "!/some/include",
+          ].join("\n");
+        }
+        return "";
+      },
+    };
+
+    await sourceWorkspaceFiles(workspace);
+
+    expect(capturedExclude).toBeDefined();
+
+    // All 6 baseline excludes are always present
+    for (const pattern of [
+      "**/.git/**",
+      "**/node_modules/**",
+      "**/.direnv/**",
+      "**/dist/**",
+      "**/out/**",
+      "**/.cache/**",
+    ]) {
+      expect(capturedExclude!).toContain(pattern);
+    }
+
+    // .gitignore non-negated patterns merged (preserving trailing-slash structure
+    // exactly as the original extension.ts does)
+    expect(capturedExclude!).toContain("**/vendor//**");
+    expect(capturedExclude!).toContain("**/vendor/");
+
+    // .gitignore negated pattern (!/some/include) is excluded
+    expect(capturedExclude!).not.toContain("some/include");
+  });
+
+  it("excludes .gitmodules submodule paths", async () => {
+    let capturedExclude: string | undefined;
+    const workspace: FileSourcingWorkspace = {
+      folders: [{ uriPath: "/home/user/project" }],
+      findFiles: async (_include: string, exclude: string) => {
+        capturedExclude = exclude;
+        return [];
+      },
+      readFile: async (absPath: string) => {
+        if (absPath.endsWith(".gitmodules")) {
+          return [
+            '[submodule "vendor/lib"]',
+            "\tpath = vendor/lib",
+            "\turl = https://example.com/lib.git",
+            '[submodule "tools/cli"]',
+            "\tpath = tools/cli",
+            "\turl = https://example.com/cli.git",
+          ].join("\n");
+        }
+        return "";
+      },
+    };
+
+    await sourceWorkspaceFiles(workspace);
+
+    expect(capturedExclude).toBeDefined();
+    expect(capturedExclude!).toContain("**/vendor/lib/**");
+    expect(capturedExclude!).toContain("**/tools/cli/**");
+  });
+});

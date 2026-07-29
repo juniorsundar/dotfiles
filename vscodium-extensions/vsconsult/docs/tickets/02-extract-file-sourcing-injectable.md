@@ -4,10 +4,10 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A file-sourcing module produces workspace-file candidates (ids, labels, and file fields) from a set of workspace folders, applying baseline excludes merged with per-folder `.gitignore` and `.gitmodules` contents.
-- [ ] The module depends on injected workspace capabilities (find-files, read-file) rather than the `vscode` namespace, so it runs without a vscode host.
-- [ ] `.gitignore` negated patterns (`!`) continue to be ignored (excludes are monotonic), and `.gitmodules` submodule paths continue to be excluded (prior art: existing `gitmodules.ts` parser is reused).
-- [ ] The existing provider sources candidates identically to before (no user-visible change).
-- [ ] A test drives the module with a fake workspace (injected find-files returning a fixed file set, injected read-file returning `.gitignore`/`.gitmodules` contents) and asserts the produced candidates and exclude merging.
+- [x] A file-sourcing module produces workspace-file candidates (ids, labels, and file fields) from a set of workspace folders, applying baseline excludes merged with per-folder `.gitignore` and `.gitmodules` contents.
+- [x] The module depends on injected workspace capabilities (find-files, read-file) rather than the `vscode` namespace, so it runs without a vscode host.
+- [x] `.gitignore` negated patterns (`!`) continue to be ignored (excludes are monotonic), and `.gitmodules` submodule paths continue to be excluded (prior art: existing `gitmodules.ts` parser is reused).
+- [x] The existing provider sources candidates identically to before (no user-visible change).
+- [x] A test drives the module with a fake workspace (injected find-files returning a fixed file set, injected read-file returning `.gitignore`/`.gitmodules` contents) and asserts the produced candidates and exclude merging.

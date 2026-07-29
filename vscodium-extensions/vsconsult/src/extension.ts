@@ -1,26 +1,11 @@
-import * as path from "node:path";
-import { readFile } from "node:fs/promises";
 import * as vscode from "vscode";
 
-import { type Candidate, rankCandidates } from "./matcher.js";
-import { parseGitmodulesPaths } from "./gitmodules.js";
+import { rankCandidates } from "./matcher.js";
+import { sourceWorkspaceFiles } from "./fileSourcing.js";
 
 const viewId = "vsconsult-filePicker";
 const commandId = "vsconsult.findFile";
 const previewDelayMs = 125;
-
-/**
- * Baseline excludes applied even when no .gitignore is present. Mirrors the
- * kinds of paths users almost never want to pick.
- */
-const defaultExcludes = [
-  "**/.git/**",
-  "**/node_modules/**",
-  "**/.direnv/**",
-  "**/dist/**",
-  "**/out/**",
-  "**/.cache/**",
-];
 
 type WebviewMessage =
   | { type: "ready" }
@@ -37,52 +22,11 @@ interface Origin {
 
 interface PickerSession {
   origin: Origin | undefined;
-  candidates: Candidate[];
+  candidates: import("./matcher.js").Candidate[];
   uris: Map<string, vscode.Uri>;
   query: string;
   panelWasVsconsultVisible: boolean;
   previewTimer: ReturnType<typeof setTimeout> | undefined;
-}
-
-/**
- * Builds a VS Code glob exclude pattern by reading .gitignore and .gitmodules
- * files at each workspace folder root and merging them with baseline excludes.
- * Falls back to the defaults when neither file exists. Gitignore patterns that
- * are negated with `!` are ignored (VS Code excludes are monotonic). Gitmodule
- * paths are excluded so the picker does not traverse into submodules.
- */
-async function buildExcludePattern(folders: readonly vscode.WorkspaceFolder[]): Promise<vscode.GlobPattern> {
-  const patterns = [...defaultExcludes];
-
-  for (const folder of folders) {
-    const gitignoreUri = vscode.Uri.joinPath(folder.uri, ".gitignore");
-    try {
-      const content = await readFile(gitignoreUri.fsPath, "utf8");
-      for (const rawLine of content.split(/\r?\n/)) {
-        const line = rawLine.trim();
-        if (line.length === 0 || line.startsWith("#") || line.startsWith("!")) {
-          continue;
-        }
-        patterns.push(line.startsWith("/") ? `**${line}/**` : `**/${line}/**`);
-        patterns.push(line.startsWith("/") ? `**${line}` : `**/${line}`);
-      }
-    } catch {
-      // No .gitignore in this folder; defaults still apply.
-    }
-
-    const gitmodulesUri = vscode.Uri.joinPath(folder.uri, ".gitmodules");
-    try {
-      const content = await readFile(gitmodulesUri.fsPath, "utf8");
-      const submodulePaths = parseGitmodulesPaths(content);
-      for (const subPath of submodulePaths) {
-        patterns.push(subPath.startsWith("/") ? `**${subPath}/**` : `**/${subPath}/**`);
-      }
-    } catch {
-      // No .gitmodules in this folder.
-    }
-  }
-
-  return `{${patterns.join(",")}}`;
 }
 
 class PickerViewProvider implements vscode.WebviewViewProvider, vscode.Disposable {
@@ -136,26 +80,26 @@ class PickerViewProvider implements vscode.WebviewViewProvider, vscode.Disposabl
     this.post({ type: "reset" });
     this.post({ type: "status", message: "Loading workspace files…" });
 
-    const folders = vscode.workspace.workspaceFolders ?? [];
-    const exclude = await buildExcludePattern(folders);
-    const uris = await vscode.workspace.findFiles("**/*", exclude);
+    const vscodeFolders = vscode.workspace.workspaceFolders ?? [];
+    const results = await sourceWorkspaceFiles({
+      folders: vscodeFolders.map((f) => ({ uriPath: f.uri.fsPath })),
+      findFiles: async (include, exclude) => {
+        const uris = await vscode.workspace.findFiles(include, exclude);
+        return uris.map((u) => u.fsPath);
+      },
+      readFile: async (absPath) => {
+        const { readFile } = await import("node:fs/promises");
+        return readFile(absPath, "utf8");
+      },
+    });
+
     if (!this.session) {
       return;
     }
 
-    for (const uri of uris) {
-      const relativePath = vscode.workspace.asRelativePath(uri, false).replaceAll("\\", "/");
-      const name = path.posix.basename(relativePath);
-      const directory = path.posix.dirname(relativePath);
-      const id = uri.toString();
-
-      this.session.candidates.push({
-        id,
-        name,
-        directory: directory === "." ? "" : directory,
-        relativePath,
-      });
-      this.session.uris.set(id, uri);
+    for (const { candidate, absPath } of results) {
+      this.session.candidates.push(candidate);
+      this.session.uris.set(candidate.id, vscode.Uri.file(absPath));
     }
 
     this.sendResults();
