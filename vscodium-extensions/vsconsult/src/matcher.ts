@@ -1,3 +1,5 @@
+import { scoreText, type BoundaryCheck } from "./fuzzy.js";
+
 export interface Candidate {
   id: string;
   name: string;
@@ -9,54 +11,28 @@ export interface RankedCandidate extends Candidate {
   score: number;
 }
 
-function isBoundary(value: string, index: number): boolean {
+/** Path-component boundary: start of text or after a path separator. */
+const isPathBoundary: BoundaryCheck = (value, index) => {
   if (index === 0) {
     return true;
   }
 
   return "/\\_- .".includes(value[index - 1] ?? "");
-}
+};
 
 /**
- * Scores a fuzzy subsequence match. Higher scores favour contiguous matches,
- * path-component boundaries, and matches near the end of the path (usually
- * the filename). Whitespace separates query fragments and is not matched.
+ * Path-biased fuzzy match score built as a thin wrapper over the general
+ * {@linkcode import("./fuzzy.js").scoreText | fuzzy scoring engine}.
+ * Adds path-component-boundary bonuses, end-weighting (prefers matches
+ * nearer the filename), and a length penalty.
+ *
+ * Whitespace separates query fragments and is not matched.
  */
 export function scorePath(query: string, relativePath: string): number | undefined {
-  const needle = query.toLocaleLowerCase().replaceAll(/\s+/g, "");
-  const haystack = relativePath.toLocaleLowerCase();
-
-  if (needle.length === 0) {
-    return 0;
-  }
-
-  let score = 0;
-  let searchFrom = 0;
-  let previousMatch = -2;
-
-  for (const character of needle) {
-    const match = haystack.indexOf(character, searchFrom);
-    if (match === -1) {
-      return undefined;
-    }
-
-    score += 10;
-    if (match === previousMatch + 1) {
-      score += 14;
-    }
-    if (isBoundary(haystack, match)) {
-      score += 18;
-    }
-
-    // Prefer compact matches and matches nearer the filename.
-    score -= Math.min(match - searchFrom, 12);
-    score += Math.floor((match / Math.max(haystack.length, 1)) * 4);
-
-    previousMatch = match;
-    searchFrom = match + 1;
-  }
-
-  return score - Math.floor(haystack.length / 24);
+  return scoreText(query, relativePath, isPathBoundary, {
+    endWeighting: true,
+    lengthPenalty: true,
+  });
 }
 
 export function rankCandidates(
