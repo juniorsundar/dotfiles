@@ -1,0 +1,66 @@
+{
+  "name": "vsconsult",
+  "displayName": "vsconsult",
+  "description": "A keyboard-first, Consult-like picker for VSCodium.",
+  "version": "0.0.3",
+  "publisher": "juniorsundar",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/extension.js",
+    "media/vsconsult.svg"
+  ],
+  "activationEvents": [
+    "onCommand:vsconsult.findFile",
+    "onView:vsconsult-filePicker"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vsconsult.findFile",
+        "title": "Find File",
+        "category": "vsconsult"
+      }
+    ],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "vsconsult-panel",
+          "title": "vsconsult",
+          "icon": "media/vsconsult.svg"
+        }
+      ]
+    },
+    "views": {
+      "vsconsult-panel": [
+        {
+          "id": "vsconsult-filePicker",
+          "name": "vsconsult",
+          "type": "webview"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --platform=node --format=cjs --target=node18 --external:vscode --outfile=dist/extension.js",
+    "watch": "npm run build -- --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "package": "npm run typecheck && npm run test && npm run build && vsce package --no-dependencies --allow-missing-repository"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.6.2",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  }
+}

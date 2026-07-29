@@ -132,8 +132,6 @@ export MANPATH=$MANPATH:/usr/local/texlive/2023/texmf-dist/doc/man
 
 export MANPATH="/usr/local/man:$MANPATH"
 
-export FIRMWARE_DIR=/home/juniorsundar-unikie/Documents/new/PX4-Autopilot
-
 # Theme for FZF
 ## cyberdream
 # export FZF_DEFAULT_OPTS=" \

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Stow may expose ~/.scripts as a directory symlink. Resolve it physically so
+# repository-relative paths are based on dotfiles/scripts/.scripts, not ~/.scripts.
+script_dir="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+dotfiles_dir="$(cd -- "$script_dir/../.." && pwd)"
+extension_dir="$dotfiles_dir/vscodium-extensions/vsconsult"
+
+if ! command -v codium >/dev/null 2>&1; then
+    printf 'error: codium is not available on PATH\n' >&2
+    exit 1
+fi
+
+if command -v direnv >/dev/null 2>&1 && [ -f "$extension_dir/.envrc" ]; then
+    run=(direnv exec "$extension_dir")
+else
+    run=()
+fi
+
+(
+    cd "$extension_dir"
+    if [ ! -d node_modules ]; then
+        npm ci
+    fi
+    "${run[@]}" npm run package
+)
+
+vsix="$extension_dir/vsconsult-$(node -p "require('$extension_dir/package.json').version").vsix"
+codium --install-extension "$vsix" --force
+printf 'Installed %s\n' "$vsix"
