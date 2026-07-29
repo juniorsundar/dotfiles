@@ -1,10 +1,10 @@
 import * as path from "node:path";
 
-import type { Candidate } from "./matcher.js";
+import type { FileCandidate } from "./picker/types.js";
 
 /** A file-source candidate paired with its absolute filesystem path. */
 export interface FileSourceResult {
-  candidate: Candidate;
+  candidate: FileCandidate;
   absPath: string;
 }
 import { parseGitmodulesPaths } from "./gitmodules.js";
@@ -71,6 +71,7 @@ export async function sourceWorkspaceFiles(
     return {
       candidate: {
         id: absPath,
+        label: name,
         name,
         directory: directory === "." ? "" : directory,
         relativePath,

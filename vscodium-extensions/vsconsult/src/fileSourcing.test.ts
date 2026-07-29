@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { type FileSourcingWorkspace, sourceWorkspaceFiles } from "./fileSourcing.js";
+import type { FileCandidate } from "./picker/types.js";
 
 describe("sourceWorkspaceFiles", () => {
   it("produces candidates from workspace files with no excludes", async () => {
@@ -19,19 +20,21 @@ describe("sourceWorkspaceFiles", () => {
       {
         candidate: {
           id: "/home/user/project/src/main.ts",
+          label: "main.ts",
           name: "main.ts",
           directory: "src",
           relativePath: "src/main.ts",
-        },
+        } satisfies FileCandidate,
         absPath: "/home/user/project/src/main.ts",
       },
       {
         candidate: {
           id: "/home/user/project/package.json",
+          label: "package.json",
           name: "package.json",
           directory: "",
           relativePath: "package.json",
-        },
+        } satisfies FileCandidate,
         absPath: "/home/user/project/package.json",
       },
     ]);
