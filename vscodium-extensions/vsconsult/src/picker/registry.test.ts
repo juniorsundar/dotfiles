@@ -19,9 +19,12 @@ const noopAccept = (_c: TestCandidate, _ctx: PickerContext) => {};
 const noopPreview = (_c: TestCandidate, _ctx: PickerContext) => {};
 
 describe("Picker interface", () => {
-  it("a Picker is a bundle with id, source, narrow, render, accept, preview", () => {
+  it("a Picker is a bundle with id, label, placeholder, emptyState, source, narrow, render, accept, preview", () => {
     const picker: Picker<TestCandidate> = {
       id: "test",
+      label: "Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
       source: emptySource,
       narrow: identityNarrow,
       render: noopRender,
@@ -30,6 +33,9 @@ describe("Picker interface", () => {
     };
 
     expect(picker.id).toBe("test");
+    expect(picker.label).toBe("Test");
+    expect(picker.placeholder).toBe("Search…");
+    expect(picker.emptyState).toBe("Nothing found");
     expect(typeof picker.source).toBe("function");
     expect(typeof picker.narrow).toBe("function");
     expect(typeof picker.render).toBe("function");
@@ -43,6 +49,9 @@ describe("Registry", () => {
     const registry = createRegistry();
     const picker: Picker<TestCandidate> = {
       id: "test",
+      label: "Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
       source: emptySource,
       narrow: identityNarrow,
       render: noopRender,
@@ -63,11 +72,13 @@ describe("Registry", () => {
   it("overwrites a previously registered picker on duplicate id", () => {
     const registry = createRegistry();
     const first: Picker<TestCandidate> = {
-      id: "dup", source: emptySource, narrow: identityNarrow,
+      id: "dup", label: "Dup", placeholder: "…", emptyState: "none",
+      source: emptySource, narrow: identityNarrow,
       render: noopRender, accept: noopAccept, preview: noopPreview,
     };
     const second: Picker<TestCandidate> = {
-      id: "dup", source: emptySource, narrow: identityNarrow,
+      id: "dup", label: "Dup", placeholder: "…", emptyState: "none",
+      source: emptySource, narrow: identityNarrow,
       render: noopRender, accept: noopAccept, preview: noopPreview,
     };
 

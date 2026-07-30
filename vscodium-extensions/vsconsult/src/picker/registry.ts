@@ -4,12 +4,19 @@ import type { PickerContext } from "./context.js";
 
 /**
  * A Picker is a bundle of five parts: Source, Candidate shape, Narrowing,
- * Render, and Accept (plus Preview as a companion to Accept).
+ * Render, and Accept (plus Preview as a companion to Accept), plus
+ * user-visible metadata for the shared view.
  *
  * Every picker type is a concrete configuration of these parts.
  */
 export interface Picker<TCandidate extends Candidate = Candidate> {
   id: string;
+  /** Short user-visible name (e.g. "File", "Grep"). */
+  label: string;
+  /** Query input placeholder text. */
+  placeholder: string;
+  /** Shown in the results area when no candidates match the query. */
+  emptyState: string;
   source: Source<TCandidate>;
   narrow: (query: string, candidates: TCandidate[]) => TCandidate[];
   render: (candidate: TCandidate) => RowParts;

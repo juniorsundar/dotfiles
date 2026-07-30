@@ -40,12 +40,12 @@ describe("file picker — picker seam", () => {
     previewOpened.length = 0;
   });
 
-  it("has all six Picker bundle parts", () => {
+  it("has all Picker bundle parts including metadata", () => {
     const picker = createFilePicker(workspace, registry);
-    const keys = ["id", "source", "narrow", "render", "accept", "preview"];
-    for (const key of keys) {
-      expect(picker).toHaveProperty(key);
-    }
+    expect(picker.id).toBe("file");
+    expect(picker.label).toBe("File");
+    expect(picker.placeholder).toBe("Narrow workspace files…");
+    expect(picker.emptyState).toBe("No matching workspace files");
     expect(typeof picker.source).toBe("function");
     expect(typeof picker.narrow).toBe("function");
     expect(typeof picker.render).toBe("function");

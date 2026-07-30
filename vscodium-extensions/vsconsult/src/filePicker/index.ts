@@ -21,6 +21,9 @@ export function createFilePicker(
 
   const picker: Picker<FileCandidate> = {
     id: "file",
+    label: "File",
+    placeholder: "Narrow workspace files…",
+    emptyState: "No matching workspace files",
     source,
     narrow: narrowFileCandidates,
     render: renderFileCandidate,
