@@ -38,6 +38,7 @@ export type OutboundMessage =
   | { type: "reset" }
   | { type: "results"; rows: RowMessage[]; status: string }
   | { type: "status"; message: string; error?: boolean }
+  | { type: "complete" }
   | { type: "idle" };
 
 // ---------------------------------------------------------------------------

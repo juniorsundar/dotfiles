@@ -57,7 +57,7 @@ describe("file picker — picker seam", () => {
     const picker = createFilePicker(workspace, registry);
 
     // Source — snapshot session, all candidates
-    const session = picker.source("");
+    const session = picker.source("", new AbortController().signal);
     const allCandidates = await session.candidates;
     expect(allCandidates).toHaveLength(3);
     expect(allCandidates[0].label).toBe("alpha.ts");
@@ -84,7 +84,7 @@ describe("file picker — picker seam", () => {
 
   it("preview opens with preview flag", async () => {
     const picker = createFilePicker(workspace, registry);
-    const session = picker.source("");
+    const session = picker.source("", new AbortController().signal);
     const allCandidates = await session.candidates;
     const narrowed = picker.narrow("beta", allCandidates);
 

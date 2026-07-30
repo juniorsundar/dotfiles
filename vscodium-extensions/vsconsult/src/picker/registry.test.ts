@@ -44,6 +44,41 @@ describe("Picker interface", () => {
   });
 });
 
+describe("Picker.queryDriven flag", () => {
+  it("is undefined (falsy) for pre-materialized pickers by default", () => {
+    const picker: Picker<TestCandidate> = {
+      id: "test",
+      label: "Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+
+    expect(picker.queryDriven).toBeUndefined();
+  });
+
+  it("can be set to true for query-driven pickers (live-grep, workspace-symbol)", () => {
+    const picker: Picker<TestCandidate> = {
+      id: "live-grep",
+      label: "Live Grep",
+      placeholder: "Search pattern…",
+      emptyState: "No matches",
+      queryDriven: true,
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+
+    expect(picker.queryDriven).toBe(true);
+  });
+});
+
 describe("Registry", () => {
   it("registers and retrieves a picker by id", () => {
     const registry = createRegistry();

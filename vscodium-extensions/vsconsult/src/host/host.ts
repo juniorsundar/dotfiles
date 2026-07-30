@@ -20,6 +20,8 @@ interface HostSession {
   panelWasVisible: boolean;
   candidates: Candidate[];
   query: string;
+  /** AbortController for the current source run. Aborted on exit / query re-run. */
+  sourceController: AbortController;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +109,8 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     await vscode.commands.executeCommand(`${this.viewId}.focus`);
 
     // Initialise session
-    this.session = { picker, origin, panelWasVisible, candidates: [], query: "" };
+    const sourceController = new AbortController();
+    this.session = { picker, origin, panelWasVisible, candidates: [], query: "", sourceController };
 
     // Send the picker's configuration once — the view holds this until
     // the next start() call.
@@ -116,7 +119,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     this.post({ type: "status", message: "Loading…" });
 
     // Run the source (snapshot — fires once; streaming will come later)
-    const sourceSession = picker.source("");
+    const sourceSession = picker.source("", sourceController.signal);
     const allCandidates = await sourceSession.candidates;
 
     // Guard: the user may have cancelled or started another picker while
@@ -125,6 +128,41 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
 
     this.session.candidates = allCandidates;
     this.sendResults();
+
+    // Stream — consume incremental batches if the source provides them.
+    // Snapshot sources omit `updates`, so the for-await is a no-op.
+    if (sourceSession.updates) {
+      let aborted = false;
+      try {
+        for await (const batch of sourceSession.updates) {
+          // Guard: session may have been replaced (cancelled / new picker)
+          // or the source may have been aborted.
+          if (this.session === undefined || sourceController.signal.aborted) {
+            aborted = true;
+            break;
+          }
+          this.session.candidates.push(...batch);
+          this.sendResults();
+        }
+      } catch (err) {
+        // If the stream errors after abort, swallow — the host already
+        // stopped or is about to stop.
+        if (!sourceController.signal.aborted) {
+          this.post({
+            type: "status",
+            message: `Stream error: ${err instanceof Error ? err.message : String(err)}`,
+            error: true,
+          });
+        }
+        aborted = true;
+      }
+
+      // Signal source completion only if the stream ended naturally —
+      // not because the source was aborted or the session was replaced.
+      if (!aborted && this.session !== undefined) {
+        this.post({ type: "complete" });
+      }
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -157,7 +195,15 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
       case "query":
         if (!this.session) return;
         this.session.query = message.query;
-        this.sendResults();
+
+        if (this.session.picker.queryDriven) {
+          // Abort the old source run and re-run with the new query.
+          this.session.sourceController.abort();
+          await this.rerunSource(message.query);
+        } else {
+          // Pre-materialized: just re-narrow the existing candidates.
+          this.sendResults();
+        }
         break;
 
       case "select":
@@ -171,6 +217,64 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
       case "cancel":
         await this.handleCancel();
         break;
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Re-run source (query-driven pickers)
+  // -----------------------------------------------------------------------
+
+  /**
+   * Abort the current source run and re-run the source with a new query.
+   * Used when a query-driven picker's query changes.
+   */
+  private async rerunSource(query: string): Promise<void> {
+    const session = this.session;
+    if (!session) return;
+
+    const sourceController = new AbortController();
+    session.sourceController = sourceController;
+
+    // Clear existing candidates — the new source will provide fresh results.
+    session.candidates = [];
+    this.sendResults();
+
+    const sourceSession = session.picker.source(query, sourceController.signal);
+    const allCandidates = await sourceSession.candidates;
+
+    // Guard: session may have been replaced while awaiting.
+    if (this.session !== session) return;
+
+    session.candidates = allCandidates;
+    this.sendResults();
+
+    // Stream — consume incremental batches if the source provides them.
+    if (sourceSession.updates) {
+      let aborted = false;
+      try {
+        for await (const batch of sourceSession.updates) {
+          if (this.session !== session || sourceController.signal.aborted) {
+            aborted = true;
+            break;
+          }
+          session.candidates.push(...batch);
+          this.sendResults();
+        }
+      } catch (err) {
+        if (!sourceController.signal.aborted) {
+          this.post({
+            type: "status",
+            message: `Stream error: ${err instanceof Error ? err.message : String(err)}`,
+            error: true,
+          });
+        }
+        aborted = true;
+      }
+
+      // Signal source completion only if the stream ended naturally.
+      if (!aborted && this.session === session) {
+        this.post({ type: "complete" });
+      }
     }
   }
 
@@ -221,6 +325,9 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
   private async exit(): Promise<void> {
     const session = this.session;
     if (!session) return;
+
+    // Abort any in-flight source run so the streaming loop stops.
+    session.sourceController.abort();
 
     this.session = undefined;
     this.post({ type: "idle" });

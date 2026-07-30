@@ -9,7 +9,11 @@ import type { Candidate } from "./types.js";
  */
 export interface SourceSession<TCandidate extends Candidate = Candidate> {
   candidates: TCandidate[] | Promise<TCandidate[]>;
-  updates?: never;
+  /**
+   * Optional stream of incremental candidate batches.
+   * Present only for stream sources; snapshot sources omit it.
+   */
+  updates?: AsyncIterable<TCandidate[]>;
 }
 
 /**
@@ -20,5 +24,5 @@ export interface SourceSession<TCandidate extends Candidate = Candidate> {
  * query and deliver all candidates at once.
  */
 export interface Source<TCandidate extends Candidate = Candidate> {
-  (query: string): SourceSession<TCandidate>;
+  (query: string, signal: AbortSignal): SourceSession<TCandidate>;
 }

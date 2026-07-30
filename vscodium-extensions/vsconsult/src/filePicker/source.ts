@@ -16,7 +16,7 @@ import {
 export function createFileSource(
   workspace: FileSourcingWorkspace,
 ): Source<FileCandidate> {
-  return (query: string): SourceSession<FileCandidate> => {
+  return (query: string, _signal: AbortSignal): SourceSession<FileCandidate> => {
     const promise = sourceWorkspaceFiles(workspace).then((results) =>
       results.map((r) => r.candidate),
     );

@@ -15,7 +15,7 @@ describe("file Source", () => {
     };
 
     const fileSource = createFileSource(workspace);
-    const session = fileSource("");
+    const session = fileSource("", new AbortController().signal);
 
     // Must be a promise-based session (sourceWorkspaceFiles is async)
     const candidates = await session.candidates;
@@ -37,8 +37,8 @@ describe("file Source", () => {
     };
 
     const fileSource = createFileSource(workspace);
-    const sessionA = fileSource("");
-    const sessionB = fileSource("some-query");
+    const sessionA = fileSource("", new AbortController().signal);
+    const sessionB = fileSource("some-query", new AbortController().signal);
 
     const candidatesA = await sessionA.candidates;
     const candidatesB = await sessionB.candidates;
@@ -62,7 +62,7 @@ describe("file Source", () => {
     };
 
     const fileSource = createFileSource(workspace);
-    const session = fileSource("");
+    const session = fileSource("", new AbortController().signal);
     const candidates = await session.candidates;
 
     expect(candidates).toHaveLength(1);

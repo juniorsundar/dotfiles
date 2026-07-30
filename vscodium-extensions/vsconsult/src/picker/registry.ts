@@ -17,6 +17,13 @@ export interface Picker<TCandidate extends Candidate = Candidate> {
   placeholder: string;
   /** Shown in the results area when no candidates match the query. */
   emptyState: string;
+  /**
+   * When true the host re-runs the source on every query change and
+   * cancels the previous in-flight source (e.g. live-grep, workspace-symbol).
+   * When false the host narrows the pre-materialized candidate set.
+   * Defaults to false.
+   */
+  queryDriven?: boolean;
   source: Source<TCandidate>;
   narrow: (query: string, candidates: TCandidate[]) => TCandidate[];
   render: (candidate: TCandidate) => RowParts;

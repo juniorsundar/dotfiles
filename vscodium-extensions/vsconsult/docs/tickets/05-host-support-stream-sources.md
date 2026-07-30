@@ -6,8 +6,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] The SourceSession type carries an optional updates channel for streamed candidate batches, in addition to the initial batch.
-- [ ] The host appends streamed batches to the visible set and re-narrows for pre-materialized pickers, or re-renders for query-driven pickers (identity Narrowing).
-- [ ] The host cancels an in-flight source when the query changes for a query-driven picker, so stale streamed results do not overwrite fresh ones.
-- [ ] The host signals source completion (no further batches) and tears down the source session on picker exit.
-- [ ] A test drives the host with a fake streaming source that emits batches over time, asserting incremental candidate arrival, re-narrow/re-render, and cancellation on query change — without a real streaming picker.
+- [x] The SourceSession type carries an optional updates channel for streamed candidate batches, in addition to the initial batch.
+- [x] The host appends streamed batches to the visible set and re-narrows for pre-materialized pickers, or re-renders for query-driven pickers (identity Narrowing).
+- [x] The host cancels an in-flight source when the query changes for a query-driven picker, so stale streamed results do not overwrite fresh ones.
+- [x] The host signals source completion (no further batches) and tears down the source session on picker exit.
+- [x] A test drives the host with a fake streaming source that emits batches over time, asserting incremental candidate arrival, re-narrow/re-render, and cancellation on query change — without a real streaming picker.
