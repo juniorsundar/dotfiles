@@ -510,10 +510,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         // Drop stale: session replaced, torn down, or newer selection pending.
         if (this.session !== session || session.tornDown) return;
         if (previewGen !== undefined && session.previewGeneration !== previewGen) return;
-        // Prepend a header line so the candidate filename/path is visible
-        // in the virtual document body (the URI itself is fixed).
-        const header = `// ${p.title}\n\n`;
-        session.virtualPreview.updateContent(header + p.text, p.title, p.languageId);
+        session.virtualPreview.updateContent(p.text, p.title, p.languageId);
         const uri = session.virtualPreview.virtualUri("");
         try {
           const editor = await vscode.window.showTextDocument(uri, {
