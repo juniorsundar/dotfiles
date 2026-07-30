@@ -12,6 +12,8 @@ vi.mock("vscode", () => {
     showTextDocument: vi.fn(async (uri: any, opts?: any) => ({
       document: { uri, languageId: "plaintext", getText: () => "", lineCount: 0 },
       options: opts ?? {},
+      revealRange: vi.fn(),
+      selection: undefined,
     })),
     showInformationMessage: vi.fn(async () => ({})),
   };
@@ -35,6 +37,80 @@ vi.mock("vscode", () => {
     file: (p: string) => ({ fsPath: p, scheme: "file", toString: () => p }),
     parse: (s: string) => ({ fsPath: s, scheme: s.split(":")[0], toString: () => s }),
   };
+  // Position / Range / Selection / TextEditorRevealType — used by host's
+  // showPreview.reveal codepath (ticket 11) and revealPosition.
+  class Position {
+    readonly line: number;
+    readonly character: number;
+    constructor(line: number, character: number) {
+      this.line = line;
+      this.character = character;
+    }
+    isBefore(other: Position) { return this.line < other.line || (this.line === other.line && this.character < other.character); }
+    isAfter(other: Position) { return other.isBefore(this); }
+    isEqual(other: Position) { return this.line === other.line && this.character === other.character; }
+    translate(ld?: { lineDelta?: number; characterDelta?: number }) { return new Position(this.line + (ld?.lineDelta ?? 0), this.character + (ld?.characterDelta ?? 0)); }
+    with(line?: number, character?: number) { return new Position(line ?? this.line, character ?? this.character); }
+    compareTo(other: Position) { return this.isBefore(other) ? -1 : this.isAfter(other) ? 1 : 0; }
+  }
+  class Range {
+    readonly start: Position;
+    readonly end: Position;
+    constructor(startLine: number, startCharacter: number, endLine?: number, endCharacter?: number);
+    constructor(start: Position, end: Position);
+    constructor(startOrPos: number | Position, endOrChar: number | Position, endLine?: number, endCharacter?: number) {
+      if (startOrPos instanceof Position) {
+        this.start = startOrPos;
+        this.end = endOrChar as Position;
+      } else {
+        this.start = new Position(startOrPos, endOrChar as number);
+        this.end = new Position(endLine ?? startOrPos, endCharacter ?? endOrChar as number);
+      }
+    }
+    get isEmpty() { return this.start.isEqual(this.end); }
+    get isSingleLine() { return this.start.line === this.end.line; }
+    contains(positionOrRange: Position | Range): boolean {
+      if (positionOrRange instanceof Position) {
+        return !positionOrRange.isBefore(this.start) && !positionOrRange.isAfter(this.end);
+      }
+      return this.contains(positionOrRange.start) && this.contains(positionOrRange.end);
+    }
+    intersection(range: Range): Range | undefined {
+      const start = this.start.isAfter(range.start) ? this.start : range.start;
+      const end = this.end.isBefore(range.end) ? this.end : range.end;
+      return start.isAfter(end) ? undefined : new Range(start, end);
+    }
+    union(range: Range): Range {
+      const start = this.start.isBefore(range.start) ? this.start : range.start;
+      const end = this.end.isAfter(range.end) ? this.end : range.end;
+      return new Range(start, end);
+    }
+    with(start?: Position, end?: Position): Range { return new Range(start ?? this.start, end ?? this.end); }
+    isEqual(other: Range) { return this.start.isEqual(other.start) && this.end.isEqual(other.end); }
+  }
+  class Selection extends Range {
+    readonly anchor: Position;
+    readonly active: Position;
+    constructor(anchorLine: number, anchorCharacter: number, activeLine: number, activeCharacter: number);
+    constructor(anchor: Position, active: Position);
+    constructor(anchorOrLine: number | Position, anchorOrChar: number | Position, activeLine?: number, activeCharacter?: number) {
+      if (anchorOrLine instanceof Position) {
+        const anchor = anchorOrLine;
+        const active = anchorOrChar as Position;
+        super(anchor, active);
+        this.anchor = anchor;
+        this.active = active;
+      } else {
+        const anchor = new Position(anchorOrLine, anchorOrChar as number);
+        const active = new Position(activeLine!, activeCharacter!);
+        super(anchor, active);
+        this.anchor = anchor;
+        this.active = active;
+      }
+    }
+    get isReversed() { return this.anchor.isAfter(this.active); }
+  }
+  const TextEditorRevealType = { Default: 0, InCenter: 1, InCenterIfOutsideViewport: 2, AtTop: 3 };
   class EventEmitter<T> {
     private readonly listeners = new Set<(value: T) => void>();
     readonly event = (listener: (value: T) => void) => {
@@ -65,7 +141,7 @@ vi.mock("vscode", () => {
   };
   // Attach tabGroups to window for targeted close.
   (window as any).tabGroups = tabGroups;
-  return { commands, window, workspace, languages, Uri, ViewColumn, EventEmitter, TabInputText, default: undefined };
+  return { commands, window, workspace, languages, Uri, ViewColumn, EventEmitter, TabInputText, Position, Range, Selection, TextEditorRevealType, default: undefined };
 });
 
 // ---------------------------------------------------------------------------
@@ -1927,6 +2003,366 @@ describe("PickerHost — streaming source support", () => {
       expect.objectContaining({ uri: expect.objectContaining({ scheme: "vsconsult-preview" }) }),
       "plaintext",
     );
+
+    host.dispose();
+  });
+
+  // ---------------------------------------------------------------------
+  // Ticket 11 — showPreview with optional reveal position
+  // ---------------------------------------------------------------------
+
+  it("reveal scrolls the virtual preview editor to the supplied line", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const picker: Picker<StreamCandidate> = {
+      id: "reveal-scroll-test",
+      label: "Reveal Scroll Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({
+          text: "line 1\nline 2\nline 3\n",
+          title: "main.ts",
+          reveal: { line: 1, character: 0 },
+        });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("reveal-scroll-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.window.showTextDocument.mockClear();
+
+    // Trigger preview
+    view.send({ type: "select", id: "/project/src/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // The picker's preview action must have been called.
+    expect(picker.preview).toHaveBeenCalledOnce();
+
+    // The virtual preview must have been opened.
+    const virtualCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualCalls).toHaveLength(1);
+
+    // The editor returned by showTextDocument must have had revealRange called
+    // with the supplied position.
+    const editor = await vscodeMock.window.showTextDocument.mock.results[0].value;
+    expect(editor.revealRange).toHaveBeenCalled();
+
+    const [range, revealType] = editor.revealRange.mock.calls[0];
+    expect(range.start.line).toBe(1);
+    expect(range.start.character).toBe(0);
+    expect(revealType).toBe(vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+
+    host.dispose();
+  });
+
+  it("no reveal position leaves behavior unchanged — revealRange not called", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const picker: Picker<StreamCandidate> = {
+      id: "no-reveal-test",
+      label: "No Reveal Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        // No reveal — same as file picker shape today.
+        await ctx.showPreview({ text: "content", title: "main.ts" });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("no-reveal-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.window.showTextDocument.mockClear();
+
+    view.send({ type: "select", id: "/project/src/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    expect(picker.preview).toHaveBeenCalledOnce();
+
+    // The virtual preview was still opened.
+    const virtualCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualCalls).toHaveLength(1);
+
+    // But revealRange must NOT have been called.
+    const editor = await vscodeMock.window.showTextDocument.mock.results[0].value;
+    expect(editor.revealRange).not.toHaveBeenCalled();
+
+    host.dispose();
+  });
+
+  it("stale reveal from a cancelled session cannot scroll the virtual preview", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    let resolveStale: (() => void) | undefined;
+    const staleDeferred = new Promise<void>((resolve) => {
+      resolveStale = resolve;
+    });
+
+    let stalePreviewFinished = false;
+
+    const picker: Picker<StreamCandidate> = {
+      id: "cancel-reveal-race",
+      label: "Cancel Reveal Race",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await staleDeferred;
+        stalePreviewFinished = true;
+        await ctx.showPreview({
+          text: "late-content",
+          title: _c.label,
+          reveal: { line: 99, character: 0 },
+        });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("cancel-reveal-race");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // Trigger preview — debounce fires, preview action starts, stalls at deferred.
+    view.send({ type: "select", id: "/project/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Cancel the session while the preview is still pending.
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.window.showTextDocument.mockClear();
+
+    // Resolve the stale deferred after the session is gone.
+    resolveStale?.();
+    await new Promise((r) => setTimeout(r, 50));
+
+    // The stale preview completed, but it must NOT have reopened the virtual
+    // document — no showTextDocument for vsconsult-preview.
+    expect(stalePreviewFinished).toBe(true);
+    const virtualCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualCalls).toHaveLength(0);
+
+    host.dispose();
+  });
+
+  it("stale reveal from a replaced session cannot scroll the virtual preview", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/alpha.ts", label: "alpha.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    let resolveStale: (() => void) | undefined;
+    const staleDeferred = new Promise<void>((resolve) => {
+      resolveStale = resolve;
+    });
+
+    let stalePreviewFinished = false;
+
+    const pickerA: Picker<StreamCandidate> = {
+      id: "replace-reveal-target",
+      label: "Replace Reveal Target",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await staleDeferred; // stays pending until explicitly resolved
+        stalePreviewFinished = true;
+        await ctx.showPreview({
+          text: "stale-content",
+          title: _c.label,
+          reveal: { line: 42, character: 0 },
+        });
+      }),
+    };
+    registry.register(pickerA);
+
+    // Replacement picker
+    const pickerB = makePicker("replacement-reveal", source);
+    registry.register(pickerB);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    // Start picker A and trigger its preview (in-flight, stalled).
+    host.start("replace-reveal-target");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+    view.send({ type: "select", id: "/project/alpha.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Replace with picker B
+    host.start("replacement-reveal");
+    await vi.waitFor(() => {
+      const rms = resultsMessages(view.outbound);
+      expect(rms.length).toBeGreaterThanOrEqual(2);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.window.showTextDocument.mockClear();
+
+    // Now resolve the stale deferred from picker A.
+    resolveStale?.();
+    await new Promise((r) => setTimeout(r, 50));
+
+    // The stale preview action completed, but it must NOT have reopened
+    // the virtual preview (no showTextDocument for vsconsult-preview).
+    expect(stalePreviewFinished).toBe(true);
+    const virtualCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualCalls).toHaveLength(0);
+
+    host.dispose();
+  });
+
+  it("out-of-order completion — slower older reveal must not overwrite a newer selection", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/alpha.ts", label: "alpha.ts" },
+      { id: "/project/beta.ts", label: "beta.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    // Capture the editors returned by showTextDocument so we can check
+    // which ones had revealRange called.
+    const editors: any[] = [];
+
+    const picker: Picker<StreamCandidate> = {
+      id: "ooo-reveal-test",
+      label: "OOO Reveal Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        const line = _c.id === "/project/alpha.ts" ? 10 : 20;
+        await ctx.showPreview({
+          text: `content-${_c.label}`,
+          title: _c.label,
+          reveal: { line, character: 0 },
+        });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("ooo-reveal-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+
+    // Defer the first showTextDocument for the virtual preview so alpha's
+    // preview hangs while beta's runs and completes.
+    let resolveDeferredShow: (() => void) | undefined;
+    const deferredShow = new Promise<void>((resolve) => {
+      resolveDeferredShow = resolve;
+    });
+    let firstVirtualShow = true;
+    const originalShowTextDocument = vscodeMock.window.showTextDocument;
+    vscodeMock.window.showTextDocument = vi.fn(
+      async (uri: any, opts?: any) => {
+        const editor = {
+          document: { uri, languageId: "plaintext", getText: () => "", lineCount: 0 },
+          options: opts ?? {},
+          revealRange: vi.fn(),
+          selection: undefined,
+        };
+        editors.push(editor);
+        if (uri?.scheme === "vsconsult-preview" && firstVirtualShow) {
+          firstVirtualShow = false;
+          await deferredShow;
+        }
+        return editor;
+      },
+    );
+
+    try {
+      // Select alpha — its showPreview starts but hangs at showTextDocument.
+      view.send({ type: "select", id: "/project/alpha.ts" });
+      await new Promise((r) => setTimeout(r, 200)); // past debounce
+
+      // Select beta — bumps generation, preview runs and completes.
+      view.send({ type: "select", id: "/project/beta.ts" });
+      await new Promise((r) => setTimeout(r, 200)); // past debounce
+
+      // Beta's revealRange must have been called (the latest selection wins).
+      // editors[0] = alpha (stalled), editors[1] = beta (completed)
+      expect(editors.length).toBeGreaterThanOrEqual(2);
+      const betaEditor = editors[editors.length - 1];
+      expect(betaEditor.revealRange).toHaveBeenCalled();
+
+      // Now resolve alpha's deferred showTextDocument — the late older
+      // showPreview must NOT call revealRange because the generation guard
+      // should suppress it.
+      resolveDeferredShow?.();
+      await new Promise((r) => setTimeout(r, 50));
+
+      // Alpha's editor is the first one stored. Its revealRange must NOT have
+      // been called — the stale generation guard suppressed it.
+      const alphaEditor = editors[0];
+      expect(alphaEditor.revealRange).not.toHaveBeenCalled();
+    } finally {
+      // Restore original mock so later tests are not corrupted.
+      vscodeMock.window.showTextDocument = originalShowTextDocument;
+    }
 
     host.dispose();
   });

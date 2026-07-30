@@ -25,11 +25,16 @@ export interface PickerContext {
    */
   readPreviewContent(uri: string): Promise<PreviewContent>;
 
-  /** Show or update the session-owned virtual preview document. */
+  /** Show or update the session-owned virtual preview document.
+   *
+   * An optional `reveal` position scrolls the virtual preview editor to
+   * that line so the match is visible; when omitted the preview opens at
+   * the top (unchanged behavior from before ticket 11). */
   showPreview(p: {
     text: string;
     title: string;
     languageId?: string;
+    reveal?: { line: number; character: number };
   }): Promise<void>;
 
   /** Resolve the language identifier VSCodium would select for a real file URI.

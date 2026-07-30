@@ -20,5 +20,6 @@
     "piContext.enabled": true,
     "breadcrumbs.enabled": false,
     "obsidianPreview.vaultPath": "/home/juniorsundar/Dropbox/vault",
-    "workbench.iconTheme": "material-icon-theme"
+    "workbench.iconTheme": "material-icon-theme",
+    "vsconsult.previewDebounceDelayMs": 10
 }

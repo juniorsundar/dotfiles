@@ -541,6 +541,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         text: string;
         title: string;
         languageId?: string;
+        reveal?: { line: number; character: number };
       }): Promise<void> => {
         // Drop stale: session replaced, torn down, or newer selection pending.
         if (this.session !== session || session.tornDown) return;
@@ -564,6 +565,18 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
             // we awaited showTextDocument.
             if (this.session !== session || session.tornDown) return;
             if (previewGen !== undefined && session.previewGeneration !== previewGen) return;
+            // Reveal position — scroll the virtual preview to the target line
+            // (behind the guard so a stale reveal cannot overwrite a newer
+            // selection — ticket 11). Unlike revealPosition, this does NOT set
+            // editor.selection — the virtual preview is read-only and moving
+            // the cursor there would be misleading.
+            if (p.reveal) {
+              const pos = new vscode.Position(p.reveal.line, p.reveal.character);
+              editor.revealRange(
+                new vscode.Range(pos, pos),
+                vscode.TextEditorRevealType.InCenterIfOutsideViewport,
+              );
+            }
             await vscode.languages.setTextDocumentLanguage(editor.document, targetLanguage);
           }
         } catch {
