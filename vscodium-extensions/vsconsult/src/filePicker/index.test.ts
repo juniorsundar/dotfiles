@@ -29,6 +29,12 @@ describe("file picker — picker seam", () => {
       }
     }),
     readFile: vi.fn(async () => ""),
+    readPreviewContent: vi.fn(async () => ({
+      text: "",
+      truncated: false,
+      binary: false,
+      size: 0,
+    })),
     showPreview: vi.fn(async () => {}),
     closePreview: vi.fn(async () => {}),
     revealPosition: vi.fn(),

@@ -6,10 +6,10 @@
 
 **Status:** ready-for-agent
 
-- [ ] Files up to and including 1 MiB receive a complete textual preview.
-- [ ] Files larger than 1 MiB read no more than the first 512 KiB and display a clear truncation notice.
-- [ ] The implementation inspects size before choosing the read strategy and never loads a complete large file merely to truncate it afterward.
-- [ ] A multibyte UTF-8 character crossing the excerpt boundary is decoded safely.
-- [ ] Binary-looking content displays metadata and an explanatory fallback rather than corrupted text.
-- [ ] Stat, read, and decode failures remain non-fatal and leave the picker usable.
-- [ ] Host-level behavioral tests assert independent byte limits, bounded I/O, UTF-8 output, binary fallback, and recoverable errors.
+- [x] Files up to and including 1 MiB receive a complete textual preview.
+- [x] Files larger than 1 MiB read no more than the first 512 KiB and display a clear truncation notice.
+- [x] The implementation inspects size before choosing the read strategy and never loads a complete large file merely to truncate it afterward.
+- [x] A multibyte UTF-8 character crossing the excerpt boundary is decoded safely.
+- [x] Binary-looking content displays metadata and an explanatory fallback rather than corrupted text.
+- [x] Stat, read, and decode failures remain non-fatal and leave the picker usable.
+- [x] Host-level behavioral tests assert independent byte limits, bounded I/O, UTF-8 output, binary fallback, and recoverable errors.

@@ -9,6 +9,8 @@ import { buildPickerConfig, shapeCandidateRows } from "./protocol.js";
 import { createPreviewDebounce } from "./debounce.js";
 import { createVirtualPreview } from "./virtualPreview.js";
 import type { VirtualPreviewProvider } from "./virtualPreview.js";
+import { readPreviewContent as readPreviewContentPolicy } from "./previewContent.js";
+import type { PreviewFilePrimitives, PreviewContent } from "./previewContent.js";
 import type { HostEnv, Origin } from "./lifecycle.js";
 import { runCancel, runExit } from "./lifecycle.js";
 
@@ -400,6 +402,29 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
       readFile: async (uri: string): Promise<string> => {
         const { readFile } = await import("node:fs/promises");
         return readFile(uri, "utf8");
+      },
+      readPreviewContent: async (uri: string): Promise<PreviewContent> => {
+        const fsPrimitives: PreviewFilePrimitives = {
+          stat: async (p) => {
+            const { stat } = await import("node:fs/promises");
+            const s = await stat(p);
+            return { size: s.size };
+          },
+          readBytes: async (p, maxBytes) => {
+            // Bounded read: open the file and read at most maxBytes from the
+            // start. Never allocates a full-file buffer just to truncate it.
+            const { open } = await import("node:fs/promises");
+            const handle = await open(p, "r");
+            try {
+              const buf = Buffer.alloc(maxBytes);
+              const { bytesRead } = await handle.read(buf, 0, maxBytes, 0);
+              return new Uint8Array(buf.buffer, buf.byteOffset, bytesRead);
+            } finally {
+              await handle.close();
+            }
+          },
+        };
+        return readPreviewContentPolicy(uri, fsPrimitives);
       },
       revealPosition: (uri: string, position: { line: number; character: number }): void => {
         const editor = vscode.window.visibleTextEditors.find(

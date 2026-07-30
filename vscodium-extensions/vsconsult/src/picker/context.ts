@@ -1,3 +1,5 @@
+import type { PreviewContent } from "../host/previewContent.js";
+
 /**
  * Host-backed helpers handed to a picker's accept and preview actions.
  *
@@ -14,6 +16,14 @@ export interface PickerContext {
 
   /** Read a file's content by absolute path. */
   readFile(uri: string): Promise<string>;
+
+  /** Read a bounded preview of a file by absolute path.
+   *
+   * Returns a structured result (text, truncated, binary, error) per the
+   * content policy in src/host/previewContent.ts. Used by preview actions;
+   * callers that need the full file (accept/source) use readFile.
+   */
+  readPreviewContent(uri: string): Promise<PreviewContent>;
 
   /** Show or update the session-owned virtual preview document. */
   showPreview(p: {

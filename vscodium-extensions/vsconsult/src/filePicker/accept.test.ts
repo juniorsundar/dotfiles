@@ -20,6 +20,12 @@ function fakeContext(): PickerContext & { calls: string[] } {
       calls.push(`open:${uri}`);
     }),
     readFile: vi.fn(async () => ""),
+    readPreviewContent: vi.fn(async () => ({
+      text: "",
+      truncated: false,
+      binary: false,
+      size: 0,
+    })),
     showPreview: vi.fn(async () => {
       calls.push("showPreview");
     }),

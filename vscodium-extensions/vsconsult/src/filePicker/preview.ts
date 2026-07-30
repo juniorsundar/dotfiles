@@ -4,6 +4,10 @@ import type { FileCandidate } from "../picker/types.js";
 /**
  * Previews a FileCandidate by showing the session-owned virtual preview.
  *
+ * Uses the bounded content policy (see ../host/previewContent.ts) so large,
+ * binary-looking, and unreadable candidates get a safe, informative fallback
+ * instead of loading the full file or emitting corrupted bytes.
+ *
  * Like Accept, Preview performs only the effect (update virtual document).
  * The host owns lifecycle.
  */
@@ -11,9 +15,32 @@ export async function previewFileCandidate(
   candidate: FileCandidate,
   context: PickerContext,
 ): Promise<void> {
-  const text = await context.readFile(candidate.id);
+  const content = await context.readPreviewContent(candidate.id);
   await context.showPreview({
-    text,
+    text: previewBody(content),
     title: candidate.relativePath,
   });
+}
+
+/**
+ * Builds the body displayed in the virtual preview from the structured
+ * content result. A truncated excerpt appends the truncation notice; a
+ * binary or error result is already self-describing.
+ */
+function previewBody(content: {
+  text: string;
+  truncated: boolean;
+  binary: boolean;
+  error?: string;
+  truncationNotice?: string;
+}): string {
+  if (content.binary || content.error) return content.text;
+  if (content.truncated) {
+    // A truncated result always carries a notice; if one is somehow absent,
+    // fall back to a generic marker so the excerpt is never mistaken for
+    // the complete file.
+    const notice = content.truncationNotice ?? "… [truncated]";
+    return `${content.text}\n${notice}`;
+  }
+  return content.text;
 }
