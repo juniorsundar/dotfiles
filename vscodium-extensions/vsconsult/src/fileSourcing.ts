@@ -72,7 +72,6 @@ export async function sourceWorkspaceFiles(
       candidate: {
         id: absPath,
         label: name,
-        name,
         directory: directory === "." ? "" : directory,
         relativePath,
       },

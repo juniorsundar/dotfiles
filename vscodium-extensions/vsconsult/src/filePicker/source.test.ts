@@ -21,7 +21,6 @@ describe("file Source", () => {
     const candidates = await session.candidates;
     expect(candidates).toHaveLength(2);
     expect(candidates[0].label).toBe("main.ts");
-    expect(candidates[0].name).toBe("main.ts");
     expect(candidates[0].directory).toBe("src");
     expect(candidates[0].relativePath).toBe("src/main.ts");
     expect(candidates[1].label).toBe("package.json");

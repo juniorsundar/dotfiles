@@ -15,7 +15,6 @@ describe("FileCandidate", () => {
     const candidate: FileCandidate = {
       id: "/repo/src/main.ts",
       label: "main.ts",
-      name: "main.ts",
       directory: "src",
       relativePath: "src/main.ts",
     };

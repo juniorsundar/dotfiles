@@ -8,7 +8,6 @@ import type { FileCandidate } from "../picker/types.js";
 const aFile: FileCandidate = {
   id: "/project/src/main.ts",
   label: "main.ts",
-  name: "main.ts",
   directory: "src",
   relativePath: "src/main.ts",
 };

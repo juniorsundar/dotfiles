@@ -9,7 +9,7 @@ function fc(
   directory: string,
   relativePath: string,
 ): FileCandidate {
-  return { id, label, name: label, directory, relativePath };
+  return { id, label, directory, relativePath };
 }
 
 describe("narrowFileCandidates", () => {

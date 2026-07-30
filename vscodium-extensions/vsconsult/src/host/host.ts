@@ -118,7 +118,8 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     this.post({ type: "reset" });
     this.post({ type: "status", message: "Loading…" });
 
-    // Run the source (snapshot — fires once; streaming will come later)
+    // Run the source. Snapshot sources deliver all candidates at once;
+    // stream sources also provide an `updates` channel consumed below.
     const sourceSession = picker.source("", sourceController.signal);
     const allCandidates = await sourceSession.candidates;
 

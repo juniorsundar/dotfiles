@@ -8,7 +8,6 @@ describe("renderFileCandidate", () => {
     const candidate: FileCandidate = {
       id: "/project/src/main.ts",
       label: "main.ts",
-      name: "main.ts",
       directory: "src",
       relativePath: "src/main.ts",
     };
@@ -23,7 +22,6 @@ describe("renderFileCandidate", () => {
     const candidate: FileCandidate = {
       id: "/project/README.md",
       label: "README.md",
-      name: "README.md",
       directory: "",
       relativePath: "README.md",
     };

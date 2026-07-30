@@ -21,7 +21,6 @@ describe("sourceWorkspaceFiles", () => {
         candidate: {
           id: "/home/user/project/src/main.ts",
           label: "main.ts",
-          name: "main.ts",
           directory: "src",
           relativePath: "src/main.ts",
         } satisfies FileCandidate,
@@ -31,7 +30,6 @@ describe("sourceWorkspaceFiles", () => {
         candidate: {
           id: "/home/user/project/package.json",
           label: "package.json",
-          name: "package.json",
           directory: "",
           relativePath: "package.json",
         } satisfies FileCandidate,

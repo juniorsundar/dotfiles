@@ -15,8 +15,6 @@ export interface Candidate {
  * file-specific fields.
  */
 export interface FileCandidate extends Candidate {
-  /** @deprecated Transitional — use `label` instead. Removed after host rewrite. */
-  name: string;
   directory: string;
   relativePath: string;
 }
