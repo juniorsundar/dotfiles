@@ -24,6 +24,8 @@ vi.mock("vscode", () => {
       getText: () => "",
       lineCount: 0,
     })),
+    getConfiguration: vi.fn(() => ({ get: () => undefined })),
+    onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
   };
   const languages = {
     setTextDocumentLanguage: vi.fn(async (doc: any, id: string) => doc),

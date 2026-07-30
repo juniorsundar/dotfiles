@@ -13,6 +13,11 @@ import { readPreviewContent as readPreviewContentPolicy } from "./previewContent
 import type { PreviewFilePrimitives, PreviewContent } from "./previewContent.js";
 import type { HostEnv, Origin } from "./lifecycle.js";
 import { runCancel, runExit } from "./lifecycle.js";
+import {
+  readVsconsultConfig,
+  type VsconsultConfig,
+  type VsconsultConfigurationAccessor,
+} from "./config.js";
 
 // ---------------------------------------------------------------------------
 // Session state — alive while a picker is active
@@ -61,13 +66,18 @@ async function closeVirtualPreviewDocument(uri: vscode.Uri): Promise<void> {
 // PickerHost — picker-agnostic webview view provider
 // ---------------------------------------------------------------------------
 
-const previewDelayMs = 125;
-
 export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable {
   private view: vscode.WebviewView | undefined;
   private session: HostSession | undefined;
   private readonly disposables: vscode.Disposable[] = [];
   private readonly debounce: ReturnType<typeof createPreviewDebounce>;
+  /**
+   * Current vsconsult settings. Re-read live on configuration change so
+   * the debounce delay and preview byte limits update without restarting
+   * the picker. `fileExcludes` is consumed at picker start (see
+   * `createFilePicker`), so it applies to the next picker invocation.
+   */
+  private config: VsconsultConfig;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -75,8 +85,12 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     private readonly env: HostEnv,
     private readonly viewId: string,
   ) {
+    this.config = readVsconsultConfig(vscode.workspace.getConfiguration("vsconsult") as unknown as VsconsultConfigurationAccessor);
+
     // Preview debounce — when the timer fires, look up the candidate in
     // the active session and call the active picker's preview action.
+    // The delay is read live from `this.config` so a settings change is
+    // picked up on the next schedule without rebuilding the debouncer.
     this.debounce = createPreviewDebounce(async (id: string) => {
       const session = this.session;
       if (!session) return;
@@ -85,7 +99,25 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
       if (!candidate) return;
       const gen = session.previewGeneration;
       await session.picker.preview(candidate, this.buildPickerContext(session, gen));
-    }, previewDelayMs);
+    }, () => this.config.previewDebounceDelayMs);
+
+    // Live reload: re-read settings when the user edits them in the UI.
+    this.disposables.push(
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration("vsconsult")) {
+          this.config = readVsconsultConfig(
+            vscode.workspace.getConfiguration("vsconsult") as unknown as VsconsultConfigurationAccessor,
+          );
+        }
+      }),
+    );
+  }
+
+  /** Current configured file-exclude patterns. Read live by the file
+   * source at each picker start, so settings changes apply to the next
+   * invocation without restarting the picker. */
+  get fileExcludes(): string[] {
+    return this.config.fileExcludes;
   }
 
   // -----------------------------------------------------------------------
@@ -467,7 +499,10 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
             }
           },
         };
-        return readPreviewContentPolicy(uri, fsPrimitives);
+        return readPreviewContentPolicy(uri, fsPrimitives, {
+          fullMaxBytes: this.config.previewFullMaxBytes,
+          excerptMaxBytes: this.config.previewExcerptMaxBytes,
+        });
       },
       revealPosition: (uri: string, position: { line: number; character: number }): void => {
         const editor = vscode.window.visibleTextEditors.find(

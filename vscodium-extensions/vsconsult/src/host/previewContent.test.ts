@@ -306,3 +306,66 @@ describe("readPreviewContent — non-fatal errors", () => {
     expect(result.size).toBe(bytes.length);
   });
 });
+// ---------------------------------------------------------------------------
+// Custom byte limits — callers (the host) can override the defaults so the
+// configurable `previewFullMaxBytes` / `previewExcerptMaxBytes` settings take
+// effect without changing the named constants.
+// ---------------------------------------------------------------------------
+
+describe("readPreviewContent — custom byte limits", () => {
+  it("uses the provided fullMaxBytes as the whole-file threshold", async () => {
+    const fullCap = 64;
+    const excerpt = 32;
+    const bytes = Buffer.alloc(64, 0x41); // 64 bytes — under custom full cap
+    const { primitives, readBytesCalls } = fakePrimitives({
+      stat: vi.fn(async () => ({ size: 64 })),
+      readBytes: vi.fn(async (_p, n) => bytes.subarray(0, n)),
+    });
+
+    const result = await readPreviewContent("/project/file.txt", primitives, {
+      fullMaxBytes: fullCap,
+      excerptMaxBytes: excerpt,
+    });
+
+    // At the threshold (not over), the whole file is read, not truncated.
+    expect(result.truncated).toBe(false);
+    expect(readBytesCalls[0]!.maxBytes).toBe(fullCap);
+    expect(result.text).toHaveLength(64);
+  });
+
+  it("excerpts using excerptMaxBytes when size exceeds fullMaxBytes", async () => {
+    const fullCap = 64;
+    const excerpt = 32;
+    const payload = Buffer.alloc(128, 0x41);
+    const { primitives, readBytesCalls } = fakePrimitives({
+      stat: vi.fn(async () => ({ size: 128 })),
+      readBytes: vi.fn(async (_p, n) => payload.subarray(0, n)),
+    });
+
+    const result = await readPreviewContent("/project/big.txt", primitives, {
+      fullMaxBytes: fullCap,
+      excerptMaxBytes: excerpt,
+    });
+
+    expect(result.truncated).toBe(true);
+    expect(readBytesCalls[0]!.maxBytes).toBe(excerpt);
+    expect(result.text).toHaveLength(excerpt);
+    // The truncation notice references the custom excerpt size, not the default.
+    expect(result.truncationNotice).toContain(String(excerpt));
+    expect(result.truncationNotice).toContain("128");
+  });
+
+  it("falls back to default limits when none are supplied", async () => {
+    const fileSize = ONE_MIB + 1;
+    const payload = Buffer.alloc(EXCERPT_MAX_BYTES, 0x41);
+    const { primitives, readBytesCalls } = fakePrimitives({
+      stat: vi.fn(async () => ({ size: fileSize })),
+      readBytes: vi.fn(async (_p, n) => payload.subarray(0, n)),
+    });
+
+    const result = await readPreviewContent("/project/big.txt", primitives);
+
+    expect(result.truncated).toBe(true);
+    expect(readBytesCalls[0]!.maxBytes).toBe(EXCERPT_MAX_BYTES);
+  });
+});

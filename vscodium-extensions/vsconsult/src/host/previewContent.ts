@@ -21,6 +21,20 @@
 export const FULL_PREVIEW_MAX_BYTES = 1024 * 1024; // 1 MiB
 export const EXCERPT_MAX_BYTES = 512 * 1024; // 512 KiB
 
+/** Byte limits applied when reading a bounded preview. */
+export interface PreviewByteLimits {
+  /** Files up to this size preview whole; larger files are excerpted. */
+  fullMaxBytes: number;
+  /** Bytes shown from the start of a file that exceeds `fullMaxBytes`. */
+  excerptMaxBytes: number;
+}
+
+/** The default limits, matching the named constants above. */
+export const DEFAULT_PREVIEW_BYTE_LIMITS: PreviewByteLimits = {
+  fullMaxBytes: FULL_PREVIEW_MAX_BYTES,
+  excerptMaxBytes: EXCERPT_MAX_BYTES,
+};
+
 /** Injectable filesystem primitives. */
 export interface PreviewFilePrimitives {
   /** Stat the file; returns at least `{ size }` in bytes. */
@@ -60,10 +74,15 @@ export interface PreviewContent {
 /**
  * Reads a bounded preview of the file at `path` and returns a structured
  * representation suitable for the virtual preview document.
+ *
+ * `limits` overrides the default byte caps; when omitted, the package
+ * defaults (`FULL_PREVIEW_MAX_BYTES` / `EXCERPT_MAX_BYTES`) are used so
+ * existing callers and tests keep their behaviour.
  */
 export async function readPreviewContent(
   path: string,
   deps: PreviewFilePrimitives,
+  limits: PreviewByteLimits = DEFAULT_PREVIEW_BYTE_LIMITS,
 ): Promise<PreviewContent> {
   let size: number;
   try {
@@ -78,8 +97,9 @@ export async function readPreviewContent(
       error: message,
     };
   }
-  const truncated = size > FULL_PREVIEW_MAX_BYTES;
-  const maxBytes = truncated ? EXCERPT_MAX_BYTES : Math.min(size, FULL_PREVIEW_MAX_BYTES);
+  const { fullMaxBytes, excerptMaxBytes } = limits;
+  const truncated = size > fullMaxBytes;
+  const maxBytes = truncated ? excerptMaxBytes : Math.min(size, fullMaxBytes);
   let bytes: Uint8Array;
   try {
     bytes = await deps.readBytes(path, maxBytes);
@@ -118,7 +138,7 @@ export async function readPreviewContent(
   }
 
   const truncationNotice = truncated
-    ? `… [truncated — showing first ${EXCERPT_MAX_BYTES} bytes of ${size}]`
+    ? `… [truncated — showing first ${excerptMaxBytes} bytes of ${size}]`
     : undefined;
   return {
     text,

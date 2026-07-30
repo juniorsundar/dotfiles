@@ -115,3 +115,44 @@ describe("sourceWorkspaceFiles", () => {
     expect(capturedExclude!).toContain("**/tools/cli/**");
   });
 });
+
+describe("sourceWorkspaceFiles — custom excludes provider", () => {
+  it("uses the provider's patterns instead of the built-in baseline excludes", async () => {
+    let capturedExclude: string | undefined;
+    const workspace: FileSourcingWorkspace = {
+      folders: [{ uriPath: "/home/user/project" }],
+      findFiles: async (_include, exclude) => {
+        capturedExclude = exclude;
+        return [];
+      },
+      readFile: async () => "",
+      excludesProvider: () => ["**/target/**", "**/.venv/**"],
+    };
+
+    await sourceWorkspaceFiles(workspace);
+
+    expect(capturedExclude).toBeDefined();
+    expect(capturedExclude).toContain("**/target/**");
+    expect(capturedExclude).toContain("**/.venv/**");
+    // Built-in baseline excludes are replaced, not merged, when a provider is set.
+    expect(capturedExclude).not.toContain("**/node_modules/**");
+    expect(capturedExclude).not.toContain("**/.git/**");
+  });
+
+  it("falls back to built-in baseline excludes when no provider is supplied", async () => {
+    let capturedExclude: string | undefined;
+    const workspace: FileSourcingWorkspace = {
+      folders: [{ uriPath: "/home/user/project" }],
+      findFiles: async (_include, exclude) => {
+        capturedExclude = exclude;
+        return [];
+      },
+      readFile: async () => "",
+    };
+
+    await sourceWorkspaceFiles(workspace);
+
+    expect(capturedExclude).toContain("**/node_modules/**");
+    expect(capturedExclude).toContain("**/.git/**");
+  });
+});

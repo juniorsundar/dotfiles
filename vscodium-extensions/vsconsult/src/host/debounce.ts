@@ -4,10 +4,14 @@
  *
  * Rapid `schedule` calls reset the timer so only the final candidate
  * triggers a preview. `cancel()` clears the pending timer.
+ *
+ * The delay is read live via `getDelay()` on each `schedule`, so a
+ * configuration change takes effect on the next schedule without
+ * rebuilding the debouncer. `cancel()` clears the pending timer.
  */
 export function createPreviewDebounce(
   callback: (id: string) => void | Promise<void>,
-  delayMs: number,
+  getDelay: () => number,
 ): {
   schedule: (id: string) => void;
   cancel: () => void;
@@ -24,7 +28,7 @@ export function createPreviewDebounce(
         // Swallow errors from the async callback — the host handles
         // errors at a higher level.
       });
-    }, delayMs);
+    }, getDelay());
   }
 
   function cancel(): void {

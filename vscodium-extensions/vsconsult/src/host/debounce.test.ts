@@ -13,7 +13,7 @@ describe("createPreviewDebounce", () => {
 
   it("fires the callback after the delay when schedule is called", () => {
     const spy = vi.fn();
-    const debounce = createPreviewDebounce(spy, 100);
+    const debounce = createPreviewDebounce(spy, () => 100);
 
     debounce.schedule("alpha");
 
@@ -26,7 +26,7 @@ describe("createPreviewDebounce", () => {
 
   it("suppresses earlier calls when schedule is called again within the delay", () => {
     const spy = vi.fn();
-    const debounce = createPreviewDebounce(spy, 100);
+    const debounce = createPreviewDebounce(spy, () => 100);
 
     debounce.schedule("alpha");
     vi.advanceTimersByTime(60);
@@ -41,7 +41,7 @@ describe("createPreviewDebounce", () => {
 
   it("fires the last call when rapid scheduling occurs", () => {
     const spy = vi.fn();
-    const debounce = createPreviewDebounce(spy, 100);
+    const debounce = createPreviewDebounce(spy, () => 100);
 
     debounce.schedule("alpha");
     debounce.schedule("beta");
@@ -55,7 +55,7 @@ describe("createPreviewDebounce", () => {
 
   it("does not fire after cancel", () => {
     const spy = vi.fn();
-    const debounce = createPreviewDebounce(spy, 100);
+    const debounce = createPreviewDebounce(spy, () => 100);
 
     debounce.schedule("alpha");
     debounce.cancel();
@@ -66,13 +66,30 @@ describe("createPreviewDebounce", () => {
 
   it("schedule after cancel still fires", () => {
     const spy = vi.fn();
-    const debounce = createPreviewDebounce(spy, 100);
+    const debounce = createPreviewDebounce(spy, () => 100);
 
     debounce.schedule("alpha");
     debounce.cancel();
     debounce.schedule("beta");
 
     vi.advanceTimersByTime(100);
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy).toHaveBeenCalledWith("beta");
+  });
+
+  it("reads the delay live, so a config change takes effect on the next schedule", () => {
+    let delay = 100;
+    const spy = vi.fn();
+    const debounce = createPreviewDebounce(spy, () => delay);
+
+    debounce.schedule("alpha");
+    // Before the 100ms delay fires, the configured delay drops to 40.
+    vi.advanceTimersByTime(30);
+    delay = 40;
+    debounce.schedule("beta");
+
+    // 100ms from beta would not have fired, but 40ms does.
+    vi.advanceTimersByTime(40);
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith("beta");
   });

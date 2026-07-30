@@ -11,6 +11,11 @@ export function activate(context: vscode.ExtensionContext): void {
   // ── Registry ────────────────────────────────────────────────────────
   const registry = createRegistry();
 
+  // ── Picker-agnostic host (single shared webview view) ───────────────
+  // Created before the file picker so the picker's excludes provider can
+  // read the host's live configuration.
+  const host = new PickerHost(context.extensionUri, registry, vscodeHostEnv, viewId);
+
   // ── Register built-in pickers ───────────────────────────────────────
   const vscodeFolders = vscode.workspace.workspaceFolders ?? [];
   createFilePicker(
@@ -24,12 +29,11 @@ export function activate(context: vscode.ExtensionContext): void {
         const { readFile } = await import("node:fs/promises");
         return readFile(absPath, "utf8");
       },
+      excludesProvider: () => host.fileExcludes,
     },
     registry,
   );
 
-  // ── Picker-agnostic host (single shared webview view) ───────────────
-  const host = new PickerHost(context.extensionUri, registry, vscodeHostEnv, viewId);
   context.subscriptions.push(
     host,
     vscode.window.registerWebviewViewProvider(viewId, host, {

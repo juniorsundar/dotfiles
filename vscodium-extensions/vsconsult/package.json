@@ -46,6 +46,46 @@
           "type": "webview"
         }
       ]
+    },
+    "configuration": {
+      "title": "vsconsult",
+      "properties": {
+        "vsconsult.previewDebounceDelayMs": {
+          "type": "number",
+          "default": 125,
+          "minimum": 0,
+          "markdownDescription": "Delay in milliseconds between a selection change and showing the preview. Lower values make previews feel snappier but trigger more reads; higher values reduce read churn while moving quickly through candidates. Set to `0` to preview immediately. Changes apply live.",
+          "order": 1
+        },
+        "vsconsult.previewFullMaxBytes": {
+          "type": "number",
+          "default": 1048576,
+          "minimum": 1,
+          "markdownDescription": "Maximum file size in bytes that receives a complete textual preview (default `1048576` = 1 MiB). Files larger than this are shown as a truncated excerpt sized by `#vsconsult.previewExcerptMaxBytes#`.",
+          "order": 2
+        },
+        "vsconsult.previewExcerptMaxBytes": {
+          "type": "number",
+          "default": 524288,
+          "minimum": 1,
+          "markdownDescription": "Number of bytes shown from the start of a file that exceeds `#vsconsult.previewFullMaxBytes#` (default `524288` = 512 KiB). A visible truncation notice is appended so the excerpt is never mistaken for the whole file.",
+          "order": 3
+        },
+        "vsconsult.fileExcludes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "**/.git/**",
+            "**/node_modules/**",
+            "**/.direnv/**",
+            "**/dist/**",
+            "**/out/**",
+            "**/.cache/**"
+          ],
+          "markdownDescription": "Glob patterns always excluded when sourcing workspace files, in addition to `.gitignore` and `.gitmodules` contents. Patterns are merged into a single `{...}` exclude set. Replaces the built-in baseline list, so include the defaults here if you want to keep them.",
+          "order": 4
+        }
+      }
     }
   },
   "scripts": {

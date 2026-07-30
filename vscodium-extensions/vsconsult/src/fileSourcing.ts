@@ -17,6 +17,14 @@ export interface FileSourcingWorkspace {
   folders: WorkspaceFolder[];
   findFiles: (include: string, exclude: string) => Promise<string[]>;
   readFile: (absPath: string) => Promise<string>;
+  /**
+   * Optional provider of exclude glob patterns, read at sourcing time.
+   * When supplied, these replace the built-in baseline excludes; when
+   * omitted, the built-in `defaultExcludes` apply. The provider is a
+   * function so live configuration changes take effect on the next picker
+   * invocation.
+   */
+  excludesProvider?: () => readonly string[];
 }
 
 /**
@@ -61,7 +69,7 @@ export async function sourceWorkspaceFiles(
     uriPath: normalizeUriPath(f.uriPath),
   }));
 
-  const excludePattern = await buildExcludePattern(normalizedFolders, readFile);
+  const excludePattern = await buildExcludePattern(normalizedFolders, readFile, workspace.excludesProvider?.() ?? defaultExcludes);
   const absPaths = await findFiles("**/*", excludePattern);
 
   return absPaths.map((absPath) => {
@@ -96,8 +104,9 @@ const defaultExcludes = [
 async function buildExcludePattern(
   folders: WorkspaceFolder[],
   readFile: (absPath: string) => Promise<string>,
+  baselineExcludes: readonly string[],
 ): Promise<string> {
-  const patterns = [...defaultExcludes];
+  const patterns = [...baselineExcludes];
 
   for (const folder of folders) {
     try {
