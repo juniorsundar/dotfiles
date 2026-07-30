@@ -15,10 +15,12 @@
   "main": "./dist/extension.js",
   "files": [
     "dist/extension.js",
-    "media/vsconsult.svg"
+    "media/vsconsult.svg",
+    "dist/bin/**"
   ],
   "activationEvents": [
     "onCommand:vsconsult.findFile",
+    "onCommand:vsconsult.liveGrep",
     "onView:vsconsult-filePicker"
   ],
   "contributes": {
@@ -26,6 +28,11 @@
       {
         "command": "vsconsult.findFile",
         "title": "Find File",
+        "category": "vsconsult"
+      },
+      {
+        "command": "vsconsult.liveGrep",
+        "title": "Live Grep",
         "category": "vsconsult"
       }
     ],
@@ -91,7 +98,9 @@
     }
   },
   "scripts": {
-    "build": "esbuild src/extension.ts --bundle --platform=node --format=cjs --target=node18 --external:vscode --outfile=dist/extension.js",
+    "build": "npm run build:bundle && npm run build:rg",
+    "build:bundle": "esbuild src/extension.ts --bundle --platform=node --format=cjs --target=node18 --external:vscode --outfile=dist/extension.js",
+    "build:rg": "node scripts/copy-rg.mjs",
     "watch": "npm run build -- --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",

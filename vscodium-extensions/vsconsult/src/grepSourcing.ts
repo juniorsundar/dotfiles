@@ -6,7 +6,7 @@ export interface RipgrepSpawner {
   spawn(
     rgPath: string,
     args: string[],
-    opts: { cwd: string },
+    opts: { cwd: string; stdio?: any },
   ): ChildProcessLike;
 }
 
@@ -110,7 +110,10 @@ async function* streamMatches(
   }
   args.push(query);
 
-  const child = spawner.spawn(spawner.rgPath, args, { cwd });
+  const child = spawner.spawn(spawner.rgPath, args, {
+    cwd,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
 
   // A queue of candidate batches waiting to be yielded.
   const queue: GrepCandidate[][] = [];

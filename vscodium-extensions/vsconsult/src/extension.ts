@@ -1,11 +1,16 @@
 import * as vscode from "vscode";
+import { spawn as nodeSpawn } from "node:child_process";
+import { join } from "node:path";
 
 import { createRegistry } from "./picker/registry.js";
 import { createFilePicker } from "./filePicker/index.js";
+import { createGrepPicker } from "./grepPicker/index.js";
+import { createSearchWorkspace, type RipgrepSpawner, type ChildProcessLike } from "./grepSourcing.js";
 import { PickerHost, vscodeHostEnv } from "./host/host.js";
 
 const viewId = "vsconsult-filePicker";
-const commandId = "vsconsult.findFile";
+const findFileCommandId = "vsconsult.findFile";
+const liveGrepCommandId = "vsconsult.liveGrep";
 
 export function activate(context: vscode.ExtensionContext): void {
   // ── Registry ────────────────────────────────────────────────────────
@@ -34,12 +39,27 @@ export function activate(context: vscode.ExtensionContext): void {
     registry,
   );
 
+  // ── Register grep picker ───────────────────────────────────────────
+  const workspaceRoot = (vscodeFolders[0]?.uri.fsPath) ?? process.cwd();
+  const spawner: RipgrepSpawner = {
+    rgPath: join(__dirname, "bin", "rg"),
+    spawn: (path, args, opts) => nodeSpawn(path, args, opts) as ChildProcessLike,
+  };
+  const searchWorkspace = createSearchWorkspace(
+    spawner,
+    workspaceRoot,
+    undefined, // debounceMs — use default
+    host.fileExcludes,
+  );
+  createGrepPicker(searchWorkspace, registry);
+
   context.subscriptions.push(
     host,
     vscode.window.registerWebviewViewProvider(viewId, host, {
       webviewOptions: { retainContextWhenHidden: true },
     }),
-    vscode.commands.registerCommand(commandId, () => host.start("file")),
+    vscode.commands.registerCommand(findFileCommandId, () => host.start("file")),
+    vscode.commands.registerCommand(liveGrepCommandId, () => host.start("grep")),
   );
 }
 
