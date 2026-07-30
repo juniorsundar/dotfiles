@@ -9,12 +9,25 @@ vi.mock("vscode", () => {
   const commands = { executeCommand: vi.fn(async () => {}) };
   const window = {
     activeTextEditor: undefined as undefined,
-    showTextDocument: vi.fn(async () => ({})),
+    showTextDocument: vi.fn(async (uri: any, opts?: any) => ({
+      document: { uri, languageId: "plaintext", getText: () => "", lineCount: 0 },
+      options: opts ?? {},
+    })),
     showInformationMessage: vi.fn(async () => ({})),
   };
   const workspace = {
     registerTextDocumentContentProvider: vi.fn(() => ({ dispose: vi.fn() })),
     textDocuments: [],
+    openTextDocument: vi.fn(async (uri: any) => ({
+      uri,
+      languageId: uri.scheme === "file" ? "plaintext" : "plaintext",
+      getText: () => "",
+      lineCount: 0,
+    })),
+  };
+  const languages = {
+    setTextDocumentLanguage: vi.fn(async (doc: any, id: string) => doc),
+    getLanguages: vi.fn(async () => [] as string[]),
   };
   const Uri = {
     file: (p: string) => ({ fsPath: p, scheme: "file", toString: () => p }),
@@ -50,7 +63,7 @@ vi.mock("vscode", () => {
   };
   // Attach tabGroups to window for targeted close.
   (window as any).tabGroups = tabGroups;
-  return { commands, window, workspace, Uri, ViewColumn, EventEmitter, TabInputText, default: undefined };
+  return { commands, window, workspace, languages, Uri, ViewColumn, EventEmitter, TabInputText, default: undefined };
 });
 
 // ---------------------------------------------------------------------------
@@ -1581,6 +1594,337 @@ describe("PickerHost — streaming source support", () => {
     expect(vscodeMock.window.tabGroups.close).toHaveBeenCalledTimes(1);
     const closedTab = vscodeMock.window.tabGroups.close.mock.calls[0][0];
     expect(closedTab.input.uri.toString()).toBe(actualVirtualUri.toString());
+
+    host.dispose();
+  });
+
+  // ---------------------------------------------------------------------
+  // Ticket 10 — language-mode application on the virtual preview
+  // ---------------------------------------------------------------------
+
+  it("applies the languageId to the virtual document via setTextDocumentLanguage", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const picker: Picker<StreamCandidate> = {
+      id: "lang-apply-test",
+      label: "Language Apply Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({
+          text: "const x = 1;",
+          title: "src/main.ts",
+          languageId: "typescript",
+        });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("lang-apply-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.languages.setTextDocumentLanguage.mockClear();
+
+    view.send({ type: "select", id: "/project/src/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // The host must have applied the language mode to the virtual document.
+    expect(vscodeMock.languages.setTextDocumentLanguage).toHaveBeenCalled();
+    const [calledDoc, calledLang] = vscodeMock.languages.setTextDocumentLanguage.mock.calls[0];
+    // The document is the virtual preview document (scheme vsconsult-preview).
+    expect(calledDoc.uri.scheme).toBe("vsconsult-preview");
+    expect(calledLang).toBe("typescript");
+
+    host.dispose();
+  });
+
+  it("language change across candidates reuses the stable virtual URI", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/alpha.ts", label: "alpha.ts" },
+      { id: "/project/src/beta.css", label: "beta.css" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    let callIndex = 0;
+
+    const picker: Picker<StreamCandidate> = {
+      id: "lang-change-test",
+      label: "Language Change Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        // Alternate: first call -> typescript, second -> css.
+        const id = callIndex++ === 0 ? "typescript" : "css";
+        await ctx.showPreview({ text: "content", title: _c.label, languageId: id });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("lang-change-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.window.showTextDocument.mockClear();
+    vscodeMock.languages.setTextDocumentLanguage.mockClear();
+
+    // Select the .ts candidate.
+    view.send({ type: "select", id: "/project/src/alpha.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Select the .css candidate.
+    view.send({ type: "select", id: "/project/src/beta.css" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Both previews must use the SAME virtual URI (stable identity).
+    const virtualCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualCalls).toHaveLength(2);
+    const virtualUris = virtualCalls.map((call: any) => call[0].toString());
+    expect(new Set(virtualUris).size).toBe(1);
+
+    // No real file URIs were opened for preview.
+    const realCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "file",
+    );
+    expect(realCalls).toHaveLength(0);
+
+    // setTextDocumentLanguage was called twice — first typescript, then css.
+    expect(vscodeMock.languages.setTextDocumentLanguage).toHaveBeenCalledTimes(2);
+    const firstLang = vscodeMock.languages.setTextDocumentLanguage.mock.calls[0][1];
+    const secondLang = vscodeMock.languages.setTextDocumentLanguage.mock.calls[1][1];
+    expect(firstLang).toBe("typescript");
+    expect(secondLang).toBe("css");
+
+    host.dispose();
+  });
+
+  it("unknown language falls back to plaintext — setTextDocumentLanguage called with plaintext", async () => {
+    // Criterion 3: files for which VSCodium has no language association
+    // reset the virtual document to plaintext.
+    const initial: StreamCandidate[] = [
+      { id: "/project/data.xyz", label: "data.xyz" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const picker: Picker<StreamCandidate> = {
+      id: "unknown-lang-test",
+      label: "Unknown Language Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        // Simulate resolveLanguageId returning undefined (no association).
+        await ctx.showPreview({ text: "some data", title: "data.xyz" });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("unknown-lang-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.languages.setTextDocumentLanguage.mockClear();
+    vscodeMock.window.showTextDocument.mockClear();
+
+    view.send({ type: "select", id: "/project/data.xyz" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // The virtual preview document was still shown — preview survives.
+    const virtualCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualCalls).toHaveLength(1);
+
+    // The language is explicitly reset to plaintext.
+    expect(vscodeMock.languages.setTextDocumentLanguage).toHaveBeenCalledWith(
+      expect.objectContaining({ uri: expect.objectContaining({ scheme: "vsconsult-preview" }) }),
+      "plaintext",
+    );
+
+    host.dispose();
+  });
+
+  it("a late older selection cannot overwrite the current preview's language mode", async () => {
+    // Criterion 4: Language-mode updates respect the latest selected candidate.
+    // A slow showTextDocument for an older selection must not overwrite
+    // the language the newer candidate already applied.
+    const initial: StreamCandidate[] = [
+      { id: "/project/alpha.ts", label: "alpha.ts" },
+      { id: "/project/beta.css", label: "beta.css" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const picker: Picker<StreamCandidate> = {
+      id: "stale-lang-test",
+      label: "Stale Language Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        const lang = _c.id.endsWith(".ts") ? "typescript" : "css";
+        await ctx.showPreview({ text: "content", title: _c.label, languageId: lang });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("stale-lang-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+
+    // Defer the first showTextDocument for the virtual preview so A's
+    // preview hangs while B's runs and completes.
+    let resolveDeferredShow: (() => void) | undefined;
+    const deferredShow = new Promise<void>((resolve) => {
+      resolveDeferredShow = resolve;
+    });
+    let firstVirtualShow = true;
+    const originalShowTextDocument = vscodeMock.window.showTextDocument;
+    vscodeMock.window.showTextDocument = vi.fn(
+      async (uri: any, opts?: any) => {
+        if (
+          uri?.scheme === "vsconsult-preview" &&
+          firstVirtualShow
+        ) {
+          firstVirtualShow = false;
+          await deferredShow;
+        }
+        return {
+          document: { uri, languageId: "plaintext", getText: () => "", lineCount: 0 },
+          options: opts ?? {},
+        };
+      },
+    );
+    vscodeMock.languages.setTextDocumentLanguage.mockClear();
+
+    // Select alpha (.ts) — its showPreview starts but hangs at showTextDocument.
+    view.send({ type: "select", id: "/project/alpha.ts" });
+    await new Promise((r) => setTimeout(r, 200)); // past debounce
+
+    // Select beta (.css) — bumps generation, preview runs and completes.
+    view.send({ type: "select", id: "/project/beta.css" });
+    await new Promise((r) => setTimeout(r, 200)); // past debounce
+
+    // Beta's setTextDocumentLanguage must have been called with 'css'.
+    expect(vscodeMock.languages.setTextDocumentLanguage).toHaveBeenCalled();
+    const betaCall = vscodeMock.languages.setTextDocumentLanguage.mock.calls[0];
+    expect(betaCall[1]).toBe("css");
+
+    // Now resolve alpha's deferred showTextDocument — the late older
+    // showPreview must NOT overwrite beta's language.
+    vscodeMock.languages.setTextDocumentLanguage.mockClear();
+    resolveDeferredShow?.();
+    await new Promise((r) => setTimeout(r, 50));
+
+    // No further setTextDocumentLanguage call — the stale generation guard
+    // suppressed alpha's language-mode update.
+    expect(vscodeMock.languages.setTextDocumentLanguage).not.toHaveBeenCalled();
+
+    // Restore original mock.
+    vscodeMock.window.showTextDocument = originalShowTextDocument;
+
+    host.dispose();
+  });
+
+  it("resets language to plaintext when moving from known to unknown candidate", async () => {
+    // Criterion 3 + criterion 2: when cycling from a known-language
+    // candidate to one with no language association, the existing stable
+    // virtual document must reset to plaintext — not retain the old mode.
+    const initial: StreamCandidate[] = [
+      { id: "/project/main.ts", label: "main.ts" },
+      { id: "/project/data.xyz", label: "data.xyz" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    let callIndex = 0;
+
+    const picker: Picker<StreamCandidate> = {
+      id: "known-to-unknown-test",
+      label: "Known-to-Unknown Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        // First call: known language (typescript).
+        // Second call: no language association (undefined).
+        const id = callIndex++ === 0 ? "typescript" : undefined;
+        await ctx.showPreview({ text: "content", title: _c.label, languageId: id });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("known-to-unknown-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.languages.setTextDocumentLanguage.mockClear();
+
+    // Select the .ts candidate — language set to typescript.
+    view.send({ type: "select", id: "/project/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+    expect(vscodeMock.languages.setTextDocumentLanguage).toHaveBeenCalledWith(
+      expect.objectContaining({ uri: expect.objectContaining({ scheme: "vsconsult-preview" }) }),
+      "typescript",
+    );
+
+    vscodeMock.languages.setTextDocumentLanguage.mockClear();
+
+    // Now select the .xyz candidate — no language association.
+    view.send({ type: "select", id: "/project/data.xyz" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // The stable virtual document must be reset to plaintext.
+    expect(vscodeMock.languages.setTextDocumentLanguage).toHaveBeenCalledWith(
+      expect.objectContaining({ uri: expect.objectContaining({ scheme: "vsconsult-preview" }) }),
+      "plaintext",
+    );
 
     host.dispose();
   });

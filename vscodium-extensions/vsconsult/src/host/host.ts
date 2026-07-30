@@ -492,6 +492,16 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         if (!session?.origin) return undefined;
         return { uri: session.origin.uri };
       },
+      resolveLanguageId: async (uri: string): Promise<string | undefined> => {
+        try {
+          const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
+          return doc.languageId;
+        } catch {
+          // Non-fatal: file may not exist, be binary, or otherwise
+          // fail to open.  Plain text is the safe fallback.
+          return undefined;
+        }
+      },
       showPreview: async (p: {
         text: string;
         title: string;
@@ -506,11 +516,24 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         session.virtualPreview.updateContent(header + p.text, p.title, p.languageId);
         const uri = session.virtualPreview.virtualUri("");
         try {
-          await vscode.window.showTextDocument(uri, {
+          const editor = await vscode.window.showTextDocument(uri, {
             viewColumn: session?.origin?.viewColumn ?? vscode.ViewColumn.Active,
             preserveFocus: true,
             preview: false,
           });
+          // Apply language mode to the virtual document so
+          // recognisable source files get syntax highlighting.
+          // When no language is associated (undefined), explicitly
+          // reset to plaintext so a previous candidate's mode does
+          // not leak onto the current preview.
+          const targetLanguage = p.languageId ?? "plaintext";
+          if (editor?.document) {
+            // Guard stale: a newer selection may have fired while
+            // we awaited showTextDocument.
+            if (this.session !== session || session.tornDown) return;
+            if (previewGen !== undefined && session.previewGeneration !== previewGen) return;
+            await vscode.languages.setTextDocumentLanguage(editor.document, targetLanguage);
+          }
         } catch {
           // showTextDocument may fail if the provider was disposed
           // concurrently — the debounce swallows this silently.

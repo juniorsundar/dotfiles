@@ -6,9 +6,9 @@
 
 **Status:** ready-for-agent
 
-- [ ] A previewed recognisable source file uses the same language identifier VSCodium would select for its real candidate URI; for example, a `.ts` candidate receives TypeScript highlighting rather than Plain Text.
-- [ ] Moving from a candidate of one language to another updates the language mode of the existing stable virtual document without opening a new virtual URI or the candidate's real `file:` URI.
-- [ ] Files for which VSCodium has no language association retain a safe fallback language mode and do not break previewing.
-- [ ] Language-mode updates respect the latest selected candidate; a late update from an older selection cannot overwrite the current preview's language mode.
-- [ ] The virtual preview remains read-only, session-owned, and history-contained: Ctrl+P behavior proven by ticket 07 remains unchanged.
-- [ ] Host-level behavioral tests cover known-language application, language changes across candidates, unknown-language fallback, stable URI identity, and stale asynchronous selection protection.
+- [x] A previewed recognisable source file uses the same language identifier VSCodium would select for its real candidate URI; for example, a `.ts` candidate receives TypeScript highlighting rather than Plain Text.
+- [x] Moving from a candidate of one language to another updates the language mode of the existing stable virtual document without opening a new virtual URI or the candidate's real `file:` URI.
+- [x] Files for which VSCodium has no language association retain a safe fallback language mode and do not break previewing.
+- [x] Language-mode updates respect the latest selected candidate; a late update from an older selection cannot overwrite the current preview's language mode.
+- [x] The virtual preview remains read-only, session-owned, and history-contained: Ctrl+P behavior proven by ticket 07 remains unchanged.
+- [x] Host-level behavioral tests cover known-language application, language changes across candidates, unknown-language fallback, stable URI identity, and stale asynchronous selection protection.

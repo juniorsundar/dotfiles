@@ -32,6 +32,13 @@ export interface PickerContext {
     languageId?: string;
   }): Promise<void>;
 
+  /** Resolve the language identifier VSCodium would select for a real file URI.
+   *
+   * Returns `undefined` when no language is associated or resolution fails.
+   * Callers should treat `undefined` as plain text.
+   */
+  resolveLanguageId?(uri: string): Promise<string | undefined>;
+
   /** Close the session-owned virtual preview document. */
   closePreview(): Promise<void>;
 

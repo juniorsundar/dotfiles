@@ -16,9 +16,24 @@ export async function previewFileCandidate(
   context: PickerContext,
 ): Promise<void> {
   const content = await context.readPreviewContent(candidate.id);
+  // Only resolve language for normal full previews; binary,
+  // truncated, and error content may use plain text (spec / ADR 0004).
+  const shouldResolve =
+    !content.binary && !content.truncated && !content.error;
+  let languageId: string | undefined;
+  if (shouldResolve && context.resolveLanguageId) {
+    try {
+      languageId = await context.resolveLanguageId(candidate.id);
+    } catch {
+      // Non-fatal: a failing resolver must not break previewing.
+      // Fall through — plain text is the safe fallback.
+      languageId = undefined;
+    }
+  }
   await context.showPreview({
     text: previewBody(content),
     title: candidate.relativePath,
+    languageId,
   });
 }
 
