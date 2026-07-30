@@ -194,6 +194,36 @@ describe("PickerHost — streaming source support", () => {
     vscodeMock.window.activeTextEditor = undefined;
   });
 
+  it("re-sends reset when a newly created webview becomes ready", async () => {
+    const source: Source<StreamCandidate> = (_query, _signal) => ({
+      candidates: [{ id: "i1", label: "initial" }],
+    });
+    registry.register(makePicker("cold-start", source));
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    await host.start("cold-start");
+    view.send({ type: "query", query: "main" });
+
+    // Model a cold webview: messages posted before its script sent `ready`
+    // were not observed by the page.
+    view.clear();
+    view.send({ type: "ready" });
+
+    await vi.waitFor(() => {
+      const resetIndex = view.outbound.findIndex((message) => message.type === "reset");
+      const queryIndex = view.outbound.findIndex(
+        (message) => message.type === "setQuery" && message.query === "main",
+      );
+
+      expect(resetIndex).toBeGreaterThanOrEqual(0);
+      expect(queryIndex).toBeGreaterThan(resetIndex);
+    });
+
+    host.dispose();
+  });
+
   it("appends streamed batches to the visible set and posts incremental results", async () => {
     const initial: StreamCandidate[] = [{ id: "i1", label: "initial" }];
     const { source, emitBatch } = fakeStreamingSource(initial);

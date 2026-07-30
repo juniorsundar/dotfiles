@@ -188,6 +188,10 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         // state so the view can reconstruct itself.
         if (this.session) {
           this.post({ type: "configure", config: buildPickerConfig(this.session.picker) });
+          // On the first invocation, start() may post reset before the newly
+          // created webview script is ready to receive it. Re-send reset as
+          // part of ready-state reconstruction so the input is focused.
+          this.post({ type: "reset" });
           this.post({ type: "setQuery", query: this.session.query });
           this.sendResults();
         }
