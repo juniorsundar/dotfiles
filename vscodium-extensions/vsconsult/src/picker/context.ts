@@ -12,6 +12,19 @@ export interface PickerContext {
     options?: { preview?: boolean },
   ): Promise<unknown>;
 
+  /** Read a file's content by absolute path. */
+  readFile(uri: string): Promise<string>;
+
+  /** Show or update the session-owned virtual preview document. */
+  showPreview(p: {
+    text: string;
+    title: string;
+    languageId?: string;
+  }): Promise<void>;
+
+  /** Close the session-owned virtual preview document. */
+  closePreview(): Promise<void>;
+
   /** Reveal a position in an already-open document. */
   revealPosition(
     uri: string,

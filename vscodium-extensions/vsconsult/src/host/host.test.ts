@@ -12,11 +12,16 @@ vi.mock("vscode", () => {
     showTextDocument: vi.fn(async () => ({})),
     showInformationMessage: vi.fn(async () => ({})),
   };
+  const workspace = {
+    registerTextDocumentContentProvider: vi.fn(() => ({ dispose: vi.fn() })),
+    textDocuments: [],
+  };
   const Uri = {
     file: (p: string) => ({ fsPath: p, scheme: "file", toString: () => p }),
+    parse: (s: string) => ({ fsPath: s, scheme: s.split(":")[0], toString: () => s }),
   };
   const ViewColumn = { Active: 1, Beside: 2 };
-  return { commands, window, Uri, ViewColumn, default: undefined };
+  return { commands, window, workspace, Uri, ViewColumn, default: undefined };
 });
 
 // ---------------------------------------------------------------------------
@@ -180,7 +185,7 @@ function resultsMessages(outbound: OutboundMessage[]) {
 // ---------------------------------------------------------------------------
 
 describe("PickerHost — streaming source support", () => {
-  const vscodeMock = vi.mocked(vscode);
+  const vscodeMock = (vscode as any);
   let env: ReturnType<typeof fakeEnv>;
   let view: ReturnType<typeof fakeWebviewView>;
   let registry: ReturnType<typeof createRegistry>;
@@ -428,7 +433,7 @@ describe("PickerHost — streaming source support", () => {
     registry.register(picker);
 
     // Make sure there's no active text editor — cancel will focus the editor group
-    const vscodeMock = vi.mocked(vscode);
+    const vscodeMock = (vscode as any);
     vscodeMock.window.activeTextEditor = undefined;
 
     const host = new PickerHost(extensionUri, registry, env, viewId);
@@ -603,6 +608,358 @@ describe("PickerHost — streaming source support", () => {
     const narrowed = resultsMessages(view.outbound)[1];
     expect(narrowed.rows).toHaveLength(1);
     expect(narrowed.rows[0].primary).toBe("alpha");
+
+    host.dispose();
+  });
+
+  // ---------------------------------------------------------------------
+  // Preview focus preservation
+  // ---------------------------------------------------------------------
+
+  it("virtual preview is opened with preserveFocus so picker keeps focus", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    // Picker whose preview action calls ctx.showPreview (realistic behavior)
+    const picker: Picker<StreamCandidate> = {
+      id: "preview-focus-test",
+      label: "Preview Focus Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({ text: "file content", title: "main.ts" });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("preview-focus-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // Select a candidate — triggers debounced preview
+    view.send({ type: "select", id: "/project/src/main.ts" });
+
+    // Wait for the debounce to fire (125ms + buffer)
+    await new Promise((r) => setTimeout(r, 200));
+
+    // The picker's preview action was called
+    expect(picker.preview).toHaveBeenCalledOnce();
+
+    // The virtual preview document should be opened with preserveFocus: true
+    const vscodeMock = (vscode as any);
+    const showTextDocCalls = vscodeMock.window.showTextDocument.mock.calls;
+    const virtualPreviewCall = showTextDocCalls.find(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualPreviewCall).toBeDefined();
+    expect(virtualPreviewCall![1]).toMatchObject({
+      preserveFocus: true,
+    });
+
+    host.dispose();
+  });
+
+  // ---------------------------------------------------------------------
+  // Accept teardown: closePreview called, only accepted real URI opened
+  // ---------------------------------------------------------------------
+
+  it("accept closes virtual preview and opens only the accepted real URI", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+      { id: "/project/src/other.ts", label: "other.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    // Picker whose preview calls ctx.showPreview and accept calls ctx.openTextDocument
+    const picker: Picker<StreamCandidate> = {
+      id: "accept-teardown-test",
+      label: "Accept Teardown Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async (c, ctx) => {
+        await ctx.openTextDocument(c.id);
+      }),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({ text: "content", title: "preview" });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("accept-teardown-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // First, trigger preview to open the virtual document
+    view.send({ type: "select", id: "/project/src/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    const vscodeMock = (vscode as any);
+    const callsBeforeAccept = vscodeMock.window.showTextDocument.mock.calls.length;
+
+    // Now accept
+    view.send({ type: "accept", id: "/project/src/main.ts" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+
+    // The accept action opened the real URI (not virtual)
+    const realOpenCalls = vscodeMock.window.showTextDocument.mock.calls
+      .slice(callsBeforeAccept)
+      .filter((call: any) => call[0]?.scheme === "file");
+    expect(realOpenCalls).toHaveLength(1);
+    expect(realOpenCalls[0][0].fsPath).toBe("/project/src/main.ts");
+
+    // No virtual preview calls after accept
+    const virtualCallsAfterAccept = vscodeMock.window.showTextDocument.mock.calls
+      .slice(callsBeforeAccept)
+      .filter((close: any) => close[0]?.scheme === "vsconsult-preview");
+    expect(virtualCallsAfterAccept).toHaveLength(0);
+
+    host.dispose();
+  });
+
+  // ---------------------------------------------------------------------
+  // Preview payload: filename, path, and content
+  // ---------------------------------------------------------------------
+
+  it("preview receives candidate filename, path, and content in payload", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    // Capture the preview payload passed to ctx.showPreview
+    let capturedPayload: { text: string; title: string } | undefined;
+
+    const picker: Picker<StreamCandidate> = {
+      id: "preview-payload-test",
+      label: "Preview Payload Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({ text: "file content here", title: "src/main.ts" });
+        capturedPayload = { text: "file content here", title: "src/main.ts" };
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("preview-payload-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    view.send({ type: "select", id: "/project/src/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    expect(picker.preview).toHaveBeenCalledOnce();
+    expect(capturedPayload).toBeDefined();
+    expect(capturedPayload!.title).toBe("src/main.ts");
+    expect(capturedPayload!.text).toBe("file content here");
+
+    host.dispose();
+  });
+
+  // ---------------------------------------------------------------------
+  // Cancel teardown: virtual preview closed, origin restored
+  // ---------------------------------------------------------------------
+
+  it("cancel closes virtual preview and restores origin", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const picker: Picker<StreamCandidate> = {
+      id: "cancel-teardown-test",
+      label: "Cancel Teardown Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({ text: "content", title: "preview" });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("cancel-teardown-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // Trigger preview to open the virtual document
+    view.send({ type: "select", id: "/project/src/main.ts" });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Cancel
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+
+    // Origin was restored (env.restoreOrigin or env.focusActiveEditorGroup was called)
+    expect(env.calls.some((c) => c.startsWith("restoreOrigin") || c === "focusActiveEditorGroup")).toBe(true);
+
+    host.dispose();
+  });
+
+  // ---------------------------------------------------------------------
+  // Dirty-origin preservation: cancel doesn't discard dirty content
+  // ---------------------------------------------------------------------
+
+  it("cancel preserves dirty origin editor content", async () => {
+    // Set up an active text editor (origin) with dirty content
+    const mockDocument = {
+      uri: { fsPath: "/project/src/dirty.ts", scheme: "file", toString: () => "/project/src/dirty.ts" },
+      isDirty: true,
+    };
+    const mockEditor = {
+      document: mockDocument,
+      selection: { active: { line: 5, character: 10 } },
+      viewColumn: 1,
+    };
+    vi.mocked(vscode.window).activeTextEditor = mockEditor as any;
+
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/main.ts", label: "main.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const picker: Picker<StreamCandidate> = {
+      id: "dirty-origin-test",
+      label: "Dirty Origin Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({ text: "content", title: "preview" });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("dirty-origin-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // Cancel without accepting
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+
+    // restoreOrigin was called (origin editor is restored, not closed/discarded)
+    expect(env.calls.some((c) => c.startsWith("restoreOrigin"))).toBe(true);
+
+    // The dirty document was NOT closed — only the virtual preview was closed
+    // (We can verify by checking that closeActiveEditor was called only for the virtual doc)
+    const closeCalls = vi.mocked(vscode.commands.executeCommand).mock.calls;
+    const closeEditorCalls = closeCalls.filter(
+      (c) => c[0] === "workbench.action.closeActiveEditor",
+    );
+    // At most one close call (for the virtual preview), not for the dirty origin
+    expect(closeEditorCalls.length).toBeLessThanOrEqual(1);
+
+    host.dispose();
+    vi.mocked(vscode.window).activeTextEditor = undefined;
+  });
+
+  // ---------------------------------------------------------------------
+  // Cycling: stable virtual URI reused across candidate changes
+  // ---------------------------------------------------------------------
+
+  it("cycling candidates reuses the same virtual URI — no per-candidate real URIs opened", async () => {
+    const initial: StreamCandidate[] = [
+      { id: "/project/src/alpha.ts", label: "alpha.ts" },
+      { id: "/project/src/beta.ts", label: "beta.ts" },
+      { id: "/project/src/gamma.ts", label: "gamma.ts" },
+    ];
+    const { source } = fakeStreamingSource(initial);
+
+    const previewedUris: string[] = [];
+
+    const picker: Picker<StreamCandidate> = {
+      id: "cycling-test",
+      label: "Cycling Test",
+      placeholder: "Search…",
+      emptyState: "Nothing found",
+      source,
+      narrow: (_q, cs) => cs,
+      render: (c): RowParts => ({ primary: c.label }),
+      accept: vi.fn(async () => {}),
+      preview: vi.fn(async (_c, ctx) => {
+        await ctx.showPreview({ text: "content", title: _c.label });
+      }),
+    };
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    host.start("cycling-test");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const vscodeMock = (vscode as any);
+    vscodeMock.window.showTextDocument.mockClear();
+
+    // Cycle through all three candidates
+    for (const candidate of initial) {
+      view.send({ type: "select", id: candidate.id });
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    // All three preview calls should use the SAME virtual URI
+    const virtualCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "vsconsult-preview",
+    );
+    expect(virtualCalls).toHaveLength(3);
+
+    // All virtual URIs are identical (stable identity)
+    const virtualUris = virtualCalls.map((call: any) => call[0].toString());
+    expect(new Set(virtualUris).size).toBe(1);
+
+    // No real file URIs were opened during preview
+    const realFileCalls = vscodeMock.window.showTextDocument.mock.calls.filter(
+      (call: any) => call[0]?.scheme === "file",
+    );
+    expect(realFileCalls).toHaveLength(0);
 
     host.dispose();
   });

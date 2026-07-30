@@ -19,6 +19,13 @@ function fakeContext(): PickerContext & { calls: string[] } {
     openTextDocument: vi.fn(async (uri: string) => {
       calls.push(`open:${uri}`);
     }),
+    readFile: vi.fn(async () => ""),
+    showPreview: vi.fn(async () => {
+      calls.push("showPreview");
+    }),
+    closePreview: vi.fn(async () => {
+      calls.push("closePreview");
+    }),
     revealPosition: vi.fn(),
     executeCommand: vi.fn(),
     readOrigin: vi.fn(() => undefined),
@@ -44,20 +51,18 @@ describe("acceptFileCandidate", () => {
 });
 
 describe("previewFileCandidate", () => {
-  it("opens the document in preview mode", async () => {
+  it("calls showPreview with the file content, not openTextDocument", async () => {
     const ctx = fakeContext();
     await previewFileCandidate(aFile, ctx);
 
-    expect(ctx.openTextDocument).toHaveBeenCalledOnce();
-    expect(ctx.openTextDocument).toHaveBeenCalledWith(aFile.id, {
-      preview: true,
-    });
+    expect(ctx.showPreview).toHaveBeenCalledOnce();
+    expect(ctx.openTextDocument).not.toHaveBeenCalled();
   });
 
-  it("does not perform lifecycle (only openTextDocument)", async () => {
+  it("does not perform lifecycle (only showPreview)", async () => {
     const ctx = fakeContext();
     await previewFileCandidate(aFile, ctx);
 
-    expect(ctx.calls).toEqual([`open:${aFile.id}`]);
+    expect(ctx.calls).toEqual(["showPreview"]);
   });
 });

@@ -28,6 +28,9 @@ describe("file picker — picker seam", () => {
         opened.push(uri);
       }
     }),
+    readFile: vi.fn(async () => ""),
+    showPreview: vi.fn(async () => {}),
+    closePreview: vi.fn(async () => {}),
     revealPosition: vi.fn(),
     executeCommand: vi.fn(),
     readOrigin: vi.fn(() => undefined),
@@ -38,6 +41,7 @@ describe("file picker — picker seam", () => {
   beforeEach(() => {
     opened.length = 0;
     previewOpened.length = 0;
+    vi.clearAllMocks();
   });
 
   it("has all Picker bundle parts including metadata", () => {
@@ -82,15 +86,15 @@ describe("file picker — picker seam", () => {
     expect(fakeContext.executeCommand).not.toHaveBeenCalled();
   });
 
-  it("preview opens with preview flag", async () => {
+  it("preview calls showPreview instead of openTextDocument", async () => {
     const picker = createFilePicker(workspace, registry);
     const session = picker.source("", new AbortController().signal);
     const allCandidates = await session.candidates;
     const narrowed = picker.narrow("beta", allCandidates);
 
     await picker.preview(narrowed[0], fakeContext);
-    expect(previewOpened).toEqual([narrowed[0].id]);
-    expect(opened).toEqual([]);
+    expect(fakeContext.showPreview).toHaveBeenCalledOnce();
+    expect(fakeContext.openTextDocument).not.toHaveBeenCalled();
   });
 
   it("is registered in the registry at assembly time", () => {

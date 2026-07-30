@@ -6,7 +6,7 @@
  * triggers a preview. `cancel()` clears the pending timer.
  */
 export function createPreviewDebounce(
-  callback: (id: string) => void,
+  callback: (id: string) => void | Promise<void>,
   delayMs: number,
 ): {
   schedule: (id: string) => void;
@@ -20,7 +20,10 @@ export function createPreviewDebounce(
     }
     timer = setTimeout(() => {
       timer = undefined;
-      callback(id);
+      Promise.resolve(callback(id)).catch(() => {
+        // Swallow errors from the async callback — the host handles
+        // errors at a higher level.
+      });
     }, delayMs);
   }
 

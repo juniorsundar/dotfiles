@@ -7,6 +7,8 @@ import type { PickerContext } from "../picker/context.js";
 import type { InboundMessage, OutboundMessage, PickerConfig, RowMessage } from "./protocol.js";
 import { buildPickerConfig, shapeCandidateRows } from "./protocol.js";
 import { createPreviewDebounce } from "./debounce.js";
+import { createVirtualPreview } from "./virtualPreview.js";
+import type { VirtualPreviewProvider } from "./virtualPreview.js";
 import type { HostEnv, Origin } from "./lifecycle.js";
 import { runCancel, runExit } from "./lifecycle.js";
 
@@ -22,6 +24,8 @@ interface HostSession {
   query: string;
   /** AbortController for the current source run. Aborted on exit / query re-run. */
   sourceController: AbortController;
+  /** Session-owned virtual preview provider. */
+  virtualPreview: VirtualPreviewProvider;
 }
 
 // ---------------------------------------------------------------------------
@@ -110,7 +114,8 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
 
     // Initialise session
     const sourceController = new AbortController();
-    this.session = { picker, origin, panelWasVisible, candidates: [], query: "", sourceController };
+    const virtualPreview = createVirtualPreview();
+    this.session = { picker, origin, panelWasVisible, candidates: [], query: "", sourceController, virtualPreview };
 
     // Send the picker's configuration once — the view holds this until
     // the next start() call.
@@ -334,6 +339,23 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     // Abort any in-flight source run so the streaming loop stops.
     session.sourceController.abort();
 
+    // Close the virtual preview document editor (if open) and clear its content.
+    const uri = session.virtualPreview.virtualUri("");
+    const doc = vscode.workspace.textDocuments.find(
+      (d) => d.uri.toString() === uri.toString(),
+    );
+    if (doc) {
+      await vscode.window.showTextDocument(doc.uri, {
+        viewColumn: undefined,
+        preserveFocus: true,
+      });
+      await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+    }
+    session.virtualPreview.closeContent();
+
+    // Dispose the virtual preview provider registration.
+    session.virtualPreview.dispose();
+
     this.session = undefined;
     this.post({ type: "idle" });
     await runExit(this.env, session.panelWasVisible);
@@ -375,6 +397,10 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
           preview: options?.preview ?? false,
         });
       },
+      readFile: async (uri: string): Promise<string> => {
+        const { readFile } = await import("node:fs/promises");
+        return readFile(uri, "utf8");
+      },
       revealPosition: (uri: string, position: { line: number; character: number }): void => {
         const editor = vscode.window.visibleTextEditors.find(
           (e) => e.document.uri.fsPath === uri,
@@ -397,6 +423,37 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
       readOrigin: () => {
         if (!session?.origin) return undefined;
         return { uri: session.origin.uri };
+      },
+      showPreview: async (p: {
+        text: string;
+        title: string;
+        languageId?: string;
+      }): Promise<void> => {
+        if (!session?.virtualPreview) return;
+        // Prepend a header line so the candidate filename/path is visible
+        // in the virtual document body (the URI itself is fixed).
+        const header = `// ${p.title}\n\n`;
+        session.virtualPreview.updateContent(header + p.text, p.title, p.languageId);
+        const uri = session.virtualPreview.virtualUri("");
+        await vscode.window.showTextDocument(uri, {
+          viewColumn: session?.origin?.viewColumn ?? vscode.ViewColumn.Active,
+          preserveFocus: true,
+          preview: false,
+        });
+      },
+      closePreview: async (): Promise<void> => {
+        if (!session?.virtualPreview) return;
+        session.virtualPreview.closeContent();
+        // Close the virtual preview document via the vscode API.
+        const uri = session.virtualPreview.virtualUri("");
+        const doc = vscode.workspace.textDocuments.find(
+          (d) => d.uri.toString() === uri.toString(),
+        );
+        if (doc) {
+          await vscode.commands.executeCommand(
+            "workbench.action.closeActiveEditor",
+          );
+        }
       },
     };
   }

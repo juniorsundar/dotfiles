@@ -2,14 +2,18 @@ import type { PickerContext } from "../picker/context.js";
 import type { FileCandidate } from "../picker/types.js";
 
 /**
- * Previews a FileCandidate by opening the file in preview mode.
+ * Previews a FileCandidate by showing the session-owned virtual preview.
  *
- * Like Accept, Preview performs only the effect (open document as preview).
+ * Like Accept, Preview performs only the effect (update virtual document).
  * The host owns lifecycle.
  */
 export async function previewFileCandidate(
   candidate: FileCandidate,
   context: PickerContext,
 ): Promise<void> {
-  await context.openTextDocument(candidate.id, { preview: true });
+  const text = await context.readFile(candidate.id);
+  await context.showPreview({
+    text,
+    title: candidate.relativePath,
+  });
 }
