@@ -53,6 +53,8 @@ export function createVirtualPreview(): VirtualPreviewProvider {
   let content = "";
   let currentTitle = "";
   let currentLanguageId: string | undefined;
+  const changeEmitter = new vscode.EventEmitter<vscode.Uri>();
+  const stableUri = vscode.Uri.parse(`${SCHEME}:session`);
 
   const provider = {
     get scheme() {
@@ -61,8 +63,10 @@ export function createVirtualPreview(): VirtualPreviewProvider {
 
     virtualUri(_candidateId: string): vscode.Uri {
       // One stable URI — candidate id is ignored for identity purposes.
-      return vscode.Uri.parse(`${SCHEME}:session`);
+      return stableUri;
     },
+
+    onDidChange: changeEmitter.event,
 
     updateContent(
       text: string,
@@ -72,6 +76,9 @@ export function createVirtualPreview(): VirtualPreviewProvider {
       content = text;
       currentTitle = title;
       currentLanguageId = languageId;
+      // The URI is stable, so VSCodium needs this event to request the
+      // current content again when the picker selection changes.
+      changeEmitter.fire(stableUri);
     },
 
     closeContent(): void {
@@ -95,6 +102,7 @@ export function createVirtualPreview(): VirtualPreviewProvider {
 
   // Register the provider with vscode under the fixed scheme.
   const registration = vscode.workspace.registerTextDocumentContentProvider(SCHEME, {
+    onDidChange: provider.onDidChange,
     provideTextDocumentContent(uri: vscode.Uri): string {
       return provider.provideTextDocumentContent(uri);
     },
@@ -114,6 +122,7 @@ export function createVirtualPreview(): VirtualPreviewProvider {
     },
     dispose() {
       registration.dispose();
+      changeEmitter.dispose();
     },
   };
 }

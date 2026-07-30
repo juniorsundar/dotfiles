@@ -10,7 +10,6 @@ vi.mock("vscode", () => {
     activeTextEditor: undefined as undefined,
     showTextDocument: vi.fn(async () => ({})),
     showInformationMessage: vi.fn(async () => ({})),
-    registerTextDocumentContentProvider: vi.fn(),
   };
   const workspace = {
     registerTextDocumentContentProvider: vi.fn(() => ({ dispose: vi.fn() })),
@@ -19,8 +18,19 @@ vi.mock("vscode", () => {
     file: (p: string) => ({ fsPath: p, scheme: "file", toString: () => p }),
     parse: (s: string) => ({ fsPath: s, scheme: s.split(":")[0], toString: () => s }),
   };
+  class EventEmitter<T> {
+    private readonly listeners = new Set<(value: T) => void>();
+    readonly event = (listener: (value: T) => void) => {
+      this.listeners.add(listener);
+      return { dispose: () => this.listeners.delete(listener) };
+    };
+    fire(value: T): void {
+      for (const listener of this.listeners) listener(value);
+    }
+    dispose(): void { this.listeners.clear(); }
+  }
   const ViewColumn = { Active: 1, Beside: 2 };
-  return { commands, window, workspace, Uri, ViewColumn, default: undefined };
+  return { commands, window, workspace, Uri, ViewColumn, EventEmitter, default: undefined };
 });
 
 // ---------------------------------------------------------------------------
@@ -28,7 +38,7 @@ vi.mock("vscode", () => {
 // ---------------------------------------------------------------------------
 
 import { createVirtualPreview } from "./virtualPreview.js";
-import type * as vscode from "vscode";
+import * as vscode from "vscode";
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -38,6 +48,7 @@ describe("createVirtualPreview", () => {
   let provider: ReturnType<typeof createVirtualPreview>;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     provider = createVirtualPreview();
   });
 
@@ -73,6 +84,22 @@ describe("createVirtualPreview", () => {
     expect(content).toBe("second");
   });
 
+  it("notifies VSCodium to reload the stable URI after every content update", () => {
+    const registrations = (vscode.workspace.registerTextDocumentContentProvider as any).mock.calls;
+    expect(registrations).toHaveLength(1);
+    const registeredProvider = registrations[0][1];
+    const changed: string[] = [];
+    registeredProvider.onDidChange((uri: vscode.Uri) => changed.push(uri.toString()));
+
+    provider.updateContent("first", "file1.txt");
+    provider.updateContent("second", "file2.txt");
+
+    expect(changed).toEqual([
+      provider.virtualUri("file1.txt").toString(),
+      provider.virtualUri("file2.txt").toString(),
+    ]);
+  });
+
   it("closeContent clears the stored content", () => {
     provider.updateContent("some content", "file.txt", "plaintext");
 
@@ -82,6 +109,14 @@ describe("createVirtualPreview", () => {
       provider.virtualUri("any.txt"),
     );
     expect(content).toBe("");
+  });
+
+  it("can publish a new candidate after the preview is closed", () => {
+    provider.updateContent("first", "first.txt");
+    provider.closeContent();
+    provider.updateContent("second", "second.txt");
+
+    expect(provider.provideTextDocumentContent(provider.virtualUri("any.txt"))).toBe("second");
   });
 
   it("provides the title (filename) for the last-updated candidate", () => {

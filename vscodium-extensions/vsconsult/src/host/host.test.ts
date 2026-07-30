@@ -10,7 +10,7 @@ vi.mock("vscode", () => {
   const window = {
     activeTextEditor: undefined as undefined,
     showTextDocument: vi.fn(async () => ({})),
-    showInformationMessage: vi.fn(async () => ({})),
+    showInformationMessage: vi.fn(async () => ({}))
   };
   const workspace = {
     registerTextDocumentContentProvider: vi.fn(() => ({ dispose: vi.fn() })),
@@ -20,8 +20,19 @@ vi.mock("vscode", () => {
     file: (p: string) => ({ fsPath: p, scheme: "file", toString: () => p }),
     parse: (s: string) => ({ fsPath: s, scheme: s.split(":")[0], toString: () => s }),
   };
+  class EventEmitter<T> {
+    private readonly listeners = new Set<(value: T) => void>();
+    readonly event = (listener: (value: T) => void) => {
+      this.listeners.add(listener);
+      return { dispose: () => this.listeners.delete(listener) };
+    };
+    fire(value: T): void {
+      for (const listener of this.listeners) listener(value);
+    }
+    dispose(): void { this.listeners.clear(); }
+  }
   const ViewColumn = { Active: 1, Beside: 2 };
-  return { commands, window, workspace, Uri, ViewColumn, default: undefined };
+  return { commands, window, workspace, Uri, ViewColumn, EventEmitter, default: undefined };
 });
 
 // ---------------------------------------------------------------------------
