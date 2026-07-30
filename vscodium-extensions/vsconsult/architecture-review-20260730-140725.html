@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Architecture review — vsconsult</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .seam { stroke-dasharray: 4 4; }
+      .leak { stroke: #dc2626; }
+      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
+      .band-label { writing-mode: vertical-rl; }
+      body { font-feature-settings: "ss01"; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans antialiased">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-14">
+
+      <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+      <header class="space-y-4">
+        <h1 class="font-serif text-4xl tracking-tight">Architecture review — <span class="italic">vsconsult</span></h1>
+        <p class="text-sm text-slate-500">2026-07-30 · scoped to <code class="text-xs bg-stone-200 rounded px-1">src/host</code> (hot spot: last two bug fixes landed there) plus repo-wide sweep</p>
+        <div class="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-600 border-y border-stone-200 py-3">
+          <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 border-2 border-slate-700 rounded-sm bg-white"></span> module</span>
+          <span class="flex items-center gap-2"><svg width="28" height="6"><line x1="0" y1="3" x2="28" y2="3" stroke="#64748b" stroke-width="2" stroke-dasharray="4 3"/></svg> seam</span>
+          <span class="flex items-center gap-2"><svg width="28" height="6"><line x1="0" y1="3" x2="28" y2="3" stroke="#dc2626" stroke-width="2"/></svg> leakage</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded-sm deep"></span> deep module</span>
+        </div>
+        <!-- quality snapshot -->
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-relaxed">
+          <span class="font-semibold text-emerald-900">Overall quality: good.</span>
+          <span class="text-emerald-900/80">A domain glossary (CONTEXT.md), four ADRs, specs and tickets, 17 test files against ~1,700 LOC of implementation, a pure fuzzy core, dependency injection at the sourcing seam, and a thin composition root in <code>extension.ts</code>. The friction below is concentrated, not systemic: one god-module where the recent bugs live, one file of dead code, and one seam split into more files than one picker type justifies.</span>
+        </div>
+      </header>
+
+      <!-- ═══════════════════════ CANDIDATE 1 ═══════════════════════ -->
+      <article class="space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <h2 class="font-serif text-2xl tracking-tight">1 · Split the PickerHost: put the picker session behind a message seam</h2>
+          <span class="shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-800 bg-emerald-100 border border-emerald-300 rounded-full px-3 py-1">Strong</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-sm leading-relaxed">
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Files</h3>
+            <p class="text-slate-700"><code>src/host/host.ts</code> (710 LOC — 41% of all implementation), <code>src/host/protocol.ts</code>, <code>src/host/lifecycle.ts</code>, <code>src/host/virtualPreview.ts</code>, <code>src/host/debounce.ts</code></p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Problem</h3>
+            <p class="text-slate-700">The host fuses three concerns in one module: the <em>session state machine</em> (source streaming, abort guards, narrowing dispatch, preview scheduling), the <em>vscode adapters</em> (<code>buildPickerContext</code>, focus commands, reveal), and the <em>shared view HTML</em> (~200 LOC of template string with inline JS). The last two bug fixes — preview bloat, focus timing — landed in the state-machine part, which is only reachable in tests by mocking the entire <code>vscode</code> module and simulating webview messages. The interface is narrow (<code>start</code> / <code>resolveWebviewView</code> / <code>dispose</code>) but the interesting behaviour sits <em>behind the wrong seam</em>: the test surface is vscode, not the session.</p>
+          </div>
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Solution</h3>
+            <p class="text-slate-700">Extract a <code>PickerSession</code> module whose whole interface is <em>messages in, messages out</em>: <code>start(picker) → OutboundMessage[]</code>, <code>handle(InboundMessage) → OutboundMessage[]</code>, <code>cancel()</code>. It owns candidates, query, the abort guard, stream consumption, and debounce timing — all pure of vscode. The remaining host becomes a thin adapter: webview events → session, session messages → <code>webview.postMessage</code>, plus the vscode-backed picker context helpers. Move the view HTML into its own host-owned module (ADR-0002 keeps it host-owned and static; it need not live in the same file).</p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Benefits</h3>
+            <p class="text-slate-700"><strong>Locality:</strong> the race-prone logic lives in one module you can read top to bottom. <strong>Leverage:</strong> every future picker type exercises the same session through two functions. <strong>Tests:</strong> the preview-bloat and focus-timing regressions become plain message-sequence tests — no vscode mock scaffold, no fake webview. The existing <code>host.test.ts</code> mock boilerplate mostly evaporates.</p>
+          </div>
+        </div>
+
+        <!-- before/after: hand-built cross-section -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">Before — one 710-line module, three fused concerns</p>
+            <div class="border-2 border-slate-700 rounded-md overflow-hidden">
+              <div class="px-3 py-1.5 text-xs font-mono bg-slate-100 border-b border-slate-300">PickerHost — interface: start() · resolveWebviewView() · dispose()</div>
+              <div class="h-40 bg-red-50 border-b border-slate-300 px-3 py-2">
+                <p class="text-xs font-semibold text-red-800">session state machine</p>
+                <p class="text-[11px] text-red-700/70">abort guards · stream consumption · narrowing dispatch · preview debounce · race-prone — the last 2 bug fixes live here</p>
+              </div>
+              <div class="h-24 bg-amber-50 border-b border-slate-300 px-3 py-2">
+                <p class="text-xs font-semibold text-amber-800">vscode adapters</p>
+                <p class="text-[11px] text-amber-700/70">buildPickerContext · focus · reveal · origin capture</p>
+              </div>
+              <div class="h-24 bg-sky-50 px-3 py-2">
+                <p class="text-xs font-semibold text-sky-800">shared view HTML</p>
+                <p class="text-[11px] text-sky-700/70">~200 LOC template string + inline webview JS</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-3">Test seam = a fully mocked <code>vscode</code> module. Red band is where the bugs are and where tests are hardest.</p>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-5">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">After — session deep behind a message seam</p>
+            <div class="space-y-3 relative">
+              <div class="border-2 border-slate-700 rounded-md px-3 py-2 bg-white">
+                <p class="text-xs font-mono font-semibold">view.ts <span class="font-normal text-slate-500">— shared view HTML (host-owned per ADR-0002)</span></p>
+              </div>
+              <div class="border-2 border-slate-700 rounded-md px-3 py-2 bg-white">
+                <p class="text-xs font-mono font-semibold">host.ts <span class="font-normal text-slate-500">— thin adapter: webview ↔ session, vscode helpers</span></p>
+              </div>
+              <div class="flex justify-center">
+                <svg width="20" height="22"><line x1="10" y1="0" x2="10" y2="18" stroke="#64748b" stroke-width="2" stroke-dasharray="4 3"/><polygon points="5,14 15,14 10,21" fill="#64748b"/></svg>
+              </div>
+              <div class="deep rounded-md px-4 py-3 text-slate-100 border-2 border-slate-900">
+                <p class="text-xs font-mono font-semibold">PickerSession</p>
+                <p class="text-[11px] text-slate-300 mt-1">interface: <code>start(picker)</code> · <code>handle(msg) → msgs</code> · <code>cancel()</code></p>
+                <p class="text-[11px] text-slate-400 mt-1 opacity-70">inside: candidates · query · AbortController · stream loop · debounce · lifecycle calls</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-3">Test seam = two functions and a message list. The bug territory is exercised directly.</p>
+          </div>
+        </div>
+      </article>
+
+      <hr class="border-stone-200" />
+
+      <!-- ═══════════════════════ CANDIDATE 2 ═══════════════════════ -->
+      <article class="space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <h2 class="font-serif text-2xl tracking-tight">2 · Delete <code>matcher.ts</code> — a dead shallow duplicate of the file picker's Narrowing</h2>
+          <span class="shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-800 bg-emerald-100 border border-emerald-300 rounded-full px-3 py-1">Strong</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-sm leading-relaxed">
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Files</h3>
+            <p class="text-slate-700"><code>src/matcher.ts</code> (52 LOC) · <code>src/matcher.test.ts</code> · superseded by <code>src/filePicker/narrow.ts</code></p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Problem</h3>
+            <p class="text-slate-700"><code>matcher.ts</code> is a leftover from before the picker-core extraction (ticket 3). Nothing imports it — <em>zero</em> inbound edges outside its own test. It re-implements what <code>filePicker/narrow.ts</code> now owns: the identical <code>isPathBoundary</code> check and the identical <code>scoreText</code> options (end-weighting + length penalty). Its passing test suite is false confidence — it tests code no picker runs.</p>
+          </div>
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Solution</h3>
+            <p class="text-slate-700">Delete <code>matcher.ts</code> and <code>matcher.test.ts</code>. The deletion test passes in its strongest form: the complexity doesn't move — it simply ceases to exist, because the behaviour is already owned by the file picker's Narrowing part, which is tested through <code>narrow.test.ts</code>.</p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Benefits</h3>
+            <p class="text-slate-700"><strong>Locality:</strong> one place owns path-biased narrowing — today a reader must diff two files to learn which is live. <strong>Leverage:</strong> none lost; the live seam (<code>fuzzy.ts</code> per ADR-0001) is untouched. <strong>Tests:</strong> suite shrinks to tests that guard shipping behaviour.</p>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-slate-200 bg-white p-5">
+          <div class="flex flex-wrap items-center justify-center gap-8">
+            <!-- dead module -->
+            <div class="border-2 border-dashed border-red-400 rounded-md px-5 py-4 bg-red-50/50 relative">
+              <p class="text-xs font-mono font-semibold text-red-800 line-through">matcher.ts</p>
+              <p class="text-[11px] text-red-700/80 mt-1">scorePath · rankCandidates · isPathBoundary</p>
+              <p class="text-[11px] font-semibold text-red-700 mt-2">importers: 0</p>
+              <span class="absolute -top-2.5 -right-2.5 bg-red-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">✕</span>
+            </div>
+            <div class="text-center">
+              <svg width="90" height="30"><line x1="0" y1="15" x2="78" y2="15" stroke="#dc2626" stroke-width="2" stroke-dasharray="5 4"/><polygon points="78,10 90,15 78,20" fill="#dc2626"/></svg>
+              <p class="text-[11px] text-red-700">duplicates</p>
+            </div>
+            <!-- live module -->
+            <div class="border-2 border-slate-700 rounded-md px-5 py-4 bg-white">
+              <p class="text-xs font-mono font-semibold">filePicker/narrow.ts</p>
+              <p class="text-[11px] text-slate-500 mt-1">narrowFileCandidates — the picker's Narrowing part</p>
+              <p class="text-[11px] text-slate-500">same boundary check, same scoreText options</p>
+            </div>
+            <div class="text-center">
+              <svg width="60" height="30"><line x1="0" y1="15" x2="48" y2="15" stroke="#64748b" stroke-width="2"/><polygon points="48,10 60,15 48,20" fill="#64748b"/></svg>
+            </div>
+            <div class="deep rounded-md px-5 py-4 border-2 border-slate-900">
+              <p class="text-xs font-mono font-semibold text-slate-100">fuzzy.ts</p>
+              <p class="text-[11px] text-slate-400">scoreText — shared primitive (ADR-0001)</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <hr class="border-stone-200" />
+
+      <!-- ═══════════════════════ CANDIDATE 3 ═══════════════════════ -->
+      <article class="space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <h2 class="font-serif text-2xl tracking-tight">3 · Co-locate the file picker's five parts in one module</h2>
+          <span class="shrink-0 text-xs font-semibold uppercase tracking-wide text-amber-800 bg-amber-100 border border-amber-300 rounded-full px-3 py-1">Worth exploring</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-sm leading-relaxed">
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Files</h3>
+            <p class="text-slate-700"><code>src/filePicker/{index,source,narrow,render,accept,preview}.ts</code> — six files, ~170 LOC total, one export each</p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Problem</h3>
+            <p class="text-slate-700">Understanding the file picker means bouncing across six files averaging under 30 LOC. The five-part bundle (Source, Candidate, Narrowing, Render, Accept) is the right <em>interface</em> — spec 0001 defines it — but the one-file-per-part layout is a hypothetical seam: only one picker type exists, so nothing yet varies across the file boundaries. Deletion test on, say, <code>render.ts</code> (14 LOC): deleting it concentrates complexity into the picker module without loss. Note <code>preview.ts</code> (19 LOC) is also the only picker part with no test.</p>
+          </div>
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Solution</h3>
+            <p class="text-slate-700">Keep the <code>Picker</code> interface exactly as registered with the host; move the five parts of the file picker into a single <code>filePicker.ts</code> module whose only export is <code>createFilePicker(env, registry)</code>. The parts become internal functions — an internal seam, private to the module, still exercised by the existing tests through the Picker bundle.</p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Benefits</h3>
+            <p class="text-slate-700"><strong>Locality:</strong> one picker type = one readable file; the domain language (Source / Narrowing / Render / Accept) survives as section structure. <strong>Leverage:</strong> adding the grep picker still costs one new module. <strong>Tests:</strong> unchanged surface — tests already go through the parts' public signatures. <em>Counter-argument worth weighing:</em> the current layout pre-figures the grep picker and mirrors CONTEXT.md one-to-one; this may be cheap structure to keep.</p>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Before — six shallow files</p>
+            <pre class="mermaid">
+flowchart LR
+  ext[extension.ts] --> idx[index.ts<br/>36 LOC]
+  idx --> src[source.ts<br/>25 LOC]
+  idx --> nar[narrow.ts<br/>58 LOC]
+  idx --> ren[render.ts<br/>14 LOC]
+  idx --> acc[accept.ts<br/>15 LOC]
+  idx --> pre[preview.ts<br/>19 LOC<br/>no test]
+  classDef shallow fill:#fef3c7,stroke:#b45309;
+  class src,nar,ren,acc,pre shallow
+            </pre>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-white p-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">After — one module, Picker interface intact</p>
+            <div class="border-2 border-slate-700 rounded-md overflow-hidden mt-2">
+              <div class="px-3 py-2 bg-slate-100 border-b border-slate-300">
+                <p class="text-xs font-mono font-semibold">filePicker.ts</p>
+                <p class="text-[11px] text-slate-500">interface: createFilePicker(env, registry) → void</p>
+              </div>
+              <div class="px-3 py-2 text-[11px] text-slate-400 space-y-1">
+                <p>source · narrow · render · accept · preview <span class="italic">(internal — the five parts, still a bundle)</span></p>
+              </div>
+              <div class="px-3 py-2 border-t border-dashed border-slate-300 text-[11px] text-slate-500">
+                registers a <span class="font-mono">Picker</span> — the seam the host sees is unchanged
+              </div>
+            </div>
+            <div class="flex justify-center mt-3">
+              <svg width="20" height="22"><line x1="10" y1="0" x2="10" y2="14" stroke="#64748b" stroke-width="2" stroke-dasharray="4 3"/><polygon points="5,12 15,12 10,20" fill="#64748b"/></svg>
+            </div>
+            <div class="border border-slate-300 rounded-md px-3 py-1.5 text-center text-xs font-mono text-slate-600 bg-white">host — sees the same Picker bundle</div>
+          </div>
+        </div>
+      </article>
+
+      <hr class="border-stone-200" />
+
+      <!-- ═══════════════════════ CANDIDATE 4 ═══════════════════════ -->
+      <article class="space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <h2 class="font-serif text-2xl tracking-tight">4 · Concentrate the three hand-rolled vscode adapters into one environment module</h2>
+          <span class="shrink-0 text-xs font-semibold uppercase tracking-wide text-amber-800 bg-amber-100 border border-amber-300 rounded-full px-3 py-1">Worth exploring</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 text-sm leading-relaxed">
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Files</h3>
+            <p class="text-slate-700"><code>src/extension.ts</code> (workspace/file adapters) · <code>src/host/host.ts</code> <code>buildPickerContext</code> (document/preview adapters, ~100 LOC inline) · <code>src/host/lifecycle.ts</code> <code>HostEnv</code></p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Problem</h3>
+            <p class="text-slate-700">Knowledge of the vscode API is scattered across three ad-hoc adapter shapes, each invented locally: the <code>FileSourcingWorkspace</code> literal in <code>extension.ts</code>, the picker-context helpers built inside the host, and <code>HostEnv</code> for lifecycle. Each has its own fake in its own test file. Nothing contradicts an ADR — but the extension↔vscode seam is currently three seams, none of them named in CONTEXT.md.</p>
+          </div>
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Solution</h3>
+            <p class="text-slate-700">One <code>vscodeEnv</code> module owns every touch of the vscode API: workspace files, documents, commands, window/origin state. <code>extension.ts</code>, the host, and lifecycle all accept it. Pickers still see only the narrow picker context — the env module is what the host builds that context from.</p>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-2">Benefits</h3>
+            <p class="text-slate-700"><strong>Locality:</strong> one file answers "how does this extension talk to vscode." <strong>Leverage:</strong> one fake env serves every test, replacing per-test mock scaffolds. Naturally pairs with candidate 1 — the host split is what makes the env seam clean. Weaker standalone; do them together or skip this one.</p>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-slate-200 bg-white p-4">
+          <pre class="mermaid">
+flowchart TB
+  subgraph before["Before — three adapter shapes"]
+    direction LR
+    e1[extension.ts] -.->|FileSourcingWorkspace literal| v1((vscode))
+    h1[host.ts] -.->|buildPickerContext inline| v1
+    l1[lifecycle.ts] -.->|HostEnv| v1
+  end
+  subgraph after["After — one named env module"]
+    direction LR
+    e2[extension.ts] --> env[vscodeEnv]
+    h2[host.ts] --> env
+    l2[lifecycle.ts] --> env
+    env --> v2((vscode))
+  end
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class e1,h1,l1 leak
+          </pre>
+        </div>
+      </article>
+
+      <hr class="border-stone-200" />
+
+      <!-- ═══════════════════════ TOP RECOMMENDATION ═══════════════════════ -->
+      <section id="top-recommendation" class="rounded-xl border-2 border-slate-900 bg-white p-6 space-y-3">
+        <h2 class="font-serif text-2xl tracking-tight">Top recommendation</h2>
+        <p class="text-sm leading-relaxed text-slate-700">
+          <strong>Tackle candidate 1 first</strong> — split the PickerHost so the picker session sits behind a message seam. It is the largest module (41% of the implementation), it is where the last two bugs actually lived, and it is the only place where testing requires mocking the entire vscode API. Deepening it converts your most bug-prone territory into your most testable module, and it unlocks candidate 4's env seam for free.
+        </p>
+        <p class="text-sm leading-relaxed text-slate-700">
+          <strong>Candidate 2 is a free win</strong> — deleting <code>matcher.ts</code> takes minutes and removes the only outright dead code. Do it in the same pass.
+        </p>
+        <p class="text-sm leading-relaxed text-slate-500">
+          Candidates 3 and 4 are worth a conversation, not a commitment: both trade the current forward-looking structure (one file per picker part, adapters colocated with their consumers) against today's single-picker reality.
+        </p>
+      </section>
+
+      <footer class="text-xs text-slate-400 pb-6">
+        Vocabulary: module · interface · implementation · depth · seam · adapter · leverage · locality — per <code>/codebase-design</code>. Domain terms per <code>CONTEXT.md</code>. No ADR contradictions found: candidates 1, 2, 4 comply with ADR-0001–0004; candidate 3 preserves the spec-0001 Picker bundle.
+      </footer>
+    </main>
+  </body>
+</html>
