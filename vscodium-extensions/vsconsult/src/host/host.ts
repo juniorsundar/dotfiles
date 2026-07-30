@@ -28,6 +28,33 @@ interface HostSession {
   sourceController: AbortController;
   /** Session-owned virtual preview provider. */
   virtualPreview: VirtualPreviewProvider;
+  /** Monotonically bumped on every `select` — stale results are dropped. */
+  previewGeneration: number;
+  /** Set to true once the session has been torn down. */
+  tornDown: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Targeted virtual-preview tab teardown
+// ---------------------------------------------------------------------------
+
+/**
+ * Closes only the tab whose input URI matches the virtual preview URI.
+ * Never touches unrelated editors, groups, or dirty documents.
+ */
+async function closeVirtualPreviewDocument(uri: vscode.Uri): Promise<void> {
+  const target = uri.toString();
+  for (const group of vscode.window.tabGroups.all) {
+    for (const tab of group.tabs) {
+      const input = (tab as any).input;
+      if (input && typeof input === "object" && "uri" in input) {
+        const tabUri = (input as { uri: vscode.Uri }).uri;
+        if (tabUri?.toString() === target) {
+          await vscode.window.tabGroups.close(tab);
+        }
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -53,9 +80,11 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     this.debounce = createPreviewDebounce(async (id: string) => {
       const session = this.session;
       if (!session) return;
+      if (session.tornDown) return;
       const candidate = session.candidates.find((c) => c.id === id);
       if (!candidate) return;
-      await session.picker.preview(candidate, this.buildPickerContext());
+      const gen = session.previewGeneration;
+      await session.picker.preview(candidate, this.buildPickerContext(session, gen));
     }, previewDelayMs);
   }
 
@@ -78,6 +107,14 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
       webviewView.onDidDispose(() => {
         this.view = undefined;
         this.debounce.cancel();
+        const session = this.session;
+        if (session) {
+          this.session = undefined;
+          void this.teardownSession(session).catch(() => {
+            // Teardown is best-effort on dispose — the extension host
+            // may already be shutting down.
+          });
+        }
       }),
     );
   }
@@ -93,6 +130,13 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     }
 
     this.debounce.cancel();
+
+    // Tear down any previously active session before replacing it.
+    const previous = this.session;
+    if (previous) {
+      this.session = undefined;
+      await this.teardownSession(previous);
+    }
 
     // Capture the origin editor state
     const editor = vscode.window.activeTextEditor;
@@ -117,7 +161,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     // Initialise session
     const sourceController = new AbortController();
     const virtualPreview = createVirtualPreview();
-    this.session = { picker, origin, panelWasVisible, candidates: [], query: "", sourceController, virtualPreview };
+    this.session = { picker, origin, panelWasVisible, candidates: [], query: "", sourceController, virtualPreview, previewGeneration: 0, tornDown: false };
 
     // Send the picker's configuration once — the view holds this until
     // the next start() call.
@@ -219,6 +263,8 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         break;
 
       case "select":
+        if (!this.session) return;
+        this.session.previewGeneration++;
         this.debounce.schedule(message.id);
         break;
 
@@ -304,7 +350,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     this.debounce.cancel();
 
     try {
-      await session.picker.accept(candidate, this.buildPickerContext());
+      await session.picker.accept(candidate, this.buildPickerContext(session));
     } catch (error) {
       this.post({
         type: "status",
@@ -338,29 +384,27 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     const session = this.session;
     if (!session) return;
 
-    // Abort any in-flight source run so the streaming loop stops.
-    session.sourceController.abort();
-
-    // Close the virtual preview document editor (if open) and clear its content.
-    const uri = session.virtualPreview.virtualUri("");
-    const doc = vscode.workspace.textDocuments.find(
-      (d) => d.uri.toString() === uri.toString(),
-    );
-    if (doc) {
-      await vscode.window.showTextDocument(doc.uri, {
-        viewColumn: undefined,
-        preserveFocus: true,
-      });
-      await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
-    }
-    session.virtualPreview.closeContent();
-
-    // Dispose the virtual preview provider registration.
-    session.virtualPreview.dispose();
+    // Idempotent guard — a session is torn down at most once.
+    if (session.tornDown) return;
 
     this.session = undefined;
+    await this.teardownSession(session);
     this.post({ type: "idle" });
     await runExit(this.env, session.panelWasVisible);
+  }
+
+  /**
+   * Tear down a single session's virtual preview and source.
+   * Idempotent — safe to call multiple times on the same session.
+   */
+  private async teardownSession(session: HostSession): Promise<void> {
+    if (session.tornDown) return;
+    session.tornDown = true;
+    session.sourceController.abort();
+    const uri = session.virtualPreview.virtualUri("");
+    await closeVirtualPreviewDocument(uri);
+    session.virtualPreview.closeContent();
+    session.virtualPreview.dispose();
   }
 
   // -----------------------------------------------------------------------
@@ -386,8 +430,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
   // PickerContext factory
   // -----------------------------------------------------------------------
 
-  private buildPickerContext(): PickerContext {
-    const session = this.session;
+  private buildPickerContext(session: HostSession, previewGen?: number): PickerContext {
     return {
       openTextDocument: async (
         uri: string,
@@ -454,31 +497,34 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         title: string;
         languageId?: string;
       }): Promise<void> => {
-        if (!session?.virtualPreview) return;
+        // Drop stale: session replaced, torn down, or newer selection pending.
+        if (this.session !== session || session.tornDown) return;
+        if (previewGen !== undefined && session.previewGeneration !== previewGen) return;
         // Prepend a header line so the candidate filename/path is visible
         // in the virtual document body (the URI itself is fixed).
         const header = `// ${p.title}\n\n`;
         session.virtualPreview.updateContent(header + p.text, p.title, p.languageId);
         const uri = session.virtualPreview.virtualUri("");
-        await vscode.window.showTextDocument(uri, {
-          viewColumn: session?.origin?.viewColumn ?? vscode.ViewColumn.Active,
-          preserveFocus: true,
-          preview: false,
-        });
+        try {
+          await vscode.window.showTextDocument(uri, {
+            viewColumn: session?.origin?.viewColumn ?? vscode.ViewColumn.Active,
+            preserveFocus: true,
+            preview: false,
+          });
+        } catch {
+          // showTextDocument may fail if the provider was disposed
+          // concurrently — the debounce swallows this silently.
+        }
       },
       closePreview: async (): Promise<void> => {
-        if (!session?.virtualPreview) return;
-        session.virtualPreview.closeContent();
-        // Close the virtual preview document via the vscode API.
+        if (this.session !== session || session.tornDown) return;
         const uri = session.virtualPreview.virtualUri("");
-        const doc = vscode.workspace.textDocuments.find(
-          (d) => d.uri.toString() === uri.toString(),
-        );
-        if (doc) {
-          await vscode.commands.executeCommand(
-            "workbench.action.closeActiveEditor",
-          );
-        }
+        await closeVirtualPreviewDocument(uri);
+        // Re-check — teardown may have disposed the provider during
+        // the async close above.  closeContent is idempotent but fires
+        // the change-emitter, so guard before doing so.
+        if (this.session !== session || session.tornDown) return;
+        session.virtualPreview.closeContent();
       },
     };
   }

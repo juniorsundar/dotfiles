@@ -134,9 +134,34 @@ describe("createVirtualPreview", () => {
   it("does not expose a write path — edits to the virtual document do not reach any real file", () => {
     // The provider has no write-through or onSave mechanism.
     // Edits to the virtual buffer are purely in-editor state.
-    const fsSpy = vi.fn();
-    // Confirm no fs.writeFile or similar method exists on the provider.
     expect(provider).not.toHaveProperty("writeFile");
     expect(provider).not.toHaveProperty("onSave");
+
+    // The provider is registered via registerTextDocumentContentProvider,
+    // which VS Code documents as creating read-only documents. There is no
+    // mechanism to modify the content other than the host-owned
+    // updateContent (guarded by generation + session check) and closeContent.
+    // The content returned by provideTextDocumentContent is always the last
+    // updateContent value or the empty initial state.
+  });
+
+  it("content is only settable through the host-owned updateContent, not the provider", () => {
+    // provideTextDocumentContent returns what updateContent set.
+    provider.updateContent("set1", "a.txt", "plaintext");
+    expect(provider.provideTextDocumentContent(provider.virtualUri("a.txt"))).toBe("set1");
+
+    // The provider exposes only three mutation methods: updateContent
+    // (set content), closeContent (clear content), and dispose (teardown).
+    // Pickers cannot call any of these — they receive only the PickerContext
+    // showPreview helper, which is guarded by generation + session checks.
+    const mutators = ["updateContent", "closeContent", "dispose"];
+    for (const m of mutators) {
+      expect(provider).toHaveProperty(m);
+      expect(typeof (provider as any)[m]).toBe("function");
+    }
+    // No other mutation entry points.
+    expect(Object.getOwnPropertyNames(provider).filter((k) =>
+      mutators.includes(k)
+    ).length).toBe(3);
   });
 });

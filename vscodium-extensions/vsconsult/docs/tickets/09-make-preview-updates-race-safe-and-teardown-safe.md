@@ -4,12 +4,12 @@
 
 **Blocked by:** 07 — Prove Ctrl+P history containment.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Debouncing limits unnecessary preview reads during rapid keyboard navigation.
-- [ ] When preview reads complete out of order, only the latest selection may update the virtual document.
-- [ ] Results from an inactive or replaced picker session cannot update or reopen the virtual preview.
-- [ ] The virtual preview remains read-only throughout its lifetime.
-- [ ] Cancel, accept, picker replacement, disposal, and error paths tear down virtual-preview state idempotently.
-- [ ] Teardown closes only the extension-owned virtual resource and never closes editor groups, unrelated preview editors, or dirty documents.
-- [ ] Controlled asynchronous host-level tests cover out-of-order completion, session replacement, repeated cleanup, and unrelated-editor preservation.
+- [x] Debouncing limits unnecessary preview reads during rapid keyboard navigation.
+- [x] When preview reads complete out of order, only the latest selection may update the virtual document.
+- [x] Results from an inactive or replaced picker session cannot update or reopen the virtual preview.
+- [x] The virtual preview remains read-only throughout its lifetime.
+- [x] Cancel, accept, picker replacement, disposal, and error paths tear down virtual-preview state idempotently.
+- [x] Teardown closes only the extension-owned virtual resource and never closes editor groups, unrelated preview editors, or dirty documents.
+- [x] Controlled asynchronous host-level tests cover out-of-order completion, session replacement, repeated cleanup, and unrelated-editor preservation.

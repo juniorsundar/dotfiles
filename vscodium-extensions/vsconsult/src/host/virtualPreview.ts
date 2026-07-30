@@ -6,6 +6,9 @@ import * as vscode from "vscode";
  */
 const SCHEME = "vsconsult-preview";
 
+/** Monotonic counter for session-unique URI tokens. */
+let nextSessionToken = 0;
+
 /**
  * Session-owned virtual preview document provider.
  *
@@ -54,7 +57,10 @@ export function createVirtualPreview(): VirtualPreviewProvider {
   let currentTitle = "";
   let currentLanguageId: string | undefined;
   const changeEmitter = new vscode.EventEmitter<vscode.Uri>();
-  const stableUri = vscode.Uri.parse(`${SCHEME}:session`);
+  // Session-unique token so concurrent sessions own distinct URIs
+  // and cannot close each other's tabs on teardown.
+  const token = nextSessionToken++;
+  const stableUri = vscode.Uri.parse(`${SCHEME}:session-${token}`);
 
   const provider = {
     get scheme() {
