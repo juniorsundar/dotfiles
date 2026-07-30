@@ -20,6 +20,25 @@ export interface FileCandidate extends Candidate {
 }
 
 /**
+ * A live-grep candidate extending the shared Candidate contract with
+ * file-and-match provenance fields.
+ *
+ * `id` is "${relativePath}:${lineNumber}:${column}" — stable within a
+ * picker session. `label` is the full matched line text and the field
+ * that Narrowing matches against.
+ */
+export interface GrepCandidate extends Candidate {
+  /** Forward-slash path relative to the workspace folder root. */
+  relativePath: string;
+  /** Absolute filesystem path of the matched file. */
+  absolutePath: string;
+  /** 1-based line number of the match. */
+  lineNumber: number;
+  /** 1-based column of the match start. */
+  column: number;
+}
+
+/**
  * Structured row parts returned by a picker's Render.
  * The host maps these into fixed DOM slots; pickers do not lay out rows.
  */

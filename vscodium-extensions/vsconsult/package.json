@@ -73,7 +73,9 @@
         },
         "vsconsult.fileExcludes": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [
             "**/.git/**",
             "**/node_modules/**",
@@ -103,5 +105,8 @@
     "esbuild": "^0.25.0",
     "typescript": "^5.7.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@vscode/ripgrep": "^1.18.0"
   }
 }

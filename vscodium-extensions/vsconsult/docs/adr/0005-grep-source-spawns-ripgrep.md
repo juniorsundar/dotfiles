@@ -17,3 +17,7 @@ This supersedes the last bullet of ADR-0003, which guessed that live-grep "may r
 - `searchWorkspace` is source-injected at activation (mirroring the file picker's `findFiles`/`readFile` injection), not added to `PickerContext`. Sourcing is a source concern; `PickerContext` stays scoped to accept/preview.
 - The spawn wrapper debounces re-runs itself; the host's query-driven contract is "abort the in-flight source and re-run immediately," and the debounce belongs to the ripgrep-spawning implementation because it is a backend concern (an in-JS source would not need it).
 - Committing to `rg --json` is hard to reverse: the grep source parses that contract. Changing backends later means rewriting the parser, not just swapping a primitive.
+
+## Status
+
+**Fulfilled** — ticket 12 shipped `createSearchWorkspace` in `src/grepSourcing.ts`. The wrapper resolves `rg` via the injected `RipgrepSpawner` (backed by `@vscode/ripgrep`'s `rgPath` in production), spawns `rg --json`, parses match objects into `GrepCandidate` batches streamed through `SourceSession.updates`, debounces re-spawns (150 ms default), propagates abort to the child process, returns an empty snapshot for an empty query, and throws a descriptive error when the binary is unavailable — no in-JS fallback. Verified via fake-child-process tests in `src/grepSourcing.test.ts`.

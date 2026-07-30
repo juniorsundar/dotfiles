@@ -6,11 +6,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] The `GrepCandidate` type extends the shared `Candidate` contract with `relativePath`, `absolutePath`, `lineNumber` (1-based), and `column` (1-based match start); `label` is the full matched line text, `id` is `${relativePath}:${lineNumber}:${column}`.
-- [ ] `searchWorkspace(query, signal)` resolves the `rg` binary path via `@vscode/ripgrep` and spawns `rg --json` with the query as the pattern, the workspace root as cwd, and the workspace file-excludes as globs.
-- [ ] `rg --json` match objects are parsed into `GrepCandidate` batches and streamed through an async iterable (the `SourceSession.updates` channel).
-- [ ] An empty query returns an empty candidate snapshot and never spawns ripgrep.
-- [ ] Abort propagation: when the host aborts the signal, the in-flight child process is killed and no further batches are emitted.
-- [ ] The wrapper debounces re-spawns itself so rapid query changes do not spawn a process per keystroke.
-- [ ] If `@vscode/ripgrep` cannot provide a binary, the source errors and surfaces a status message rather than crashing; no in-JS search fallback (ADR-0005).
-- [ ] Fake-child-process tests cover: streaming parsed candidates from canned `rg --json` lines, abort kills the child and stops batches, debounce coalesces rapid re-runs, empty query does not spawn.
+- [x] The `GrepCandidate` type extends the shared `Candidate` contract with `relativePath`, `absolutePath`, `lineNumber` (1-based), and `column` (1-based match start); `label` is the full matched line text, `id` is `${relativePath}:${lineNumber}:${column}`.
+- [x] `searchWorkspace(query, signal)` resolves the `rg` binary path via `@vscode/ripgrep` and spawns `rg --json` with the query as the pattern, the workspace root as cwd, and the workspace file-excludes as globs.
+- [x] `rg --json` match objects are parsed into `GrepCandidate` batches and streamed through an async iterable (the `SourceSession.updates` channel).
+- [x] An empty query returns an empty candidate snapshot and never spawns ripgrep.
+- [x] Abort propagation: when the host aborts the signal, the in-flight child process is killed and no further batches are emitted.
+- [x] The wrapper debounces re-spawns itself so rapid query changes do not spawn a process per keystroke.
+- [x] If `@vscode/ripgrep` cannot provide a binary, the source errors and surfaces a status message rather than crashing; no in-JS search fallback (ADR-0005).
+- [x] Fake-child-process tests cover: streaming parsed candidates from canned `rg --json` lines, abort kills the child and stops batches, debounce coalesces rapid re-runs, empty query does not spawn.
