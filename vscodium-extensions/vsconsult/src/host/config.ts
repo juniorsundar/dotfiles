@@ -17,6 +17,17 @@ export const DEFAULT_FULL_PREVIEW_MAX_BYTES = 1024 * 1024; // 1 MiB
 /** Default truncated-excerpt size (512 KiB) for files over the full cap. */
 export const DEFAULT_EXCERPT_MAX_BYTES = 512 * 1024; // 512 KiB
 
+/**
+ * Default cap on the number of candidate rows sent to the webview per
+ * `results` message. The webview renders one DOM node per row, so an
+ * unbounded list (a broad liveGrep query can match thousands of lines)
+ * makes each render expensive and backlogs during rapid typing. The
+ * status line reports the true total plus a "showing N" note when this
+ * cap is hit, so the user always knows the full match count. Set to `0`
+ * to disable the cap (send every match).
+ */
+export const DEFAULT_MAX_RESULTS_ROWS = 200;
+
 /** Baseline exclude patterns always applied when sourcing workspace files. */
 export const DEFAULT_FILE_EXCLUDES: readonly string[] = [
   "**/.git/**",
@@ -33,6 +44,8 @@ export interface VsconsultConfig {
   previewFullMaxBytes: number;
   previewExcerptMaxBytes: number;
   fileExcludes: string[];
+  /** Max rows sent to the webview per results message (0 = no cap). */
+  maxResultsRows: number;
 }
 
 /**
@@ -69,6 +82,10 @@ export function readVsconsultConfig(
     fileExcludes: stringArrayOr(
       accessor.get<string[]>("fileExcludes"),
       DEFAULT_FILE_EXCLUDES,
+    ),
+    maxResultsRows: clampNonNegativeInt(
+      accessor.get<number>("maxResultsRows"),
+      DEFAULT_MAX_RESULTS_ROWS,
     ),
   };
 }

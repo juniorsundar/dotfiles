@@ -48,7 +48,6 @@ export function activate(context: vscode.ExtensionContext): void {
   const searchWorkspace = createSearchWorkspace(
     spawner,
     workspaceRoot,
-    undefined, // debounceMs — use default
     host.fileExcludes,
   );
   createGrepPicker(searchWorkspace, registry);

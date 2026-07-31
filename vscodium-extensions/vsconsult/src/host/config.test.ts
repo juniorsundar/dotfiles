@@ -6,6 +6,7 @@ import {
   DEFAULT_FULL_PREVIEW_MAX_BYTES,
   DEFAULT_EXCERPT_MAX_BYTES,
   DEFAULT_FILE_EXCLUDES,
+  DEFAULT_MAX_RESULTS_ROWS,
   type VsconsultConfigurationAccessor,
 } from "./config.js";
 
@@ -21,6 +22,7 @@ describe("readVsconsultConfig", () => {
       previewFullMaxBytes: DEFAULT_FULL_PREVIEW_MAX_BYTES,
       previewExcerptMaxBytes: DEFAULT_EXCERPT_MAX_BYTES,
       fileExcludes: [...DEFAULT_FILE_EXCLUDES],
+      maxResultsRows: DEFAULT_MAX_RESULTS_ROWS,
     });
   });
 
@@ -31,6 +33,7 @@ describe("readVsconsultConfig", () => {
         previewFullMaxBytes: 2048,
         previewExcerptMaxBytes: 1024,
         fileExcludes: ["**/target/**", "**/.venv/**"],
+        maxResultsRows: 50,
       }),
     );
     expect(cfg).toEqual({
@@ -38,6 +41,7 @@ describe("readVsconsultConfig", () => {
       previewFullMaxBytes: 2048,
       previewExcerptMaxBytes: 1024,
       fileExcludes: ["**/target/**", "**/.venv/**"],
+      maxResultsRows: 50,
     });
   });
 
@@ -79,5 +83,20 @@ describe("readVsconsultConfig", () => {
   it("accepts an empty fileExcludes array (disables baseline excludes)", () => {
     const cfg = readVsconsultConfig(accessor({ fileExcludes: [] }));
     expect(cfg.fileExcludes).toEqual([]);
+  });
+
+  it("allows maxResultsRows of 0 (no cap — send every match)", () => {
+    const cfg = readVsconsultConfig(accessor({ maxResultsRows: 0 }));
+    expect(cfg.maxResultsRows).toBe(0);
+  });
+
+  it("falls back to default for a negative maxResultsRows", () => {
+    const cfg = readVsconsultConfig(accessor({ maxResultsRows: -1 }));
+    expect(cfg.maxResultsRows).toBe(DEFAULT_MAX_RESULTS_ROWS);
+  });
+
+  it("falls back to default for a non-integer maxResultsRows", () => {
+    const cfg = readVsconsultConfig(accessor({ maxResultsRows: 12.5 }));
+    expect(cfg.maxResultsRows).toBe(DEFAULT_MAX_RESULTS_ROWS);
   });
 });

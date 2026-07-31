@@ -66,11 +66,23 @@ async function closeVirtualPreviewDocument(uri: vscode.Uri): Promise<void> {
 // PickerHost — picker-agnostic webview view provider
 // ---------------------------------------------------------------------------
 
+/**
+ * Minimum gap between consecutive cumulative `results` posts during
+ * streaming (leading+trailing throttle window). Bounds the IPC rate so
+ * a broad liveGrep query matching thousands of lines does not flood the
+ * webview with dozens of multi-thousand-row messages per second.
+ */
+const RESULTS_THROTTLE_MS = 16;
+
 export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable {
   private view: vscode.WebviewView | undefined;
   private session: HostSession | undefined;
   private readonly disposables: vscode.Disposable[] = [];
   private readonly debounce: ReturnType<typeof createPreviewDebounce>;
+  /** Throttle timer for `sendResults` (leading+trailing). */
+  private resultsTimer: ReturnType<typeof setTimeout> | undefined;
+  /** True when a throttled results post is pending (trailing edge). */
+  private resultsDirty = false;
   /**
    * Current vsconsult settings. Re-read live on configuration change so
    * the debounce delay and preview byte limits update without restarting
@@ -255,6 +267,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
 
   dispose(): void {
     this.debounce.cancel();
+    this.cancelResultsTimer();
     for (const d of this.disposables) {
       d.dispose();
     }
@@ -444,18 +457,62 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
   // -----------------------------------------------------------------------
 
   private sendResults(): void {
+    // Throttle: post at most one cumulative results message per
+    // RESULTS_THROTTLE_MS window. Stream sources (liveGrep) can emit
+    // dozens of batches per second for a broad query, each otherwise
+    // triggering a full-cumulative postMessage (thousands of rows). That
+    // floods the webview IPC and makes query changes feel like they
+    // "keep loading then jump to 0": the abort stops new batches but
+    // already-posted large results messages keep draining in the view.
+    // Leading+trailing throttle: fire immediately on the first call
+    // after an idle window (so a query-change clear snaps to 0 at
+    // once), then coalesce subsequent calls into one trailing post.
+    if (this.resultsTimer !== undefined) {
+      this.resultsDirty = true;
+      return;
+    }
+    this.flushResultsNow();
+    this.resultsTimer = setTimeout(() => {
+      this.resultsTimer = undefined;
+      if (this.resultsDirty) {
+        this.resultsDirty = false;
+        this.flushResultsNow();
+      }
+    }, RESULTS_THROTTLE_MS);
+  }
+
+  private flushResultsNow(): void {
     const session = this.session;
     if (!session) return;
 
     const { picker, candidates, query } = session;
     const narrowed = picker.narrow(query, candidates);
-    const rows = shapeCandidateRows(picker, narrowed);
+    const total = narrowed.length;
 
-    this.post({
-      type: "results",
-      rows,
-      status: `${narrowed.length.toLocaleString()} candidate${narrowed.length === 1 ? "" : "s"}`,
-    });
+    // Cap the rows sent to the webview. The view renders one DOM node per
+    // row; without a cap a broad liveGrep query (thousands of matches)
+    // makes each render expensive and backlogs during rapid typing. The
+    // status line always reports the true total and notes truncation.
+    const cap = this.config.maxResultsRows;
+    const capped = cap > 0 && total > cap ? narrowed.slice(0, cap) : narrowed;
+    const rows = shapeCandidateRows(picker, capped);
+
+    const count = `${total.toLocaleString()} candidate${total === 1 ? "" : "s"}`;
+    const status = capped.length < total
+      ? `${count} (showing first ${capped.length.toLocaleString()})`
+      : count;
+
+    this.post({ type: "results", rows, status });
+  }
+
+  /** Cancel any pending throttled results post. Used on teardown so no
+   * late results message arrives after the session is gone. */
+  private cancelResultsTimer(): void {
+    if (this.resultsTimer !== undefined) {
+      clearTimeout(this.resultsTimer);
+      this.resultsTimer = undefined;
+    }
+    this.resultsDirty = false;
   }
 
   // -----------------------------------------------------------------------

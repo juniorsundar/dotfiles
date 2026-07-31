@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import {
   createSearchWorkspace,
@@ -7,11 +8,21 @@ import {
   type ChildProcessLike,
 } from "./grepSourcing.js";
 
-// Integration test with the REAL rg binary and real child_process.spawn.
-// Reproduces the runtime path the extension uses (Node 24). This is the
-// regression guard for the stdio fix: spawning without explicit
+// Real-rg stdio regression guard. Spawning without explicit
 // `stdio: ["ignore", "pipe", "pipe"]` produced no stdout events under
-// Node 24, so the stream silently delivered nothing.
+// Node 24, so the stream silently delivered nothing. This single test
+// reproduces the real spawn path (real rg binary, real child_process.spawn)
+// and asserts matches actually stream out of stdout.
+//
+// The empty-query and abort cases that used to live here are covered more
+// thoroughly by the fake-child-process tests in grepSourcing.test.ts; this
+// file keeps only the stdio guard because only a real child process
+// reproduces the Node 24 stdio bug.
+//
+// Needs the rg binary at dist/bin/rg, which `npm run build:rg` copies.
+// `npm run package` runs build:rg before test so the binary is present; if
+// it is ever missing (e.g. running `vitest` alone on a clean tree), this
+// describe block skips rather than hanging on ENOENT.
 function realSpawner(): RipgrepSpawner {
   const rgPath = join(process.cwd(), "dist", "bin", "rg");
   return {
@@ -21,9 +32,11 @@ function realSpawner(): RipgrepSpawner {
   };
 }
 
-describe("searchWorkspace — real rg integration (stdio regression guard)", () => {
+const rgAvailable = existsSync(join(process.cwd(), "dist", "bin", "rg"));
+
+describe.runIf(rgAvailable)("searchWorkspace — real rg stdio regression guard", () => {
   it("streams GrepCandidate batches from a real rg run", async () => {
-    const searchWorkspace = createSearchWorkspace(realSpawner(), process.cwd(), 30);
+    const searchWorkspace = createSearchWorkspace(realSpawner(), process.cwd());
     const ctrl = new AbortController();
     const session = searchWorkspace("activate", ctrl.signal);
 
@@ -39,35 +52,5 @@ describe("searchWorkspace — real rg integration (stdio regression guard)", () 
     expect(first.label).toBeTruthy();
     expect(first.lineNumber).toBeGreaterThan(0);
     expect(first.absolutePath).toContain("/");
-  }, 15000);
-
-  it("empty query returns an empty snapshot and never spawns", () => {
-    let spawned = false;
-    const spawner: RipgrepSpawner = {
-      rgPath: join(process.cwd(), "dist", "bin", "rg"),
-      spawn: () => {
-        spawned = true;
-        return {} as unknown as ChildProcessLike;
-      },
-    };
-    const searchWorkspace = createSearchWorkspace(spawner, process.cwd(), 30);
-    const session = searchWorkspace("", new AbortController().signal);
-    expect(session.candidates).toEqual([]);
-    expect(session.updates).toBeUndefined();
-    expect(spawned).toBe(false);
-  });
-
-  it("aborts an in-flight run without throwing", async () => {
-    const searchWorkspace = createSearchWorkspace(realSpawner(), process.cwd(), 30);
-    const ctrl = new AbortController();
-    const session = searchWorkspace("a", ctrl.signal);
-    // Abort before the debounce window elapses so rg is killed early.
-    ctrl.abort();
-
-    const batches = [];
-    for await (const batch of session.updates!) {
-      batches.push(...batch);
-    }
-    expect(ctrl.signal.aborted).toBe(true);
   }, 15000);
 });

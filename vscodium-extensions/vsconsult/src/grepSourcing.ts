@@ -33,22 +33,14 @@ export interface ChildProcessLike {
 export function createSearchWorkspace(
   spawner: RipgrepSpawner,
   cwd: string,
-  debounceMs = 150,
   excludes?: readonly string[],
 ) {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let nextResolve: ((value: void) => void) | undefined;
-
   return (
     query: string,
     signal: AbortSignal,
   ): SourceSession<GrepCandidate> => {
     // Empty query → empty snapshot, never spawn.
     if (query === "") {
-      if (timer) {
-        clearTimeout(timer);
-        timer = undefined;
-      }
       return { candidates: [] };
     }
 
@@ -57,26 +49,13 @@ export function createSearchWorkspace(
       throw new Error("ripgrep binary not found — cannot search workspace");
     }
 
-    // Cancel a pending debounce from the previous keystroke.
-    if (timer) {
-      clearTimeout(timer);
-      timer = undefined;
-    }
-
+    // No debounce: spawn immediately on every call. Preemption is owned by
+    // the host, which aborts the previous run's signal (killing its child
+    // process) before calling the source for the new query. This keeps the
+    // picker responsive on every keystroke — the new query's rg starts
+    // right away instead of waiting out a debounce window while stale
+    // results linger.
     const updates = (async function* () {
-      // Wait for the debounce window. If a newer call arrives before
-      // this resolves, the timer is replaced and this generator hangs
-      // (abandoned by the host).
-      await new Promise<void>((resolve) => {
-        nextResolve = resolve;
-        timer = setTimeout(() => {
-          timer = undefined;
-          resolve();
-        }, debounceMs);
-      });
-
-      // Only spawn if we haven't been superseded by a newer call.
-      // (If nextResolve was replaced, a newer generator is waiting.)
       yield* streamMatches(spawner, cwd, query, signal, excludes);
     })();
 

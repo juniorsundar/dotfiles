@@ -527,10 +527,16 @@ describe("PickerHost — streaming source support", () => {
 
     host.start("finite-stream");
 
-    // Wait for: initial results + 2 streamed batches = 3 results messages,
-    // plus a completion signal.
+    // Wait for the streamed batches to land. With results throttling,
+    // back-to-back batches may coalesce into a single results message,
+    // so assert on the final visible content rather than an exact count.
     await vi.waitFor(() => {
-      expect(resultsMessages(view.outbound)).toHaveLength(3);
+      const last = resultsMessages(view.outbound).at(-1);
+      expect(last?.rows.map((r) => r.primary)).toEqual([
+        "initial",
+        "batch-1",
+        "batch-2",
+      ]);
     });
 
     // The host must signal that the source has completed (no further batches).
@@ -678,6 +684,41 @@ describe("PickerHost — streaming source support", () => {
       .flatMap((m) => m.rows)
       .some((r) => r.primary === "stale");
     expect(staleInResults).toBe(false);
+
+    host.dispose();
+  });
+
+  it("caps the rows sent to the webview and reports the true total + truncation", async () => {
+    // A snapshot source with more candidates than the default cap (200).
+    // The host must send at most 200 rows and annotate the status with the
+    // true total plus a "showing first N" note — so a broad liveGrep query
+    // matching thousands of lines does not flood the webview with a
+    // multi-thousand-row render on every update.
+    const many: StreamCandidate[] = Array.from({ length: 500 }, (_, i) => ({
+      id: `id-${i}`,
+      label: `cand-${i}`,
+    }));
+    const source: Source<StreamCandidate> = () => ({ candidates: many });
+    const picker = makePicker("capped", source);
+    registry.register(picker);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+
+    await host.start("capped");
+    await vi.waitFor(() => {
+      const last = resultsMessages(view.outbound).at(-1);
+      expect(last).toBeDefined();
+      expect(last!.rows.length).toBe(200);
+    });
+
+    const last = resultsMessages(view.outbound).at(-1)!;
+    // Only the first 200 ranked candidates are sent.
+    expect(last.rows[0].primary).toBe("cand-0");
+    expect(last.rows[199].primary).toBe("cand-199");
+    // Status reports the true total (500) and the truncation note.
+    expect(last.status).toContain("500");
+    expect(last.status).toMatch(/showing first 200/i);
 
     host.dispose();
   });

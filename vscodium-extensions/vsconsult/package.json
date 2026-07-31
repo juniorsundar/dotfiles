@@ -93,6 +93,13 @@
           ],
           "markdownDescription": "Glob patterns always excluded when sourcing workspace files, in addition to `.gitignore` and `.gitmodules` contents. Patterns are merged into a single `{...}` exclude set. Replaces the built-in baseline list, so include the defaults here if you want to keep them.",
           "order": 4
+        },
+        "vsconsult.maxResultsRows": {
+          "type": "number",
+          "default": 200,
+          "minimum": 0,
+          "markdownDescription": "Maximum number of candidate rows sent to the picker view per update (default `200`). The view renders one DOM node per row, so a broad live-grep query matching thousands of lines would make each render expensive and backlog during rapid typing; this cap keeps rendering bounded. The status line always reports the true total and notes when the visible list is truncated. Set to `0` to send every match (no cap). Changes apply live.",
+          "order": 5
         }
       }
     }
@@ -105,7 +112,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:workbench:ctrl-p-history": "node scripts/ctrl-p-history-containment.mjs",
-    "package": "npm run typecheck && npm run test && npm run build && vsce package --no-dependencies --allow-missing-repository"
+    "package": "npm run typecheck && npm run build:rg && npm run test && npm run build && vsce package --no-dependencies --allow-missing-repository"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

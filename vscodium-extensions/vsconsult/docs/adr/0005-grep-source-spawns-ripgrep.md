@@ -15,7 +15,7 @@ This supersedes the last bullet of ADR-0003, which guessed that live-grep "may r
 ## Consequences
 
 - `searchWorkspace` is source-injected at activation (mirroring the file picker's `findFiles`/`readFile` injection), not added to `PickerContext`. Sourcing is a source concern; `PickerContext` stays scoped to accept/preview.
-- The spawn wrapper debounces re-runs itself; the host's query-driven contract is "abort the in-flight source and re-run immediately," and the debounce belongs to the ripgrep-spawning implementation because it is a backend concern (an in-JS source would not need it).
+- The spawn wrapper does **not** debounce re-runs; the host's query-driven contract is "abort the in-flight source and re-run immediately on every keystroke," and preemption is owned by the host (it aborts the previous run's `AbortSignal`, killing its child process, before calling the source for the new query). An earlier version debounced inside the wrapper, but that left the list on stale results for the debounce window on each keystroke; the host's abort already coalesces by killing superseded runs, so a separate debounce only added latency. The host additionally throttles cumulative `results` posts to the webview (leading+trailing, ~16ms) so a broad query matching thousands of lines does not flood the webview IPC with a full-candidate-list message per streamed batch.
 - Committing to `rg --json` is hard to reverse: the grep source parses that contract. Changing backends later means rewriting the parser, not just swapping a primitive.
 
 ## Status

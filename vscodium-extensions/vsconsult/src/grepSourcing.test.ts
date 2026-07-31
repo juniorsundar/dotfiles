@@ -126,7 +126,7 @@ describe("searchWorkspace — streaming parsed rg --json matches", () => {
       },
     };
 
-    const searchWorkspace = createSearchWorkspace(spawner, "/workspace", 150, [
+    const searchWorkspace = createSearchWorkspace(spawner, "/workspace", [
       "**/node_modules/**",
       "**/.git/**",
     ]);
@@ -210,7 +210,7 @@ describe("searchWorkspace — abort propagation", () => {
       },
     };
 
-    const searchWorkspace = createSearchWorkspace(spawner, "/workspace", 0);
+    const searchWorkspace = createSearchWorkspace(spawner, "/workspace");
     const ac = new AbortController();
     const session = searchWorkspace("query", ac.signal);
 
@@ -256,51 +256,42 @@ describe("searchWorkspace — abort propagation", () => {
   });
 });
 
-describe("searchWorkspace — debounce", () => {
-  it("debounces re-spawns so rapid query changes produce only one spawn", async () => {
-    vi.useFakeTimers();
-
-    const child = new FakeChildProcess();
+describe("searchWorkspace — no debounce (preempt immediately)", () => {
+  it("spawns immediately on every call — no debounce coalescing", async () => {
+    // Preemption is owned by the host (it aborts the previous run's
+    // signal before calling the source). The source therefore spawns
+    // rg right away on every call rather than waiting out a debounce
+    // window while stale results linger.
     const spawnedQueries: string[] = [];
     const spawner: RipgrepSpawner = {
       rgPath: "/fake/rg",
       spawn: (_rgPath, args, _opts) => {
-        spawnedQueries.push(args[1]); // args[1] is the query
-        queueMicrotask(() => {
-          child.close(0);
-        });
+        spawnedQueries.push(args[args.length - 1]);
+        const child = new FakeChildProcess();
+        queueMicrotask(() => child.close(0));
         return child;
       },
     };
 
     const searchWorkspace = createSearchWorkspace(spawner, "/workspace");
 
-    // Rapid keystrokes — three queries in quick succession.
-    const session1 = searchWorkspace("a", new AbortController().signal);
-    const session2 = searchWorkspace("ab", new AbortController().signal);
-    const session3 = searchWorkspace("abc", new AbortController().signal);
+    // Rapid keystrokes — three queries in quick succession. Each spawns
+    // its own child as soon as its updates iterator is consumed (no timer
+    // to advance). Consume all three.
+    const s1 = searchWorkspace("a", new AbortController().signal);
+    const s2 = searchWorkspace("ab", new AbortController().signal);
+    const s3 = searchWorkspace("abc", new AbortController().signal);
 
-    // Only the last session's updates channel should yield after debounce.
-    const batches: GrepCandidate[][] = [];
-    const collected = (async () => {
-      for await (const batch of session3.updates! as AsyncIterable<GrepCandidate[]>) {
-        batches.push(batch);
+    const drain = async (s: ReturnType<typeof searchWorkspace>) => {
+      for await (const _batch of s.updates! as AsyncIterable<GrepCandidate[]>) {
+        void _batch;
       }
-    })();
+    };
+    await Promise.all([drain(s1), drain(s2), drain(s3)]);
 
-    // No spawns yet — debounce timer hasn't fired.
-    expect(spawnedQueries).toHaveLength(0);
-
-    // Advance past the debounce window.
-    await vi.advanceTimersByTimeAsync(200);
-
-    // Exactly one spawn happened, with the final query.
-    expect(spawnedQueries).toHaveLength(1);
-    expect(spawnedQueries[0]).toBe("abc");
-
-    await collected;
-
-    vi.useRealTimers();
+    // Each call spawned its own child immediately — no coalescing.
+    expect(spawnedQueries).toHaveLength(3);
+    expect(spawnedQueries).toEqual(["a", "ab", "abc"]);
   });
 });
 
