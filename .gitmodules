@@ -10,3 +10,6 @@
 [submodule "pi"]
 	path = pi/.pi/agent
 	url = https://github.com/juniorsundar/pi-config
+[submodule "vsconsult"]
+	path = vscodium-extensions/vsconsult
+	url = https://github.com/juniorsundar/vsconsult.git
