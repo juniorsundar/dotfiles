@@ -21,6 +21,7 @@
   "activationEvents": [
     "onCommand:vsconsult.findFile",
     "onCommand:vsconsult.liveGrep",
+    "onCommand:vsconsult.pickPicker",
     "onView:vsconsult-filePicker"
   ],
   "contributes": {
@@ -33,6 +34,11 @@
       {
         "command": "vsconsult.liveGrep",
         "title": "Live Grep",
+        "category": "vsconsult"
+      },
+      {
+        "command": "vsconsult.pickPicker",
+        "title": "Choose Picker",
         "category": "vsconsult"
       }
     ],

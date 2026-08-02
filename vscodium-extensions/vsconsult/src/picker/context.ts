@@ -58,4 +58,7 @@ export interface PickerContext {
 
   /** Read the origin (editor state when the picker was invoked). */
   readOrigin(): { uri: string } | undefined;
+
+  /** Start another registered picker by id, switching the active session to it. */
+  startPicker(id: string): Promise<void>;
 }

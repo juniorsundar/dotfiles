@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { Candidate, FileCandidate, GrepCandidate } from "./types.js";
+import type {
+  Candidate,
+  FileCandidate,
+  GrepCandidate,
+  PickerCandidate,
+} from "./types.js";
 
 describe("Candidate contract", () => {
   it("has id and label", () => {
@@ -39,5 +44,32 @@ describe("FileCandidate", () => {
     expect(candidate.label).toBe("main.ts");
     expect(candidate.directory).toBe("src");
     expect(candidate.relativePath).toBe("src/main.ts");
+  });
+});
+
+describe("PickerCandidate", () => {
+  it("extends Candidate with a description (picker placeholder text)", () => {
+    const candidate: PickerCandidate = {
+      id: "grep",
+      label: "Grep",
+      description: "Search workspace contents…",
+    };
+    expect(candidate.id).toBe("grep");
+    expect(candidate.label).toBe("Grep");
+    expect(candidate.description).toBe("Search workspace contents…");
+  });
+
+  it("is a thin reference: only id, label, and description", () => {
+    const candidate: PickerCandidate = {
+      id: "file",
+      label: "File",
+      description: "Narrow workspace files…",
+    };
+    // No picker-bundle fields on the candidate.
+    expect(candidate).not.toHaveProperty("placeholder");
+    expect(candidate).not.toHaveProperty("emptyState");
+    expect(candidate).not.toHaveProperty("source");
+    expect(candidate).not.toHaveProperty("accept");
+    expect(candidate).not.toHaveProperty("preview");
   });
 });

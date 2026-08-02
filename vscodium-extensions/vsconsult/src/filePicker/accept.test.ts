@@ -35,6 +35,7 @@ function fakeContext(): PickerContext & { calls: string[] } {
     revealPosition: vi.fn(),
     executeCommand: vi.fn(),
     readOrigin: vi.fn(() => undefined),
+    startPicker: vi.fn(async () => {}),
   };
 }
 

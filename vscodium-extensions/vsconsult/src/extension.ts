@@ -5,12 +5,14 @@ import { join } from "node:path";
 import { createRegistry } from "./picker/registry.js";
 import { createFilePicker } from "./filePicker/index.js";
 import { createGrepPicker } from "./grepPicker/index.js";
+import { createPickPicker } from "./pickPicker/index.js";
 import { createSearchWorkspace, type RipgrepSpawner, type ChildProcessLike } from "./grepSourcing.js";
 import { PickerHost, vscodeHostEnv } from "./host/host.js";
 
 const viewId = "vsconsult-filePicker";
 const findFileCommandId = "vsconsult.findFile";
 const liveGrepCommandId = "vsconsult.liveGrep";
+const pickPickerCommandId = "vsconsult.pickPicker";
 
 export function activate(context: vscode.ExtensionContext): void {
   // ── Registry ────────────────────────────────────────────────────────
@@ -52,6 +54,11 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   createGrepPicker(searchWorkspace, registry);
 
+  // ── Register picker chooser ────────────────────────────────────────
+  // Registered last: the chooser lists the other pickers via the
+  // registry, so it must be assembled after they are registered.
+  createPickPicker(registry);
+
   context.subscriptions.push(
     host,
     vscode.window.registerWebviewViewProvider(viewId, host, {
@@ -59,6 +66,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.commands.registerCommand(findFileCommandId, () => host.start("file")),
     vscode.commands.registerCommand(liveGrepCommandId, () => host.start("grep")),
+    vscode.commands.registerCommand(pickPickerCommandId, () => host.start("pick")),
   );
 }
 

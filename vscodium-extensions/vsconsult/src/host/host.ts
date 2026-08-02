@@ -405,7 +405,12 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
       return;
     }
 
-    await this.exit();
+    // Accept may have started another picker via context.startPicker,
+    // replacing this session. The host must not tear down the freshly
+    // started one — exit only the session accept was invoked on.
+    if (this.session === session) {
+      await this.exit();
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -584,6 +589,7 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
         if (!session?.origin) return undefined;
         return { uri: session.origin.uri };
       },
+      startPicker: (id: string): Promise<void> => this.start(id),
       resolveLanguageId: async (uri: string): Promise<string | undefined> => {
         try {
           const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));

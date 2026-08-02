@@ -39,6 +39,18 @@ export interface GrepCandidate extends Candidate {
 }
 
 /**
+ * A picker-chooser candidate extending the shared Candidate contract with a
+ * short description.
+ *
+ * A thin reference to a registered picker: `id` and `label` are taken from
+ * the registered picker; `description` is sourced from its `placeholder`.
+ * Deliberately not the full Picker bundle.
+ */
+export interface PickerCandidate extends Candidate {
+  description: string;
+}
+
+/**
  * Structured row parts returned by a picker's Render.
  * The host maps these into fixed DOM slots; pickers do not lay out rows.
  */

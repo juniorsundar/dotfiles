@@ -625,6 +625,51 @@ describe("PickerHost — streaming source support", () => {
     host.dispose();
   });
 
+  it("startPicker switches the active session to the requested picker", async () => {
+    // The chooser picker: accept calls ctx.startPicker("target-id").
+    const chooserSource: Source<StreamCandidate> = () => ({
+      candidates: [{ id: "pick-me", label: "Pick me" }],
+    });
+    const chooser = makePicker("chooser", chooserSource);
+    chooser.accept = vi.fn(async (_c, ctx) => {
+      await ctx.startPicker("target-id");
+    });
+    const targetSource: Source<StreamCandidate> = () => ({
+      candidates: [{ id: "t1", label: "target-row" }],
+    });
+    const target = makePicker("target-id", targetSource);
+    registry.register(chooser);
+    registry.register(target);
+
+    const host = new PickerHost(extensionUri, registry, env, viewId);
+    host.resolveWebviewView(view as any);
+    host.start("chooser");
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+    view.clear();
+
+    // Accept on the chooser row starts the requested picker.
+    view.send({ type: "accept", id: "pick-me" });
+
+    // The target picker's configure message is posted — session switched.
+    await vi.waitFor(() => {
+      const configures = view.outbound.filter(
+        (m): m is Extract<OutboundMessage, { type: "configure" }> =>
+          m.type === "configure",
+      );
+      expect(configures.some((c) => c.config.id === "target-id")).toBe(true);
+    });
+    // The switched session is still alive: target results arrive and no
+    // idle was posted (the host must not exit the new session).
+    await vi.waitFor(() => {
+      const rows = resultsMessages(view.outbound).flatMap((m) => m.rows);
+      expect(rows.some((r) => r.id === "t1")).toBe(true);
+    });
+    expect(view.outbound.some((m) => m.type === "idle")).toBe(false);
+    host.dispose();
+  });
+
   it("query-driven picker re-runs source on query change and aborts old source", async () => {
     const signals: AbortSignal[] = [];
     const batches: StreamCandidate[][] = [];

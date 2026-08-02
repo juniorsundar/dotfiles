@@ -58,3 +58,57 @@ describe("extension.ts — grep command handler (C1)", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Ticket 14 C1: Verify the vsconsult.pickPicker command is declared in the
+// manifest and wired at activation to host.start("pick") with the chooser
+// registered before any start can resolve it.
+// ---------------------------------------------------------------------------
+
+describe("vsconsult.pickPicker command wiring (C1)", () => {
+  it("is declared in contributes.commands with title 'Choose Picker'", () => {
+    const commands: Array<{ command: string; title?: string; category?: string }> = pkg.contributes.commands;
+    const pickCmd = commands.find((c) => c.command === "vsconsult.pickPicker");
+    expect(pickCmd).toBeDefined();
+    expect(pickCmd!.category).toBe("vsconsult");
+    expect(pickCmd!.title).toBe("Choose Picker");
+  });
+
+  it("is listed in activationEvents", () => {
+    expect(pkg.activationEvents).toContain("onCommand:vsconsult.pickPicker");
+  });
+
+  it("does not add a new view, view-container, or view declaration", () => {
+    // The existing shared webview view serves the chooser too.
+    const panelViews: Array<{ id: string }> =
+      pkg.contributes.views?.["vsconsult-panel"] ?? [];
+    expect(panelViews).toHaveLength(1);
+    expect(panelViews[0].id).toBe("vsconsult-filePicker");
+
+    const panelContainers: Array<{ id: string }> =
+      pkg.contributes.viewsContainers?.panel ?? [];
+    expect(panelContainers).toHaveLength(1);
+    expect(panelContainers[0].id).toBe("vsconsult-panel");
+  });
+});
+
+describe("extension.ts — pickPicker command handler (C1)", () => {
+  it("defines a pickPickerCommandId constant", () => {
+    expect(extSrc).toMatch(/pickPickerCommandId\s*=\s*"vsconsult\.pickPicker"/);
+  });
+
+  it("registers the command with vscode.commands.registerCommand", () => {
+    // The handler must call host.start("pick").
+    expect(extSrc).toMatch(
+      /registerCommand\(\s*pickPickerCommandId\s*,\s*\(\)\s*=>\s*host\.start\("pick"\)/,
+    );
+  });
+
+  it("creates and registers the chooser at activation before start can resolve it", () => {
+    // createPickPicker(registry) must appear in activate(); the chooser is
+    // registered at assembly time, so this also guarantees host.start("pick")
+    // finds it.
+    expect(extSrc).toMatch(/createPickPicker\(\s*registry\s*\)/);
+    expect(extSrc).toMatch(/import.*createPickPicker.*from "\.\/pickPicker\/index\.js"/s);
+  });
+});

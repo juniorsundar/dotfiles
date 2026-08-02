@@ -47,6 +47,8 @@ export interface Registry {
     picker: Picker<TCandidate>,
   ): void;
   get(id: string): Picker | undefined;
+  /** Enumerate registered pickers in insertion order. */
+  all(): Picker[];
 }
 
 /**
@@ -63,6 +65,9 @@ export function createRegistry(): Registry {
     },
     get(id) {
       return pickers.get(id);
+    },
+    all() {
+      return [...pickers.values()];
     },
   };
 }

@@ -121,4 +121,90 @@ describe("Registry", () => {
     registry.register(second);
     expect(registry.get("dup")).toBe(second);
   });
+  it("all() returns registered pickers in insertion order", () => {
+    const registry = createRegistry();
+    const first: Picker<TestCandidate> = {
+      id: "alpha",
+      label: "Alpha",
+      placeholder: "A…",
+      emptyState: "None",
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+    const second: Picker<TestCandidate> = {
+      id: "beta",
+      label: "Beta",
+      placeholder: "B…",
+      emptyState: "None",
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+    const third: Picker<TestCandidate> = {
+      id: "gamma",
+      label: "Gamma",
+      placeholder: "G…",
+      emptyState: "None",
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+    registry.register(first);
+    registry.register(second);
+    registry.register(third);
+
+    expect(registry.all()).toEqual([first, second, third]);
+  });
+  it("all() keeps the original position when a duplicate id is re-registered", () => {
+    const registry = createRegistry();
+    const first: Picker<TestCandidate> = {
+      id: "dup",
+      label: "First",
+      placeholder: "A…",
+      emptyState: "None",
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+    const other: Picker<TestCandidate> = {
+      id: "other",
+      label: "Other",
+      placeholder: "O…",
+      emptyState: "None",
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+    const replacement: Picker<TestCandidate> = {
+      id: "dup",
+      label: "Replacement",
+      placeholder: "R…",
+      emptyState: "None",
+      source: emptySource,
+      narrow: identityNarrow,
+      render: noopRender,
+      accept: noopAccept,
+      preview: noopPreview,
+    };
+    registry.register(first);
+    registry.register(other);
+    registry.register(replacement);
+
+    expect(registry.all().map((p) => p.id)).toEqual(["dup", "other"]);
+  });
+  it("all() returns an empty array when nothing is registered", () => {
+    const registry = createRegistry();
+    expect(registry.all()).toEqual([]);
+  });
 });

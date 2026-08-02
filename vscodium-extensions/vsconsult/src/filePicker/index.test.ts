@@ -40,6 +40,7 @@ describe("file picker — picker seam", () => {
     revealPosition: vi.fn(),
     executeCommand: vi.fn(),
     readOrigin: vi.fn(() => undefined),
+    startPicker: vi.fn(async () => {}),
   };
 
   const registry = createRegistry();
