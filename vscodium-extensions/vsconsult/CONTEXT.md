@@ -5,12 +5,24 @@ vsconsult is a keyboard-first VSCodium picker that provides Consult-like narrowi
 ## Language
 
 **Picker**:
-The complete transient interaction for querying, narrowing, previewing, and accepting a collection of candidates. A picker is a bundle naming five parts: a Source, a Candidate shape, a Narrowing, a Render, and an Accept.
-_Avoid_: Selector, search box, palette
+The registered definition of one picker type: a bundle naming five parts—a Source, a Candidate shape, a Narrowing, a Render, and an Accept. Invoking a Picker creates a Picker session; the Picker itself is not the transient runtime interaction.
+_Avoid_: Selector, search box, palette, picker instance
 
 **Picker type**:
 A concrete configuration of the five picker parts. "File picker" and "grep picker" are picker types; they differ in what they source, how they narrow, what they show, and what accept does.
 _Avoid_: Picker kind, picker mode
+
+**Picker session**:
+One active invocation of a Picker, from start until accept, cancel, or replacement by another invocation. It owns the transient picker state: candidates, query, selection, source progress and cancellation, and pending preview. It does not own the Shared view, Panel idle policy, return context, or direct editor integration.
+_Avoid_: Session flow, picker instance, view session
+
+**Host interaction**:
+The host-owned runtime scope from the first Picker session until final accept or cancel. It captures the return context once and preserves it across session replacement, so a chooser-to-picker handoff remains one continuous interaction.
+_Avoid_: Picker, Picker session, session chain
+
+**Return context**:
+The Origin and prior Panel visibility captured when a Host interaction begins. The host preserves it across Picker session replacement and consumes it only on final accept or cancel.
+_Avoid_: Session state, previous state, lifecycle context
 
 **Picker registration**:
 The code-only act of adding a picker type: a Picker object is registered with the host at activation. Adding a picker requires no `package.json` edit and no republish; the single declared webview view serves any registered picker.
@@ -19,6 +31,10 @@ _Avoid_: Picker declaration, manifest entry
 **Shared view**:
 The single declared webview view that hosts whichever picker was invoked. Its HTML is host-owned and static, generated once at resolve; switching picker type reconfigures the view's content (labels, empty-state text, row parts, candidates) via messages, not by rewriting the webview HTML or declaring a new view.
 _Avoid_: Picker view, panel tab
+
+**Shared view adapter**:
+The host-owned boundary around the Shared view. It owns the static document and its DOM behavior, translates between the webview wire protocol and host messages, and reports visibility and focus events. It does not own Picker session, lifecycle, or Panel idle policy.
+_Avoid_: Picker view, Host interaction, view controller
 
 **Source**:
 The part of a picker that produces the candidate collection. A source is query-aware: it receives the query and returns either a snapshot or a stream of candidate batches. A file picker's source ignores the query and snapshots the workspace file tree; a live-grep source runs the query as the search pattern and streams matches as they arrive.
@@ -29,7 +45,7 @@ A source that delivers its candidates all at once, then completes. The file pick
 _Avoid_: One-shot source, static source
 
 **Stream source**:
-A source that delivers candidates in incremental batches over time, then completes (or continues until cancelled). A live-grep or LSP workspace-symbol source is a stream source. The host appends streamed batches to the visible set and re-narrows or re-renders as they arrive.
+A source that delivers candidates in incremental batches over time, then completes (or continues until cancelled). A live-grep or LSP workspace-symbol source is a stream source. The active Picker session appends streamed batches to its candidate set and re-narrows or re-renders as they arrive.
 _Avoid_: Async source, live source
 
 **Query-driven source**:
@@ -69,11 +85,15 @@ The structured projection a picker's Render returns for one candidate: a primary
 _Avoid_: Row template, cell model
 
 **Accept**:
-The part of a picker that performs the picker type's commit effect on the selected candidate (open a file, jump to a symbol, run a command). Accept receives the candidate and a picker context of host-backed helpers; it performs only the effect and returns. The host owns the surrounding exit: restoring the origin, restoring panel visibility, and returning focus.
+The part of a Picker that performs the picker type's commit effect on the Selection (open a file, jump to a symbol, run a command). Accept receives the Candidate and a Picker context. Completion is the default outcome and ends the Host interaction; Accept may instead explicitly return a Handoff naming the next Picker. The host owns replacement and the surrounding Lifecycle.
 _Avoid_: Submit, confirm, open
 
+**Handoff**:
+An explicit Accept outcome that replaces the active Picker session with a session for another registered Picker while preserving the Host interaction and its Return context. Handoff does not restore the Origin or prior Panel visibility between sessions.
+_Avoid_: Start picker, redirect, nested picker
+
 **Picker context**:
-The small set of host-backed helpers handed to a picker's accept and preview actions: opening a text document, revealing a position, executing a command, reading the origin, and starting another registered picker. Pickers act on candidates through the picker context rather than reaching into the VS Code API directly.
+The small set of host-backed editor-effect helpers handed to a Picker's Accept and Preview actions: opening or reading a text document, showing or closing a Preview, revealing a position, executing a command, and reading the Origin. Pickers act on Candidates through the Picker context rather than reaching into the editor API directly. Session control such as Handoff is not a Picker-context effect.
 _Avoid_: Services, host API, context object
 
 **Lifecycle**:

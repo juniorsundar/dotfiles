@@ -1,0 +1,17 @@
+# 20 — Extract the Shared view adapter
+
+**What to build:** Extract the static Shared view document and wire protocol into a host-owned Shared view adapter, leaving PickerHost, PickerSession, Lifecycle, and default-Picker policy out of it. The adapter owns the static host-generated HTML, CSS, JavaScript, CSP and nonce handling, DOM interaction, webview wire-message validation and serialization, and visibility and focus event reporting. It exposes project-owned ports to PickerHost: domain-oriented user/visibility/focus inputs and presentation outputs. The static document is generated once when the real webview resolves; switching Picker type continues to reconfigure the same Shared view through messages, not by replacing its HTML (ADR-0002 preserved). The adapter sends navigation intent and clicked Candidate ids; it renders the canonical selected Candidate id supplied by the session and retains local DOM mechanics only where they cannot change domain Selection. Ready/reload reconstruction stays supported: PickerHost can replay the active Picker's full presentation state after the adapter reports readiness. The adapter owns no Picker-session, Lifecycle, Return-context, Registry, or default-Picker policy. PickerHost now talks to the adapter through project-owned ports rather than holding a VS Code WebviewView and posting OutboundMessage directly. User-visible behavior is unchanged: layout, styling, keyboard bindings, status wording, empty states, ready/reload reconstruction, visibility/focus handling, and canonical-selection rendering all behave as before.
+
+**Blocked by:** 19 — Session-driven Accept and Cancel; explicit Handoff; drop startPicker.
+
+**Status:** ready-for-agent
+
+- [ ] A Shared view adapter module owns the static HTML, CSS, JavaScript, CSP and nonce handling, DOM interaction, and webview wire-message validation and serialization.
+- [ ] The adapter exposes project-owned ports to PickerHost (user/visibility/focus inputs and presentation outputs); PickerHost no longer holds a VS Code WebviewView or posts wire messages directly.
+- [ ] The adapter sends navigation intent and clicked Candidate ids; it renders the canonical selected Candidate id supplied by the session and does not decide domain Selection.
+- [ ] The static document is generated once at resolve; switching Picker type reconfigures the Shared view through messages, not by replacing HTML (ADR-0002 preserved).
+- [ ] Ready/reload reconstruction is preserved: PickerHost can replay the active Picker's full presentation state after the adapter reports readiness.
+- [ ] The adapter owns no Picker-session, Lifecycle, Return-context, Registry, or default-Picker policy.
+- [ ] Shared view adapter contract tests cover static document generation, CSP/nonce placement, ready signaling, wire-message validation, query input, navigation intents, click selection, accept/cancel intent, visibility/focus reporting, presentation rendering, canonical selected-id rendering, and full-state reconstruction after reload.
+- [ ] Layout, styling, keyboard bindings, status wording, empty states, ready/reload reconstruction, visibility/focus handling, and canonical-selection rendering remain behaviorally identical in the existing suite; the tests from tickets 16–19 still pass unchanged.
+- [ ] The full test suite, type checking, and build pass.
