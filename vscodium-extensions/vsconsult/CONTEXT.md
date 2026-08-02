@@ -73,7 +73,7 @@ The part of a picker that performs the picker type's commit effect on the select
 _Avoid_: Submit, confirm, open
 
 **Picker context**:
-The small set of host-backed helpers handed to a picker's accept and preview actions: opening a text document, revealing a position, executing a command, and reading the origin. Pickers act on candidates through the picker context rather than reaching into the VS Code API directly.
+The small set of host-backed helpers handed to a picker's accept and preview actions: opening a text document, revealing a position, executing a command, reading the origin, and starting another registered picker. Pickers act on candidates through the picker context rather than reaching into the VS Code API directly.
 _Avoid_: Services, host API, context object
 
 **Lifecycle**:
@@ -103,3 +103,7 @@ _Avoid_: Previous file, starting tab
 **Panel visibility**:
 Whether the bottom Panel region was visible before invoking the picker. Exit restores this visibility state but does not promise to reactivate the previously selected Panel tab.
 _Avoid_: Panel state, prior panel
+
+**Picker chooser**:
+The registered picker whose candidates are the other registered pickers. It is the Panel's idle state: shown whenever the Panel is visible and no other picker session is active. It is a registered picker (id `"pick"`, label "Pick"), invoked by the `vsconsult.pickPicker` command and auto-started by the host via the injected `defaultPickerId`. Its Source enumerates the registry minus itself (sorted alphabetically by label); its `PickerCandidate` is a thin `{ id, label, description }` reference; narrowing reuses the shared fuzzy primitive; render shows `label` / `placeholder` / id-tooltip; preview is a no-op; accept starts the chosen picker via the `startPicker` picker-context primitive. The host never names a picker: the chooser is reached through the `defaultPickerId` the extension wires at activation, not by an `if (id === "pick")` branch.
+_Avoid_: Picker menu, home screen, launcher, default picker view

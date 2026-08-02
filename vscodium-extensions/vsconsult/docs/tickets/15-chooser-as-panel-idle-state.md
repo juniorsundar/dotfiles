@@ -1,0 +1,19 @@
+# 15 — Chooser as the Panel's idle state
+
+**What to build:** The chooser becomes the Panel's home screen, not just a command-invoked picker. Open the Panel fresh (click its tab from elsewhere without running a command) → the chooser is already showing. Run a picker and Escape while the Panel stays pinned → the chooser reappears. Cancel a picker (focus deliberately moved to the editor) → focus stays in the editor; the chooser does not yank focus back to the Panel. This ticket adds a `defaultPickerId` parameter to the `PickerHost` constructor (the extension wires it to `"pick"` at activation) and implements the two re-arm triggers that together realize "Panel visible ∧ no active session ⇒ start `defaultPickerId`": (1) a Panel visibility transition — `WebviewView.onDidChangeVisibility` plus the initial `resolveWebviewView` — which focuses the Panel input as a normal start does; and (2) session teardown while the Panel is visible — which covers the pinned-exit gap the visibility-only trigger misses, and which deliberately does not focus the Panel input so `runCancel`'s intent is respected. The host's existing `runExit` / `runCancel` lifecycle is unchanged and not special-cased. The open `onDidChangeVisibility`-vs-focus question is resolved during this ticket: verify in real VSCodium whether clicking an already-visible pinned Panel tab to refocus it fires the event; if it does not, add a focus/activation hook as a third trigger so returning to an idle pinned Panel always shows the chooser. No `if (id === "pick")` branch appears in the host — the host stays picker-agnostic, reaching the chooser only as `defaultPickerId`.
+
+**Blocked by:** 14 — Picker chooser invokable by command.
+
+**Status:** ready-for-agent
+
+- [ ] `PickerHost` gains a `defaultPickerId` constructor parameter; the extension wires it to `"pick"` at activation. The host never names a picker in its own logic.
+- [ ] On `resolveWebviewView`, the host auto-starts `defaultPickerId` (the first configure message carries the chooser's config) when no session is active.
+- [ ] A Panel visibility transition to visible, with no active session, starts `defaultPickerId` and focuses the Panel input.
+- [ ] Session teardown while the Panel is visible re-arms `defaultPickerId` (covers the pinned-exit gap that the visibility-only trigger misses).
+- [ ] Teardown-triggered re-arm does not invoke the Panel-focus command (does not steal focus); visibility-triggered re-arm does.
+- [ ] Cancel a picker (focus moved to the editor) leaves focus in the editor; the re-arm does not yank focus back to the Panel.
+- [ ] The `runExit` / `runCancel` lifecycle is unchanged and not special-cased for the chooser; the chooser's exit behavior falls out of composing the existing teardown with the idle logic.
+- [ ] The `onDidChangeVisibility`-vs-focus question is resolved: if clicking an already-visible pinned Panel tab does not fire the event in real VSCodium, a focus/activation hook is added as a third trigger so returning to an idle pinned Panel always shows the chooser.
+- [ ] No `if (id === "pick")` branch is introduced in the host; the chooser is reached only through `defaultPickerId`.
+- [ ] `PickerHost` integration tests (prior art: `src/host/host.test.ts`, the mocked-`vscode` harness) cover: auto-start on `resolveWebviewView`; visibility-transition re-arm; teardown-while-visible re-arm; teardown re-arm does not steal focus while visibility re-arm does; cancel leaves focus in the editor.
+- [ ] Demoable end-to-end: click the vsconsult Panel tab from the terminal → the chooser is already showing; start Grep, Escape back to the chooser; cancel a picker from the editor → focus stays in the editor.

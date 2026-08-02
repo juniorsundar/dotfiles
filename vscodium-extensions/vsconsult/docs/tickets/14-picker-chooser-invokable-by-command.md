@@ -1,0 +1,20 @@
+# 14 — Picker chooser invokable by command
+
+**What to build:** The picker chooser exists as a registered picker and is reachable on demand. Run `vsconsult.pickPicker` → the shared view shows a list of the other registered pickers (File, Grep), sorted alphabetically by label, each row showing the picker's name as primary and its placeholder as secondary, with the registry id as tooltip. Type to fuzzy-narrow (e.g. `fi` narrows to File, `gr` narrows to Grep); a query matching nothing shows the empty state. Enter starts the chosen picker; Escape restores the origin. This ticket carves the full vertical path for the chooser bundle: the `PickerCandidate` type (a thin reference — `id` and `label` from the registered picker, `description` sourced from its `placeholder` — not the full `Picker` bundle); the chooser's Source (enumerates the registry minus itself via a new `Registry.all()` enumeration method, then sorts alphabetically by label); Narrowing (the shared fuzzy primitive, no path/field bias); Render (`primary = label`, `secondary = placeholder`, `tooltip = id`); Accept (calls a new `PickerContext.startPicker(id)` primitive, which the host implements as `this.start(id)`); and Preview (a no-op). The enabling seams land here because they are part of this vertical path: the `Registry.all()` enumeration method and the `PickerContext.startPicker` primitive plus its host implementation. Plus the `vsconsult.pickPicker` command entry in `package.json` (commands and activationEvents) and the activation wiring that registers the chooser alongside the file and grep pickers. No idle/auto-start behavior yet — the chooser is only reached by the command in this ticket.
+
+**Blocked by:** None — can start immediately.
+
+**Status:** ready-for-agent
+
+- [ ] A `vsconsult.pickPicker` command is declared in `package.json` (commands and activationEvents) and invokes `host.start("pick")`; no new view, view-container, or view declaration.
+- [ ] The chooser is registered with the host registry at activation with id `"pick"`, label "Pick", a placeholder, and an empty state; registration occurs before any `host.start` can resolve `"pick"`.
+- [ ] A `PickerCandidate` type extends the shared `Candidate` contract as a thin reference: `id` and `label` from the registered picker, `description` sourced from its `placeholder`. No new field is added to `Picker`.
+- [ ] The `Registry` interface gains an enumeration method returning the registered pickers in insertion order; the chooser's Source applies the alphabetical-by-label sort itself so the registry stays unbiased.
+- [ ] The chooser's Source is a snapshot, query-agnostic: it enumerates the registry minus the chooser's own id (`"pick"`), sorted alphabetically by label. `queryDriven` is unset.
+- [ ] Narrowing reuses the shared fuzzy primitive (no path/field bias); typing `fi` narrows to File and `gr` narrows to Grep; a query matching nothing shows the empty state.
+- [ ] Render returns `RowParts` with `primary = label`, `secondary = picker.placeholder`, `tooltip = id`.
+- [ ] A `startPicker(id: string)` primitive is added to `PickerContext`; the host implements it as `this.start(id)`. Test fakes gain a stub.
+- [ ] Accept calls `context.startPicker(candidate.id)` and starts the chosen picker, switching the active session to it.
+- [ ] Preview is a no-op: it calls no context primitive and opens no document.
+- [ ] Picker-seam tests (prior art: `src/filePicker/index.test.ts`) cover the bundle: id/label/placeholder/emptyState; self-exclusion; alphabetical ordering independent of registration order; `PickerCandidate` fields sourced from the registered picker; fuzzy narrowing; row parts; accept calls `startPicker` with the chosen id; preview is a no-op.
+- [ ] Demoable end-to-end: run `vsconsult.pickPicker`, see File and Grep listed alphabetically, type to narrow, Enter starts the chosen picker, Escape restores the origin.
