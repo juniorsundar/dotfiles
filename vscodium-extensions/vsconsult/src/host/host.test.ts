@@ -188,12 +188,13 @@ function fakeEnv(): HostEnv & { calls: string[] } {
  * Fake webview view that captures outbound messages and exposes the
  * inbound message handler so tests can feed inbound messages.
  */
-function fakeWebviewView() {
+function fakeWebviewView(initialVisible = true) {
   let inboundHandler: ((msg: InboundMessage) => void) | undefined;
   let disposeHandler: (() => void) | undefined;
+  let visibilityHandler: ((visible: boolean) => void) | undefined;
   const outbound: OutboundMessage[] = [];
 
-  return {
+  const view = {
     outbound,
     webview: {
       options: {},
@@ -207,7 +208,11 @@ function fakeWebviewView() {
         outbound.push(msg);
       }),
     },
-    visible: true,
+    visible: initialVisible,
+    onDidChangeVisibility: vi.fn((handler: (visible: boolean) => void) => {
+      visibilityHandler = handler;
+      return { dispose: vi.fn() };
+    }),
     onDidDispose: vi.fn((handler: () => void) => {
       disposeHandler = handler;
       return { dispose: vi.fn() };
@@ -220,11 +225,20 @@ function fakeWebviewView() {
     dispose() {
       disposeHandler?.();
     },
+    /**
+     * Simulate a visibility transition: update `visible` and fire
+     * `onDidChangeVisibility`, mirroring the real WebviewView API.
+     */
+    setVisible(visible: boolean) {
+      view.visible = visible;
+      visibilityHandler?.(visible);
+    },
     /** Reset captured messages. */
     clear() {
       outbound.length = 0;
     },
   };
+  return view;
 }
 
 // ---------------------------------------------------------------------------
@@ -2450,6 +2464,314 @@ describe("PickerHost — streaming source support", () => {
       vscodeMock.window.showTextDocument = originalShowTextDocument;
     }
 
+    host.dispose();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Ticket 15 — chooser as the panel's idle state
+// ---------------------------------------------------------------------------
+
+describe("PickerHost — chooser as the panel's idle state", () => {
+  const vscodeMock = (vscode as any);
+  let env: ReturnType<typeof fakeEnv>;
+  let view: ReturnType<typeof fakeWebviewView>;
+  let registry: ReturnType<typeof createRegistry>;
+  const extensionUri = { fsPath: "/ext", scheme: "file", toString: () => "/ext" } as any;
+  const viewId = "vsconsult.picker";
+
+  /** Snapshot source standing in for the chooser's registry enumeration. */
+  const pickSource: Source<StreamCandidate> = (_query, _signal) => ({
+    candidates: [
+      { id: "file", label: "File" },
+      { id: "grep", label: "Grep" },
+    ],
+  });
+
+  /** Calls to the panel-focus command — the "steals focus" vector. */
+  function focusCalls(): unknown[] {
+    return vscodeMock.commands.executeCommand.mock.calls.filter(
+      (call: any) => call[0] === `${viewId}.focus`,
+    );
+  }
+
+  function configureMessages() {
+    return view.outbound.filter((m) => m.type === "configure");
+  }
+
+  beforeEach(() => {
+    env = fakeEnv();
+    view = fakeWebviewView();
+    registry = createRegistry();
+    vscodeMock.window.activeTextEditor = undefined;
+    vscodeMock.commands.executeCommand.mockClear();
+  });
+
+  afterEach(() => {
+    vscodeMock.commands.executeCommand.mockImplementation(async () => {});
+  });
+
+  it("auto-starts the default picker on resolveWebviewView, focusing the panel input as a normal start does", async () => {
+    registry.register(makePicker("pick", pickSource));
+
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+
+    // The default picker's configuration is posted once and its source runs.
+    await vi.waitFor(() => {
+      const configs = configureMessages();
+      expect(configs).toHaveLength(1);
+      expect(configs[0]).toEqual({
+        type: "configure",
+        config: expect.objectContaining({ id: "pick" }),
+      });
+    });
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // The panel input was focused, exactly as a command-invoked start does.
+    expect(focusCalls().length).toBeGreaterThanOrEqual(1);
+    host.dispose();
+  });
+
+  it("resolve auto-start records the panel as visible — cancelling it does not close the panel", async () => {
+    // The view is not marked visible yet when resolve fires (real VS Code
+    // resolves before the panel finishes showing). The auto-start must still
+    // treat the panel as visible so Escape leaves it open.
+    view = fakeWebviewView(false);
+    registry.register(makePicker("pick", pickSource));
+
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(env.calls).toContain("focusActiveEditorGroup");
+    });
+    // Let exit() finish (teardown, idle post, runExit) before asserting.
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+    await new Promise((r) => setTimeout(r, 0));
+
+    // runExit must NOT close the panel — the picker started from an already
+    // open panel.
+    expect(env.calls).not.toContain("closePanel");
+    host.dispose();
+  });
+
+  it("a live session survives visibility transitions — no restart", async () => {
+    registry.register(makePicker("pick", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const configsBefore = configureMessages().length;
+    const focusBefore = focusCalls().length;
+
+    // Panel hidden then re-shown — the running picker keeps running.
+    view.setVisible(false);
+    view.setVisible(true);
+
+    expect(configureMessages()).toHaveLength(configsBefore);
+    expect(focusCalls()).toHaveLength(focusBefore);
+    host.dispose();
+  });
+
+  it("visibility false→true with no session starts the default picker and focuses the panel input", async () => {
+    registry.register(makePicker("pick", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // Hide the panel before ending the session: teardown re-arm must not
+    // fire for an invisible panel, leaving a visible-but-idle state.
+    view.setVisible(false);
+    const focusBefore = focusCalls().length;
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+    await new Promise((r) => setTimeout(r, 0));
+
+    // Idle and hidden — no re-arm happened on teardown.
+    expect(configureMessages()).toHaveLength(1);
+
+    // Coming back to the panel re-arms the chooser, with panel input focus.
+    view.setVisible(true);
+    await vi.waitFor(() => {
+      expect(configureMessages()).toHaveLength(2);
+    });
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(2);
+    });
+    expect(focusCalls().length).toBeGreaterThan(focusBefore);
+    host.dispose();
+  });
+
+
+  it("teardown while the panel stays visible re-arms the default picker without stealing focus", async () => {
+    registry.register(makePicker("pick", pickSource));
+    registry.register(makePicker("grep", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // Run a picker from the pinned panel — Escape must return to the chooser.
+    await host.start("grep");
+    const focusBeforeCancel = focusCalls().length;
+    expect(configureMessages()).toHaveLength(2); // pick, then grep
+
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+
+    // The chooser re-arms after teardown...
+    await vi.waitFor(() => {
+      expect(configureMessages()).toHaveLength(3);
+    });
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(3);
+    });
+
+    // ...but the panel input was NOT focused — cancel's editor focus holds.
+    expect(focusCalls()).toHaveLength(focusBeforeCancel);
+    // And the pinned panel stayed open.
+    expect(env.calls).not.toContain("closePanel");
+    host.dispose();
+  });
+
+  it("teardown while the panel is hidden does not re-arm — the panel closes instead", async () => {
+    registry.register(makePicker("pick", pickSource));
+    registry.register(makePicker("grep", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // Simulate invoking a picker while the panel is hidden (from the editor).
+    view.visible = false;
+    await host.start("grep");
+    const configsBeforeCancel = configureMessages().length;
+
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+    await new Promise((r) => setTimeout(r, 0));
+
+    // The panel was closed and no re-arm happened (the view is gone).
+    expect(env.calls).toContain("closePanel");
+    expect(configureMessages()).toHaveLength(configsBeforeCancel);
+    host.dispose();
+  });
+  it("a focus message with no session re-arms the default picker without invoking the panel-focus command", async () => {
+    registry.register(makePicker("pick", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    // End the session while the panel is hidden so teardown does not re-arm,
+    // leaving an idle view (the state the focus hook is meant to cover).
+    view.setVisible(false);
+    const focusBefore = focusCalls().length;
+    view.send({ type: "cancel" });
+    await vi.waitFor(() => {
+      expect(view.outbound.some((m) => m.type === "idle")).toBe(true);
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(configureMessages()).toHaveLength(1);
+
+    // The user clicks back into the panel: the webview reports focus.
+    view.send({ type: "focus" });
+
+    await vi.waitFor(() => {
+      expect(configureMessages()).toHaveLength(2);
+    });
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(2);
+    });
+    // The webview already has focus — no panel-focus command was invoked.
+    expect(focusCalls()).toHaveLength(focusBefore);
+    host.dispose();
+  });
+
+
+  it("is picker-agnostic — any registered id can serve as the default picker", async () => {
+    registry.register(makePicker("pick", pickSource));
+    registry.register(makePicker("grep", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "grep");
+    host.resolveWebviewView(view as any);
+
+    await vi.waitFor(() => {
+      const configs = configureMessages();
+      expect(configs).toHaveLength(1);
+      expect(configs[0]).toEqual({
+        type: "configure",
+        config: expect.objectContaining({ id: "grep" }),
+      });
+    });
+    host.dispose();
+  });
+
+  it("a focus message while a session is active is a no-op", async () => {
+    registry.register(makePicker("pick", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
+
+    const configsBefore = configureMessages().length;
+    const focusBefore = focusCalls().length;
+    view.send({ type: "focus" });
+
+    expect(configureMessages()).toHaveLength(configsBefore);
+    expect(focusCalls()).toHaveLength(focusBefore);
+    host.dispose();
+  });
+
+
+  it("a visibility event during the resolve auto-start does not double-start", async () => {
+    // Hold the focus command so the resolve auto-start stays in flight.
+    let releaseFocus: (() => void) | undefined;
+    const focusGate = new Promise<void>((resolve) => {
+      releaseFocus = resolve;
+    });
+    vscodeMock.commands.executeCommand.mockImplementation(async (command: string) => {
+      if (command === `${viewId}.focus`) {
+        await focusGate;
+      }
+    });
+    registry.register(makePicker("pick", pickSource));
+    const host = new PickerHost(extensionUri, registry, env, viewId, "pick");
+    host.resolveWebviewView(view as any);
+
+    // Real VS Code can fire onDidChangeVisibility(true) right after resolve,
+    // while the resolve auto-start is still in flight.
+    view.setVisible(true);
+    releaseFocus?.();
+
+    await vi.waitFor(() => {
+      expect(configureMessages()).toHaveLength(1);
+    });
+    await vi.waitFor(() => {
+      expect(resultsMessages(view.outbound)).toHaveLength(1);
+    });
     host.dispose();
   });
 });

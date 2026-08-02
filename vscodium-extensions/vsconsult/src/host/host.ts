@@ -84,6 +84,13 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
   /** True when a throttled results post is pending (trailing edge). */
   private resultsDirty = false;
   /**
+   * True while a default-picker auto-start (resolve / visibility / focus /
+   * teardown trigger) is in flight. Guards against a second trigger firing
+   * before the first start has created its session — real VS Code resolves
+   * the view and can fire `onDidChangeVisibility(true)` back-to-back.
+   */
+  private defaultStarting = false;
+  /**
    * Current vsconsult settings. Re-read live on configuration change so
    * the debounce delay and preview byte limits update without restarting
    * the picker. `fileExcludes` is consumed at picker start (see
@@ -96,6 +103,12 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     private readonly registry: Registry,
     private readonly env: HostEnv,
     private readonly viewId: string,
+    /**
+     * Picker started when the panel is visible but idle (the chooser as the
+     * panel's home screen). The host never names a picker of its own — this
+     * is purely an injected id, wired to `"pick"` at activation.
+     */
+    private readonly defaultPickerId?: string,
   ) {
     this.config = readVsconsultConfig(vscode.workspace.getConfiguration("vsconsult") as unknown as VsconsultConfigurationAccessor);
 
@@ -160,7 +173,20 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
           });
         }
       }),
+      webviewView.onDidChangeVisibility(() => {
+        // The panel became visible (panel opened, tab switched back). If no
+        // picker is running, show the default picker — with panel input
+        // focus, exactly as a normal start would. (The 1.85 typings deliver
+        // no payload, so read the view's current visibility.)
+        if (this.view?.visible) {
+          this.maybeStartDefault(true);
+        }
+      }),
     );
+
+    // The panel was just opened — auto-start the default picker so the
+    // chooser greets the user as the panel's home screen.
+    this.maybeStartDefault(true, true);
   }
 
   // -----------------------------------------------------------------------
@@ -168,6 +194,39 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
   // -----------------------------------------------------------------------
 
   async start(pickerId: string): Promise<void> {
+    await this.beginSession(pickerId, { focus: true });
+  }
+
+  /**
+   * Start the default picker if the panel is idle: a default is configured,
+   * no session is running, and no auto-start is already in flight.
+   *
+   * `focus` mirrors a normal start's panel-input focus; the teardown trigger
+   * passes false so a cancelled picker's editor focus is not yanked back.
+   * `panelWasVisible` overrides the visibility capture used by `beginSession`
+   * — the resolve trigger passes true because the panel was just opened even
+   * if the view is not yet marked visible.
+   */
+  private maybeStartDefault(focus: boolean, panelWasVisible?: boolean): void {
+    if (!this.defaultPickerId) return;
+    if (this.defaultStarting) return;
+    if (this.session) return;
+    this.defaultStarting = true;
+    void this.beginSession(this.defaultPickerId, { focus, panelWasVisible }).finally(
+      () => {
+        this.defaultStarting = false;
+      },
+    );
+  }
+
+  /**
+   * Begin a picker session: capture the origin, focus the panel input unless
+   * opted out, then configure the shared view and run the source.
+   */
+  private async beginSession(
+    pickerId: string,
+    opts: { focus: boolean; panelWasVisible?: boolean },
+  ): Promise<void> {
     const picker = this.registry.get(pickerId);
     if (!picker) {
       throw new Error(`Picker "${pickerId}" is not registered`);
@@ -197,10 +256,14 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
 
     // Check whether the vsconsult panel is already visible so we can
     // restore that state on exit.
-    const panelWasVisible = this.view?.visible ?? false;
+    const panelWasVisible = opts.panelWasVisible ?? (this.view?.visible ?? false);
 
-    // Focus the shared view so the input field receives keyboard focus
-    await vscode.commands.executeCommand(`${this.viewId}.focus`);
+    // Focus the shared view so the input field receives keyboard focus.
+    // The teardown-triggered re-arm opts out so a cancelled picker's editor
+    // focus is preserved.
+    if (opts.focus) {
+      await vscode.commands.executeCommand(`${this.viewId}.focus`);
+    }
 
     // Initialise session
     const sourceController = new AbortController();
@@ -319,6 +382,14 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
 
       case "cancel":
         await this.handleCancel();
+        break;
+
+      case "focus":
+        // The panel webview gained focus (e.g. the user clicked its tab). If
+        // no picker is running, show the default picker. The webview already
+        // has focus, so this re-arm does not invoke the panel-focus command
+        // — and it can never steal focus from the editor.
+        this.maybeStartDefault(false);
         break;
     }
   }
@@ -441,6 +512,15 @@ export class PickerHost implements vscode.WebviewViewProvider, vscode.Disposable
     await this.teardownSession(session);
     this.post({ type: "idle" });
     await runExit(this.env, session.panelWasVisible);
+
+    // The session ended while the panel stayed visible (the pinned-exit gap
+    // the visibility-only trigger misses — the panel never changed
+    // visibility). Re-arm the default picker so the chooser becomes the
+    // panel's idle state again. Deliberately no panel-input focus: runCancel
+    // just restored the editor, and the re-arm must not yank focus back.
+    if (this.view?.visible) {
+      this.maybeStartDefault(false);
+    }
   }
 
   /**
@@ -896,6 +976,13 @@ function pickerHtml(webview: vscode.Webview): string {
         status.textContent = "Run “vsconsult: Find File” to begin.";
         status.classList.remove("error");
       }
+    });
+
+    // Focus/activation hook: clicking back into the panel does not always
+    // fire onDidChangeVisibility (an already-visible pinned tab). Report
+    // focus so the host can re-arm the default picker while idle.
+    window.addEventListener("focus", () => {
+      vscode.postMessage({ type: "focus" });
     });
 
     vscode.postMessage({ type: "ready" });

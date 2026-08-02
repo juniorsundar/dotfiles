@@ -50,7 +50,16 @@ export type InboundMessage =
   | { type: "query"; query: string }
   | { type: "select"; id: string }
   | { type: "accept"; id: string }
-  | { type: "cancel" };
+  | { type: "cancel" }
+  | {
+      /**
+       * The webview document gained keyboard focus (user clicked into the
+       * panel). Lets the host re-arm the default picker when clicking an
+       * already-visible pinned panel tab — a case that may not fire
+       * `onDidChangeVisibility`.
+       */
+      type: "focus";
+    };
 
 // ---------------------------------------------------------------------------
 // Helpers

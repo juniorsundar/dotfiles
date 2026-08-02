@@ -20,8 +20,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // ── Picker-agnostic host (single shared webview view) ───────────────
   // Created before the file picker so the picker's excludes provider can
-  // read the host's live configuration.
-  const host = new PickerHost(context.extensionUri, registry, vscodeHostEnv, viewId);
+  // read the host's live configuration. `"pick"` is the default picker:
+  // the chooser becomes the panel's idle state (shown whenever the panel
+  // is visible and no picker session is running).
+  const host = new PickerHost(context.extensionUri, registry, vscodeHostEnv, viewId, "pick");
 
   // ── Register built-in pickers ───────────────────────────────────────
   const vscodeFolders = vscode.workspace.workspaceFolders ?? [];
