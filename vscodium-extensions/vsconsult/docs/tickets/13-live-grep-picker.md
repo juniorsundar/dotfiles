@@ -4,16 +4,16 @@
 
 **Blocked by:** 11 — Extend showPreview with an optional reveal position; 12 — Ripgrep spawn wrapper producing GrepCandidate streams.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] A `vsconsult.liveGrep` command is declared in `package.json` (commands and activationEvents) and invokes `host.start("grep")`; no new view, view-container, or view declaration — the existing shared webview view serves it.
-- [ ] The grep picker is registered with the host registry at activation, with id `"grep"`, label "Grep", placeholder "Search workspace contents…", and empty state "No matches".
-- [ ] The source is a query-driven stream that calls the injected `searchWorkspace` and yields streamed `GrepCandidate` batches; the host's query-driven re-sourcing cancels the in-flight run on query change (ticket 05 support).
-- [ ] Narrowing is an identity / light post-filter over the streamed candidates, matching the query against `label` (the matched line text) via the shared fuzzy primitive, with no path bias in the primitive.
-- [ ] Render returns `RowParts` with primary = trimmed matched line text, secondary = `${relativePath}:${lineNumber}`, tooltip = `absolutePath`; the host maps these into its existing DOM slots.
-- [ ] Accept opens the matched file for real via `openTextDocument(absolutePath, { preview: false })` then reveals the cursor at the match via `revealPosition(absolutePath, { line: lineNumber - 1, character: column - 1 })`; the same absolute path is passed to both.
-- [ ] Preview reads bounded content via `readPreviewContent` (large/binary files fall back per ADR-0004) and reveals at the match line via the `showPreview` reveal capability from ticket 11.
-- [ ] Empty query shows the picker's empty state and spawns nothing (the source returns an empty snapshot).
-- [ ] Ctrl+P history containment holds (ticket 07): previewing grep matches never creates real-file entries in the Quick Open history; previews stay race-safe and teardown-safe (ticket 09).
-- [ ] Picker-part tests cover source (injected fake `searchWorkspace`), narrow, render, accept, and preview (fake `PickerContext`), mirroring `src/filePicker/*.test.ts`.
-- [ ] End-to-end: running `vsconsult.liveGrep`, typing a query, streaming matches, previewing at the match, and accepting jumps to the match with the cursor on its column; Escape restores the origin.
+- [x] A `vsconsult.liveGrep` command is declared in `package.json` (commands and activationEvents) and invokes `host.start("grep")`; no new view, view-container, or view declaration — the existing shared webview view serves it.
+- [x] The grep picker is registered with the host registry at activation, with id `"grep"`, label "Grep", placeholder "Search workspace contents…", and empty state "No matches".
+- [x] The source is a query-driven stream that calls the injected `searchWorkspace` and yields streamed `GrepCandidate` batches; the host's query-driven re-sourcing cancels the in-flight run on query change (ticket 05 support).
+- [x] Narrowing is an identity / light post-filter over the streamed candidates, matching the query against `label` (the matched line text) via the shared fuzzy primitive, with no path bias in the primitive.
+- [x] Render returns `RowParts` with primary = trimmed matched line text, secondary = `${relativePath}:${lineNumber}`, tooltip = `absolutePath`; the host maps these into its existing DOM slots.
+- [x] Accept opens the matched file for real via `openTextDocument(absolutePath, { preview: false })` then reveals the cursor at the match via `revealPosition(absolutePath, { line: lineNumber - 1, character: column - 1 })`; the same absolute path is passed to both.
+- [x] Preview reads bounded content via `readPreviewContent` (large/binary files fall back per ADR-0004) and reveals at the match line via the `showPreview` reveal capability from ticket 11.
+- [x] Empty query shows the picker's empty state and spawns nothing (the source returns an empty snapshot).
+- [x] Ctrl+P history containment holds (ticket 07): previewing grep matches never creates real-file entries in the Quick Open history; previews stay race-safe and teardown-safe (ticket 09).
+- [x] Picker-part tests cover source (injected fake `searchWorkspace`), narrow, render, accept, and preview (fake `PickerContext`), mirroring `src/filePicker/*.test.ts`.
+- [x] End-to-end: running `vsconsult.liveGrep`, typing a query, streaming matches, previewing at the match, and accepting jumps to the match with the cursor on its column; Escape restores the origin.
