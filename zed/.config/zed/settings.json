@@ -7,6 +7,28 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "vim": {
+    "toggle_relative_line_numbers": true
+  },
+  "edit_predictions": {
+    "mode": "subtle",
+    "provider": "open_ai_compatible_api",
+    "open_ai_compatible_api": {
+      "model": "qwen2.5-coder:7b-base",
+      "api_url": "http://100.64.0.5:11434/v1/completions"
+    },
+    "ollama": {
+      "max_output_tokens": 64,
+      "api_url": "http://100.64.0.5:11434",
+      "model": "qwen2.5-coder:7b-base"
+    }
+  },
+  "show_edit_predictions": true,
+  "languages": {
+    "TypeScript": {
+      "show_edit_predictions": false
+    }
+  },
   "icon_theme": "Material Icon Theme",
   "relative_line_numbers": "enabled",
   "agent_ui_font_size": 16.0,
@@ -14,7 +36,7 @@
   "buffer_font_family": "Lilex Nerd Font",
   "vim_mode": true,
   "base_keymap": "VSCode",
-  "disable_ai": true,
+  "disable_ai": false,
   "agent_servers": {
     "pi-acp": {
       "default_config_options": {
