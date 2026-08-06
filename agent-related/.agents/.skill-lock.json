@@ -242,6 +242,15 @@
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-08-06T06:13:08.241Z",
       "updatedAt": "2026-08-06T06:13:08.241Z"
+    },
+    "humanizer": {
+      "source": "blader/humanizer",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/blader/humanizer.git",
+      "skillPath": "SKILL.md",
+      "skillFolderHash": "523374dee72d67c7b2b5f858ea0094ffda49c3ac",
+      "installedAt": "2026-08-06T06:16:08.682Z",
+      "updatedAt": "2026-08-06T06:16:08.682Z"
     }
   },
   "dismissed": {
@@ -261,7 +270,6 @@
     "opencode",
     "warp",
     "zed",
-    "claude-code",
     "pi"
   ]
 }
