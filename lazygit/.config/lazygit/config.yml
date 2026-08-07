@@ -55,6 +55,6 @@ gui:
 git:
   autoForwardBranches: none
   diffRenderers:
-    - pager: delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    - command: delta --dark --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
       colorArg: always
   # Config for showing the log in the commits view
