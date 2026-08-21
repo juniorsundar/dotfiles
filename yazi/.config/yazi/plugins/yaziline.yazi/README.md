@@ -9,7 +9,7 @@ All supported features are listed [here](#features). More presets are available 
 
 ## Requirements
 
-- yazi version >= [26.5.6](https://github.com/sxyazi/yazi/releases/tag/v26.5.6).
+- yazi version >= [26.8.15](https://github.com/sxyazi/yazi/releases/tag/v26.8.15).
 - Font with symbol support. For example [Nerd Fonts](https://www.nerdfonts.com/).
 
 ## Compatibility
@@ -24,6 +24,7 @@ This setup allows shipping stable versions on time, while giving early access to
 
 |                                  yaziline                                  | yazi                                                                                      |
 | :------------------------------------------------------------------------: | ----------------------------------------------------------------------------------------- |
+| [v2.5.6](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.6) | [v26.8.15](https://github.com/sxyazi/yazi/releases/tag/v26.8.15)                          |
 | [v2.5.5](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.5) | [v26.5.6](https://github.com/sxyazi/yazi/releases/tag/v26.5.6)                            |
 | [v2.5.4](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.4) | [v26.5.6](https://github.com/sxyazi/yazi/releases/tag/v26.5.6)                            |
 | [v2.5.3](https://github.com/llanosrocas/yaziline.yazi/releases/tag/v2.5.3) | [v26.1.22](https://github.com/sxyazi/yazi/releases/tag/v26.1.22)                          |
