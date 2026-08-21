@@ -1,0 +1,15 @@
+// Zed keymap. Reloaded on save.
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Lists every configured Finder — the one binding you always need,
+      // since new Finders are reachable from here without a keybinding.
+      "ctrl-alt-o": "finder::OpenFinderList",
+
+      // Named Finders from ~/.config/zed/finders.toml
+      "ctrl-alt-t": ["finder::Open", { "name": "git-files" }],
+      "ctrl-alt-m": ["finder::Open", { "name": "git-modified" }]
+    }
+  }
+]

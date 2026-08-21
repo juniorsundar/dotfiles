@@ -1,0 +1,84 @@
+# Finders — config-driven fuzzy pickers.
+#
+# Each [finder.<name>] defines one. The name is what a keybinding refers to:
+#   "ctrl-alt-t": ["finder::Open", { "name": "git-files" }]
+#
+# Without a keybinding, open any of these from the command palette via
+# "finder: open finder list" (bound to ctrl-alt-o).
+#
+# Sources run at the first worktree root, in the project's resolved
+# environment, so direnv- and nix-provided binaries are on PATH.
+# There is no shell, so pipes and globs need an explicit `sh -c`.
+#
+# Entries stream in, so a large source is usable before it finishes.
+#
+# `preview = { type = "path" }` lets a Finder show the selected file. The pane
+# starts hidden: ctrl-alt-p toggles it, ctrl-alt-right/down position it,
+# ctrl-alt-up hides it again. The layout is remembered, and shared by every
+# Finder.
+#
+# Edits here take effect on save — no restart, no rebuild.
+
+# Every file git knows about, including untracked-but-not-ignored ones.
+[finder.git-files]
+label = "Git Files"
+placeholder = "Open a tracked file…"
+source = { type = "command", command = "git", args = [
+  "ls-files",
+  "--cached",
+  "--others",
+  "--exclude-standard",
+] }
+outcome = { type = "open_path" }
+preview = { type = "path" }
+
+# Files changed relative to HEAD — the working set.
+[finder.git-modified]
+label = "Modified Files"
+placeholder = "Open a changed file…"
+source = { type = "command", command = "git", args = [
+  "diff",
+  "--name-only",
+  "HEAD",
+] }
+outcome = { type = "open_path" }
+preview = { type = "path" }
+
+# Files git does not track yet. Small and fast — the quickest way to confirm
+# a Finder is live.
+[finder.untracked]
+label = "Untracked Files"
+placeholder = "Open an untracked file…"
+source = { type = "command", command = "git", args = [
+  "ls-files",
+  "--others",
+  "--exclude-standard",
+] }
+outcome = { type = "open_path" }
+preview = { type = "path" }
+
+# Jump to your own Zed config from any project. Emits absolute paths, which
+# open_path uses as-is rather than resolving against the project root — so
+# this works no matter which project is open.
+[finder.zed-config]
+label = "Zed Config"
+placeholder = "Open a Zed config file…"
+source = { type = "command", command = "sh", args = [
+  "-c",
+  "find ~/.config/zed -maxdepth 1 \\( -type f -o -type l \\)",
+] }
+outcome = { type = "open_path" }
+preview = { type = "path" }
+
+# Demonstrates the other Outcome: instead of opening a file, dispatch any
+# registered Zed action with the chosen Entry substituted for {}.
+[finder.zed-links]
+label = "Zed Links"
+placeholder = "Open a link in the browser…"
+source = { type = "command", command = "printf", args = [
+  "%s\n",
+  "https://zed.dev/docs",
+  "https://github.com/zed-industries/zed/issues",
+  "https://zed.dev/docs/key-bindings",
+] }
+outcome = { type = "dispatch_action", action = "zed::OpenBrowser", args = { url = "{}" } }
