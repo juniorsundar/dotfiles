@@ -14,8 +14,9 @@
     "mode": "subtle",
     "provider": "open_ai_compatible_api",
     "open_ai_compatible_api": {
-      "model": "qwen2.5-coder:7b-base",
-      "api_url": "http://100.64.0.5:11434/v1/completions"
+      "prompt_format": "infer",
+      "model": "qwen3.8:27b",
+      "api_url": "http://100.64.0.5:8080/v1/completions"
     },
     "ollama": {
       "max_output_tokens": 64,
