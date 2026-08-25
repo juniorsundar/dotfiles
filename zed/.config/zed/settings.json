@@ -7,6 +7,26 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "ssh_connections": [
+    {
+      "host": "100.64.0.5",
+      "username": "juniorsundar",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/home/juniorsundar/Projects/oxmpl/./"
+          ]
+        }
+      ],
+      "nickname": "SSRC Workhorse"
+    }
+  ],
+  "git": {
+    "inline_blame": {
+      "location": "status_bar"
+    }
+  },
   "vim": {
     "toggle_relative_line_numbers": true
   },

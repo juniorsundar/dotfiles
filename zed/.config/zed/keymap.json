@@ -11,5 +11,49 @@
       "ctrl-alt-t": ["finder::Open", { "name": "git-files" }],
       "ctrl-alt-m": ["finder::Open", { "name": "git-modified" }]
     }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "space p r": "projects::OpenRecent"
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "ctrl-r": "projects::OpenRecent"
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "space p o": [
+        "projects::OpenRemote",
+        {
+          "from_existing_connection": false
+        }
+      ]
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "ctrl-alt-shift-o": [
+        "projects::OpenRemote",
+        {
+          "from_existing_connection": false
+        }
+      ]
+    }
+  },
+  {
+    "bindings": {
+      "space p p": "workspace::Open"
+    }
+  },
+  {
+    "unbind": {
+      "ctrl-k ctrl-o": "workspace::Open"
+    }
   }
 ]
