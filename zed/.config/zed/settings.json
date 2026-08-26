@@ -7,6 +7,11 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "buffer_line_height": "comfortable",
+  "buffer_font_weight": 400.0,
+  "terminal": {
+    "font_size": 13.0
+  },
   "ssh_connections": [
     {
       "host": "100.64.0.5",
@@ -84,7 +89,7 @@
     "dock": "right"
   },
   "ui_font_size": 16.0,
-  "buffer_font_size": 14.0,
+  "buffer_font_size": 13.0,
   "theme": {
     "mode": "system",
     "light": "One Light",
