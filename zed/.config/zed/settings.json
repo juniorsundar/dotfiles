@@ -14,7 +14,7 @@
   },
   "ssh_connections": [
     {
-      "host": "100.64.0.5",
+      "host": "ssrc-workhorse",
       "username": "juniorsundar",
       "args": [],
       "projects": [
@@ -22,9 +22,20 @@
           "paths": [
             "/home/juniorsundar/Projects/oxmpl/./"
           ]
+        },
+        {
+          "paths": [
+            "/home/juniorsundar/Projects/oxmpl/./",
+            "/home/juniorsundar/Documents/zed/./"
+          ]
         }
       ],
       "nickname": "SSRC Workhorse"
+    },
+    {
+      "host": "ssrc-workhorse",
+      "args": [],
+      "projects": []
     }
   ],
   "git": {
