@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+workspace_name=" ${PWD/#$HOME/~}"
+
+if command -v direnv &>/dev/null &&
+   [ -f ".envrc" ] &&
+   direnv export bash >/dev/null 2>&1; then
+    CMD=(direnv exec . nvim "$@")
+else
+    CMD=(nvim "$@")
+fi
+
+# If we're not inside WezTerm at all, there is no "current WezTerm
+# window" to switch. Fall back to opening/connecting normally.
+if [ -z "${WEZTERM_PANE:-}" ]; then
+    exec wezterm connect \
+        --workspace "$workspace_name" \
+        mux \
+        "${CMD[@]}"
+fi
+
+# Encode everything we need to pass to wezterm.lua as JSON.
+#
+# Include a nonce so that running the exact same command repeatedly
+# still changes the user var and reliably fires the event.
+payload="$(
+    python3 - \
+        "$workspace_name" \
+        "$PWD" \
+        "$$-$RANDOM" \
+        "${CMD[@]}" <<'PY'
+import json
+import sys
+
+workspace = sys.argv[1]
+cwd = sys.argv[2]
+nonce = sys.argv[3]
+args = sys.argv[4:]
+
+print(json.dumps({
+    "workspace": workspace,
+    "cwd": cwd,
+    "args": args,
+    "nonce": nonce,
+}, separators=(",", ":")))
+PY
+)"
+
+encoded="$(
+    printf '%s' "$payload" |
+        base64 |
+        tr -d '\n'
+)"
+
+# Tell the CURRENT WezTerm GUI window to switch/create the workspace.
+printf '\033]1337;SetUserVar=WNW=%s\007' "$encoded"
