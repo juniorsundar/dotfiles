@@ -70,7 +70,7 @@ if [ -f ~/.zoxide.zsh ]; then
 fi
 
 # Wezterm Shell Integration
-if [ -f ~/.config/wezterm/wezterm.sh ]; then
+if [ -f ~/.config/wezterm/wezterm.sh ] && [ -n "$WEZTERM_CONFIG_FILE" ]; then
     source ~/.config/wezterm/wezterm.sh
 fi
 
