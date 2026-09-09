@@ -7,7 +7,7 @@ font-family-bold-italic = Lilex Nerd Font
 gtk-titlebar = true
 gtk-toolbar-style = flat
 window-decoration = server
-font-size = 11
+font-size = 10
 
 theme = Doom One
 
