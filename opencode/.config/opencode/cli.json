@@ -1,14 +1,16 @@
 {
   "theme": {
-    "name": "one-dark"
+    "name": "system"
   },
   "diffs": {
     "wrap": "word"
   },
   "session": {
-    "sidebar": "hide",
-    "scrollbar": false,
-    "thinking": "hide"
+    "sidebar": "auto",
+    "scrollbar": true,
+    "thinking": "hide",
+    "grouping": "auto",
+    "image_preview": true
   },
   "animations": true
 }
