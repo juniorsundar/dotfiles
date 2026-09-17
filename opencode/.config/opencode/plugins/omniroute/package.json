@@ -3,19 +3,21 @@
   "version": "0.1.0",
   "description": "OpenCode plugin for the OmniRoute AI Gateway. Drives dynamic model discovery, /connect auth flow, and multi-instance OmniRoute providers via the official @opencode-ai/plugin contract.",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./index.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./index.js"
     },
     "./runtime": {
+      "import": "./index.js"
+    },
+    "./v1": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
   "files": [
+    "index.js",
     "dist",
     "README.md",
     "LICENSE"
