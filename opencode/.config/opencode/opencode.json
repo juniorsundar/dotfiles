@@ -44,15 +44,27 @@
         }
     ],
     "mcp": {
-        "servers": {
-            "docker": {
-                "type": "local",
-                "command": [
-                    "npx",
-                    "-y",
-                    "@alisaitteke/docker-mcp"
-                ]
-            }
+        "docker": {
+            "type": "local",
+            "command": [
+                "npx",
+                "-y",
+                "@alisaitteke/docker-mcp"
+            ]
+        },
+        "serena": {
+            "type": "local",
+            "command": [
+                "uvx",
+                "-p",
+                "3.13",
+                "serena-agent@1.7.0",
+                "start-mcp-server",
+                "--context=ide",
+                "--project-from-cwd"
+            ],
+            "enabled": true,
+            "timeout": 120000
         }
     },
     "providers": {

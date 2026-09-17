@@ -1,5 +1,8 @@
 PROMPT_THEME="starship"
 
+# Local secrets (not tracked in dotfiles).
+[[ -r "$HOME/.secrets.env" ]] && source "$HOME/.secrets.env"
+
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
     # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
     # Initialization code that may require console input (password prompts, [y/n]
