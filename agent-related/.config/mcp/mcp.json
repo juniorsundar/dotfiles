@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "-p",
+        "3.13",
+        "serena-agent@1.7.0",
+        "start-mcp-server",
+        "--context=ide",
+        "--project-from-cwd"
+      ],
+      "lifecycle": "lazy",
+      "requestTimeoutMs": 120000
+    }
+  }
+}
