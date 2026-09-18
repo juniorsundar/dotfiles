@@ -10,7 +10,7 @@
         "--context=ide",
         "--project-from-cwd"
       ],
-      "lifecycle": "lazy",
+      "lifecycle": "eager",
       "requestTimeoutMs": 120000
     },
     "context7": {
