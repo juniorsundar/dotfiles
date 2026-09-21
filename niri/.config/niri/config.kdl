@@ -627,3 +627,4 @@ xwayland-satellite {
 
 // DMS Include Configs
 include "dms/binds.kdl"
+include "dms/outputs.kdl"
