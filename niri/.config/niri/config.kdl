@@ -1,11 +1,11 @@
 // This config is in the KDL format: https://kdl.dev
 // "/-" comments out the following node.
 // Check the wiki for a full description of the configuration:
-// https://yalter.github.io/niri/Configuration:-Introduction
+// https://niri-wm.github.io/niri/Configuration:-Introduction
 
 // Input device configuration.
 // Find the full list of options on the wiki:
-// https://yalter.github.io/niri/Configuration:-Input
+// https://niri-wm.github.io/niri/Configuration:-Input
 input {
     keyboard {
         xkb {
@@ -73,7 +73,7 @@ input {
 // by running `niri msg outputs` while inside a niri instance.
 // The built-in laptop monitor is usually called "eDP-1".
 // Find more information on the wiki:
-// https://yalter.github.io/niri/Configuration:-Outputs
+// https://niri-wm.github.io/niri/Configuration:-Outputs
 // Remember to uncomment the node by removing "/-"!
 /-output "eDP-1" {
     // Uncomment this line to disable this output.
@@ -81,7 +81,7 @@ input {
 
     // Resolution and, optionally, refresh rate of the output.
     // The format is "<width>x<height>" or "<width>x<height>@<refresh rate>".
-    // If the refresh rate is omitted, niri will pick the highest rofi rate
+    // If the refresh rate is omitted, niri will pick the highest refresh rate
     // for the resolution.
     // If the mode is omitted altogether or is invalid, niri will pick one automatically.
     // Run `niri msg outputs` while inside a niri instance to list all outputs and their modes.
@@ -108,7 +108,7 @@ input {
 
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
-// https://yalter.github.io/niri/Configuration:-Layout
+// https://niri-wm.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
     gaps 16
@@ -134,7 +134,7 @@ layout {
         // fixed 1920
     }
 
-    // You can also customize the heights that "switch-preset-window-height" (Mod+Shift+R) toggles between.
+    // You can also customize the heights that "switch-preset-window-height" (Mod+Ctrl+Shift+R) toggles between.
     // preset-window-heights { }
 
     // You can change the default width of the new windows.
@@ -296,7 +296,7 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 // Animation settings.
 // The wiki explains how to configure individual animations:
-// https://yalter.github.io/niri/Configuration:-Animations
+// https://niri-wm.github.io/niri/Configuration:-Animations
 animations {
     // Uncomment to turn off all animations.
     // off
@@ -307,7 +307,7 @@ animations {
 
 // Window rules let you adjust behavior for individual windows.
 // Find more information on the wiki:
-// https://yalter.github.io/niri/Configuration:-Window-Rules
+// https://niri-wm.github.io/niri/Configuration:-Window-Rules
 
 // Work around WezTerm's initial configure bug
 // by setting an empty default-column-width.
@@ -363,7 +363,7 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
-    Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
+    Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "ghostty"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
@@ -373,10 +373,18 @@ binds {
     // Example volume keys mappings for PipeWire & WirePlumber.
     // The allow-when-locked=true property makes them work even when the session is locked.
     // Using spawn-sh allows to pass multiple arguments together with the command.
-    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"; }
+    // "-l 1.0" limits the volume to 100%.
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0"; }
     XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
     XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
     XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+
+    // Example media keys mapping using playerctl.
+    // This will work with any MPRIS-enabled media player.
+    XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
+    XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
+    XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
 
     // Example brightness key mappings for brightnessctl.
     // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
@@ -617,10 +625,5 @@ xwayland-satellite {
     path "/run/current-system/sw/bin/xwayland-satellite"
 }
 
-include "dms/outputs.kdl"
-include "dms/cursor.kdl"
-include "dms/colors.kdl"
-include "dms/layout.kdl"
-include "dms/alttab.kdl"
+// DMS Include Configs
 include "dms/binds.kdl"
-include "dms/windowrules.kdl"
