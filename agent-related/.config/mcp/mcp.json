@@ -12,6 +12,11 @@
       ],
       "requestTimeoutMs": 120000
     },
+    "tasknotes": {
+        "url": "http://127.0.0.1:2020/mcp",
+        "auth": "bearer",
+        "bearerToken": "NNAo5eHcO7H2u5Dhdn89ao5R-5YR1Rln3dh_spSyUBo"
+    },
     "context7": {
       "url": "https://mcp.context7.com/mcp",
       "auth": "bearer",
