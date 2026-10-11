@@ -50,8 +50,8 @@ gui:
     # searchingActiveBorderColor:
     #   - '#ffbd5e'
     #   - bold
-  authorColors:
-    '*': '#ff5ea0'
+    authorColors:
+      '*': '#ff5ea0'
 git:
   autoForwardBranches: none
   diffRenderers:
