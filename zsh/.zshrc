@@ -160,8 +160,9 @@ export PATH=$PATH:$HOME/.local/bin:/usr/bin
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# The direnv hook itself comes from NixOS `programs.direnv.enable`; this block
-# only adds per-project `.env_local` sourcing on top of it.
+if command -v direnv >/dev/null 2>&1; then
+    eval "$(direnv hook zsh)"
+fi
 if command -v direnv >/dev/null 2>&1; then
     autoload -Uz add-zsh-hook
 
