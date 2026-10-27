@@ -3,7 +3,6 @@
     "workbench.colorTheme": "Doom Emacs",
     "terminal.integrated.fontFamily": "Lilex Nerd Font",
     "terminal.integrated.fontLigatures.enabled": true,
-    "workbench.sideBar.location": "right",
     "pendant.runtimeSource": "external",
     "terminal.integrated.profiles.linux": {
         "zsh": {
@@ -21,5 +20,7 @@
     "breadcrumbs.enabled": false,
     "obsidianPreview.vaultPath": "/home/juniorsundar/Dropbox/vault",
     "workbench.iconTheme": "material-icon-theme",
-    "vsconsult.previewDebounceDelayMs": 10
+    "vsconsult.previewDebounceDelayMs": 10,
+    "pendant.autoCompact": false,
+    "pendant.changedFilesSummaryView": "tree"
 }
