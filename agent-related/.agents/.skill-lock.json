@@ -121,9 +121,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
-      "skillFolderHash": "aafaabf96fa3945d8a4069317a7a6d36b7169670",
+      "skillFolderHash": "b644b684781fd5baae57f6be000a180a4d4448d7",
       "installedAt": "2026-07-23T07:26:45.777Z",
-      "updatedAt": "2026-10-10T07:21:56.410Z"
+      "updatedAt": "2026-10-29T09:37:53.178Z"
     },
     "tdd": {
       "source": "mattpocock/skills",
@@ -224,10 +224,10 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/blader/humanizer.git",
       "skillPath": "SKILL.md",
-      "skillFolderHash": "225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8",
+      "skillFolderHash": "0ef9fe5bc3572734fd3ae6c448fe00a30cd5dcf0",
       "pluginName": "humanizer",
       "installedAt": "2026-08-06T06:16:08.682Z",
-      "updatedAt": "2026-10-05T18:20:09.507Z"
+      "updatedAt": "2026-10-29T09:37:54.642Z"
     },
     "implement-spec": {
       "source": "mattpocock/skills",
