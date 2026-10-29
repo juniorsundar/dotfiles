@@ -16,6 +16,13 @@ alias dronsole-sh='docker run --rm -it -v $(pwd):/workspace -v $HOME/.dronsole:/
 alias dronsole='docker run --rm -it -p 3000:3000 -p 8888:8888 -p 4280:4280 -p 4222:4222 -v $(pwd):/workspace -v $HOME/.dronsole:/root/.dronsole --entrypoint /bin/dronsole ghcr.io/tiiuae/tii-dronsole:latest' 
 
 export PATH=$PATH:~/.scripts
-if [[ ":${XDG_CURRENT_DESKTOP:-}:" == *:GNOME:* ]]; then
-    alias pi='env -u WAYLAND_DISPLAY pi'
+
+unalias pi 2>/dev/null
+if [[ ":${XDG_CURRENT_DESKTOP:-}:" == *:GNOME:* && -n "${WAYLAND_DISPLAY:-}" ]]; then
+    pi() {
+        (
+            unset WAYLAND_DISPLAY
+            "$HOME/.local/bin/pi" "$@"
+        )
+    }
 fi

@@ -33,3 +33,4 @@ ssh/.ssh/authorized_keys
 /claude/.claude/daemon-auth-cooldown
 /claude/.claude/daemon
 /claude/.claude/cache
+/agent-related/.agents/skills/synced

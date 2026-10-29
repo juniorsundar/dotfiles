@@ -22,5 +22,11 @@
     "workbench.iconTheme": "material-icon-theme",
     "vsconsult.previewDebounceDelayMs": 10,
     "pendant.autoCompact": false,
-    "pendant.changedFilesSummaryView": "tree"
+    "pendant.changedFilesSummaryView": "tree",
+    "editor.fontSize": 13,
+    "extensions.experimental.affinity": {
+        "asvetliakov.vscode-neovim": 1
+    },
+    "gitlens.graph.details.location": "auto",
+    "editor.inlayHints.enabled": "offUnlessPressed"
 }
