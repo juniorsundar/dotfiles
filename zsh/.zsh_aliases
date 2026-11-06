@@ -22,7 +22,7 @@ if [[ ":${XDG_CURRENT_DESKTOP:-}:" == *:GNOME:* && -n "${WAYLAND_DISPLAY:-}" ]];
     pi() {
         (
             unset WAYLAND_DISPLAY
-            "$HOME/.local/bin/pi" "$@"
+            "/run/current-system/sw/bin/pi" "$@"
         )
     }
 fi
