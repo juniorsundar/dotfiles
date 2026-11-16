@@ -1,6 +1,6 @@
 {
   "agents": {
-    "main.js": "292e8b6f8ff61305",
+    "main.js": "44dae8af5090bc74",
     "mod.json": "c1d087260ba7b076"
   },
   "changes": {
@@ -34,7 +34,7 @@
     "json": "657fdb5a0f469344"
   },
   "machine-add": {
-    "main.js": "edd5ed426d5ccbba",
+    "main.js": "e72d2e8416071893",
     "mod.json": "20fc0fe012d028a0"
   },
   "menu": {
@@ -67,11 +67,11 @@
     "mod.json": "433fbf9dfa3e359a"
   },
   "spaces": {
-    "main.js": "b53526708eb1ddab",
+    "main.js": "bbcc823778bd7475",
     "mod.json": "4a42ed2202338077"
   },
   "tabs": {
-    "main.js": "c5e6c89ffea5c47a",
+    "main.js": "ff113941edac1a02",
     "mod.json": "a504d5ac991bc4cc",
     "win-close.svg": "ca74932a6d3f1a90",
     "win-max.svg": "4bbb4fb6a79ab51d",
@@ -105,7 +105,7 @@
     "art/sounds.ts": "e77010496110c14c",
     "clippy.js": "286a80c4120638f8",
     "desktop.js": "0ebcff86d2e835fe",
-    "dialog.js": "d418c45398a005f2",
+    "dialog.js": "dc40f5f169fce816",
     "fonts/LICENSE-MSSansSerif.txt": "98ed307c3f61afbe",
     "fonts/LICENSE-PxPlus.txt": "0f81b235cae14003",
     "fonts/PixelatedMSSansSerif-Bold.ttf": "b1918b7ae2710380",
@@ -337,7 +337,7 @@
     "sounds/start.mp3": "0699c6b9506851a5",
     "sounds/startup.mp3": "fc48ee7e1528328b",
     "sounds/tada.mp3": "b7b06be281de0c56",
-    "taskbar.js": "1198213484f36307",
+    "taskbar.js": "6632ec475307a882",
     "window.js": "da3f6ea18875b4d2"
   },
   "workspace-chrome": {
@@ -380,7 +380,7 @@
     "mod.json": "433fbf9dfa3e359a"
   },
   "worktree": {
-    "main.js": "cfc208e54751fe6d",
+    "main.js": "0e8c1447f4a1dc22",
     "mod.json": "433fbf9dfa3e359a"
   }
 }
