@@ -3,9 +3,10 @@
   "sounds": {
     "enabled": true
   },
-  "font_ligatures": false,
+  "font_ligatures": true,
   "minimum_contrast": 1,
   "font": "Lilex Nerd Font",
   "font_size": 12,
-  "ui_font": "IBM Plex Sans"
+  "ui_font": "IBM Plex Sans",
+  "telemetry": false
 }
