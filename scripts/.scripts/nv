@@ -1,16 +1,44 @@
 #!/usr/bin/env bash
 
 # tmux rejects dots in session names; keep the original readable path shape.
-session_name=" ${PWD//./_}"
+session_name=" ${PWD//./_}"
+
+# --resume is for pi (pick a previous session); everything else goes to nvim.
+PI_ARGS=()
+NVIM_ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--resume" ]; then PI_ARGS+=(--resume); else NVIM_ARGS+=("$arg"); fi
+done
 
 if command -v direnv &> /dev/null && [ -f ".envrc" ] && direnv export bash >/dev/null 2>&1; then
-    CMD=(direnv exec . nvim "$@")
+    CMD=(direnv exec . nvim "${NVIM_ARGS[@]}")
 else
-    CMD=(nvim "$@")
+    CMD=(nvim "${NVIM_ARGS[@]}")
 fi
 
 if [ -n "$TMUX" ]; then
     "${CMD[@]}"
+elif [ -n "$HC_TERMINAL_ID" ]; then
+    # Inside herdr: nvim in a new pane, pi takes this pane.
+    # shortcut: herdr's pane.split has no size option, so the split is 50/50; resize by hand.
+    if herdr-app status >/dev/null 2>&1; then
+        # A Herdr window on this machine: split to the right of the focused pane.
+        herdr-app do terminal.open --place right --folder "$PWD" \
+            --argv "$(jq -cn '$ARGS.positional' --args -- "${CMD[@]}")" >/dev/null && exec pi "${PI_ARGS[@]}"
+    else
+        # The window is on another machine (this core is remote): a terminal carrying this
+        # terminal's herdr.space/herdr.tab labels shows up as a pane in the same tab.
+        # --no-parent: as pi's child herdr would float it over pi when clicked.
+        read -r space tab < <(hc get "$HC_TERMINAL_ID" --json 2>/dev/null |
+            jq -r '[.labels["herdr.space"] // "", .labels["herdr.tab"] // ""] | @tsv')
+        # hc starts programs with herdr's own PATH, which may lack nvim/direnv: pass ours.
+        [ -n "$space" ] && [ -n "$tab" ] &&
+            hc run --bg --keep --no-parent --cwd "$PWD" \
+                --label "herdr.space=$space" --label "herdr.tab=$tab" \
+                -- env "PATH=$PATH" "${CMD[@]}" >/dev/null && exec pi "${PI_ARGS[@]}"
+    fi
+    echo "nv: could not open an nvim pane in herdr; opening nvim here instead." >&2
+    exec "${CMD[@]}"
 else
     printf -v FINAL_CMD '%q ' "${CMD[@]}"
     tmux new-session -A -s "$session_name" "$FINAL_CMD"
