@@ -26,3 +26,7 @@ if [[ ":${XDG_CURRENT_DESKTOP:-}:" == *:GNOME:* && -n "${WAYLAND_DISPLAY:-}" ]];
         )
     }
 fi
+
+if [[ -n "${HC_TERMINAL_ID:-}" || -n "${HC_TERMINAL_SOCKET:-}" ]]; then
+    export PI_CLIPBOARD_OSC52=1
+fi
