@@ -10,10 +10,20 @@ for arg in "$@"; do
     if [ "$arg" = "--resume" ]; then PI_ARGS+=(--resume); else NVIM_ARGS+=("$arg"); fi
 done
 
+# Inside herdr, nvim listens on a socket named after this terminal; pi's follow extension finds
+# it through NV_SOCKET and moves nvim to each change. A socket file left by a crashed nvim would
+# make --listen fail, so clear it first.
+LISTEN=()
+if [ -z "$TMUX" ] && [ -n "$HC_TERMINAL_ID" ]; then
+    export NV_SOCKET="${XDG_RUNTIME_DIR:-/tmp}/nv-$HC_TERMINAL_ID.sock"
+    rm -f "$NV_SOCKET"
+    LISTEN=(--listen "$NV_SOCKET")
+fi
+
 if command -v direnv &> /dev/null && [ -f ".envrc" ] && direnv export bash >/dev/null 2>&1; then
-    CMD=(direnv exec . nvim "${NVIM_ARGS[@]}")
+    CMD=(direnv exec . nvim "${LISTEN[@]}" "${NVIM_ARGS[@]}")
 else
-    CMD=(nvim "${NVIM_ARGS[@]}")
+    CMD=(nvim "${LISTEN[@]}" "${NVIM_ARGS[@]}")
 fi
 
 if [ -n "$TMUX" ]; then
