@@ -6,7 +6,7 @@
 //   { dialog: "delete", chat }   -> confirm delete dialog
 //   (default)                    -> Chats list panel
 
-import { View, div } from "gpui-kit";
+import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
 import {
   spaces, panes, terminals, agents, theme, run, exec, home, checking,
@@ -73,6 +73,7 @@ export default class Chats extends View {
     const p = props();
     this.role = p?.toggle ? "toggle" : p?.empty ? "empty" : p?.dialog ?? "list";
     this.disk = [];
+    this.hoveredChat = null;
     this.lastRev = shared("chats.rev") ?? 0;
     this.watch = null;
 
@@ -183,8 +184,7 @@ export default class Chats extends View {
     const p = props();
     const chat = p?.chat;
     const name = this.text.trim();
-    closeOverlay(p.overlay);
-    if (!chat || !name) return;
+    if (!chat || !name) { closeOverlay(p.overlay); return; }
     if (chat.tabId) run("tab.rename", { id: chat.tabId, name });
     if (chat.path) {
       const entry = JSON.stringify({
@@ -195,24 +195,31 @@ export default class Chats extends View {
         name,
       });
       cx.spawn(async () => {
-        await exec("sh", ["-c", 'printf "%s\\n" "$1" >> "$2"', "_", entry, chat.path]);
+        try { await exec("sh", ["-c", 'printf "%s\\n" "$1" >> "$2"', "_", entry, chat.path]); } catch {}
         setShared("chats.rev", Date.now());
+        closeOverlay(p.overlay);
       });
+    } else {
+      closeOverlay(p.overlay);
     }
   }
 
   confirmDelete(cx) {
     const p = props();
     const chat = p?.chat;
-    closeOverlay(p.overlay);
-    if (!chat) return;
+    if (!chat) { closeOverlay(p.overlay); return; }
     if (chat.tabId) run("tab.close", { id: chat.tabId, confirmed: true });
-    if (chat.path) {
-      cx.spawn(async () => {
-        await exec("rm", ["-f", chat.path]);
-        setShared("chats.rev", Date.now());
-      });
-    }
+    cx.spawn(async () => {
+      try {
+        if (chat.path) {
+          await exec("rm", ["-f", chat.path]);
+        } else if (chat.id && !chat.id.startsWith("tab:")) {
+          await exec("sh", ["-c", 'rm -f "$1"/*"$2".jsonl', "_", piDir(), chat.id]);
+        }
+      } catch {}
+      setShared("chats.rev", Date.now());
+      closeOverlay(p.overlay);
+    });
   }
 
   renderToggle() {
@@ -383,6 +390,7 @@ export default class Chats extends View {
 
     const row = (chat, i) => {
       const dc = dotColor(chat);
+      const hovered = this.hoveredChat === chat.id;
       return h_flex()
         .id(`chat-${i}-${chat.id}`)
         .h(30)
@@ -395,6 +403,10 @@ export default class Chats extends View {
         .bg(chat.active ? t.selected : t.chrome)
         .text_color(chat.active ? t.foreground : chat.live ? t.foreground : t.muted)
         .hover((s) => s.bg(chat.active ? t.selected : t.hover).text_color(t.foreground))
+        .on_hover((on, cx) => {
+          this.hoveredChat = on ? chat.id : (this.hoveredChat === chat.id ? null : this.hoveredChat);
+          cx.notify();
+        })
         .on_click(() => this.openChat(chat))
         .on_mouse_down("right", (_e, cx) => {
           cx.stop_propagation();
@@ -415,7 +427,27 @@ export default class Chats extends View {
             .when(!dc, (el) => el.border_1().border_color(t.dim)),
         )
         .when(!collapsed, (el) =>
-          el.child(div().flex_1().min_w(0).truncate().text_size(12.8).child(chat.title)));
+          el.child(div().flex_1().min_w(0).truncate().text_size(12.8).child(chat.title)))
+        .when(!collapsed && hovered, (el) =>
+          el.child(
+            div()
+              .id(`del-${i}-${chat.id}`)
+              .size(20)
+              .flex_none()
+              .flex()
+              .items_center()
+              .justify_center()
+              .rounded(4)
+              .text_color(t.dim)
+              .hover((s) => s.bg(t.raised).text_color(t.blocked))
+              .tooltip("Delete chat")
+              .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
+              .on_click((_e, cx) => {
+                cx.stop_propagation();
+                openOverlay({ mod: "chats", kind: "dialog", width: 360, height: 160, props: { dialog: "delete", chat } });
+              })
+              .child(svg("mods/workspace-chrome/x.svg").size(12)),
+          ));
     };
 
     return v_flex()
