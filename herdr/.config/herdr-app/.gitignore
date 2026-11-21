@@ -1,5 +1,16 @@
 view.json
 window.json
+windows.json
 telemetry/*
 telemetry/.state/*
 shared.json
+data/
+seen.json
+installed.json
+layouts/.state/
+mods/*/gpui-kit.d.ts
+mods/*/jsconfig.json
+*.error
+update-notes.json
+update-notes-cache.md
+update-notes-media/
