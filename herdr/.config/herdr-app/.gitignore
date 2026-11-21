@@ -14,3 +14,12 @@ mods/*/jsconfig.json
 update-notes.json
 update-notes-cache.md
 update-notes-media/
+herdr-app.sock
+*.reset-*
+*.old-*
+*.corrupt-*
+AGENTS.md
+gpui-kit.d.ts
+herdr.d.ts
+frame/
+icons/
