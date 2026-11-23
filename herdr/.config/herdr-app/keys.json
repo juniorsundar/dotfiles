@@ -18,11 +18,11 @@
     "ctrl-alt-shift-up": "pane.swap:up",
     "ctrl-alt-shift-right": "pane.swap:right",
     "alt-shift-left": {
-        "command": "pane.resize:left",
+        "command": "pane.resize",
         "args": {"direction": "left", "px": 10}
     },
     "alt-shift-down": {
-        "command": "pane.resize:down",
+        "command": "pane.resize",
         "args": {"direction": "down", "px": 10}
     },
     "alt-shift-up": {
