@@ -8,7 +8,7 @@
 # Sets two side-by-side panes to a 66/33 split by writing their weights into herdr's layout
 # document, which each herdr-core keeps as the "herdr-app" document (`hc schema`: doc.get/doc.set).
 # herdr-app has no command for a split ratio, but the core is where the layout lives, so this needs
-# only the core. (Tried so far only with the window on the same machine as the core.)
+# only the core: it works with the window on the core's machine and on another one.
 #
 # The window adds a new pane to the document a moment after the terminal is started, so this waits
 # for the two terminals to appear as the only two children of one row, then writes the weights.
