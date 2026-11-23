@@ -5,6 +5,7 @@
     "version": "0.1.16"
   },
   "type": "row",
+  "link_handlers": ["nv-link"],
   "children": [
     {
       "id": "sidebar",
