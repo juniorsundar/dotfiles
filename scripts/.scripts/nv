@@ -30,11 +30,18 @@ if [ -n "$TMUX" ]; then
     "${CMD[@]}"
 elif [ -n "$HC_TERMINAL_ID" ]; then
     # Inside herdr: nvim in a new pane, pi takes this pane.
-    # shortcut: herdr's pane.split has no size option, so the split is 50/50; resize by hand.
+    # herdr's pane.split has no size option, so either branch below makes the split 50/50 first and
+    # herdr-split then sets 66/33 through the core, which keeps the layout (see herdr-split).
     if herdr-app status >/dev/null 2>&1; then
         # A Herdr window on this machine: split to the right of the focused pane.
-        herdr-app do terminal.open --place right --folder "$PWD" \
-            --argv "$(jq -cn '$ARGS.positional' --args -- "${CMD[@]}")" >/dev/null && exec pi "${PI_ARGS[@]}"
+        # terminal.open does not say which terminal it made, so herdr-split finds it by its socket.
+        if herdr-app do terminal.open --place right --folder "$PWD" \
+            --argv "$(jq -cn '$ARGS.positional' --args -- "${CMD[@]}")" >/dev/null; then
+            if command -v herdr-split >/dev/null; then
+                (herdr-split "$HC_TERMINAL_ID" --listen "$NV_SOCKET" >/dev/null 2>&1 </dev/null &)
+            fi
+            exec pi "${PI_ARGS[@]}"
+        fi
     else
         # The window is on another machine (this core is remote): a terminal carrying this
         # terminal's herdr.space/herdr.tab labels shows up as a pane in the same tab.
@@ -42,10 +49,17 @@ elif [ -n "$HC_TERMINAL_ID" ]; then
         read -r space tab < <(hc get "$HC_TERMINAL_ID" --json 2>/dev/null |
             jq -r '[.labels["herdr.space"] // "", .labels["herdr.tab"] // ""] | @tsv')
         # hc starts programs with herdr's own PATH, which may lack nvim/direnv: pass ours.
-        [ -n "$space" ] && [ -n "$tab" ] &&
-            hc run --bg --keep --no-parent --cwd "$PWD" \
+        if [ -n "$space" ] && [ -n "$tab" ] &&
+            nvim_terminal=$(hc run --bg --json --keep --no-parent --cwd "$PWD" \
                 --label "herdr.space=$space" --label "herdr.tab=$tab" \
-                -- env "PATH=$PATH" "${CMD[@]}" >/dev/null && exec pi "${PI_ARGS[@]}"
+                -- env "PATH=$PATH" "${CMD[@]}" | jq -er .address); then
+            # Once the window has put the new pane beside this one, make the split 66/33. It waits for
+            # that in the background so pi starts at once, and gives up quietly after about 10 seconds.
+            if command -v herdr-split >/dev/null; then
+                (herdr-split "$HC_TERMINAL_ID" "$nvim_terminal" >/dev/null 2>&1 </dev/null &)
+            fi
+            exec pi "${PI_ARGS[@]}"
+        fi
     fi
     echo "nv: could not open an nvim pane in herdr; opening nvim here instead." >&2
     exec "${CMD[@]}"

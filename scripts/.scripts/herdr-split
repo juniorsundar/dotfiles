@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# Usage: herdr-split <left-terminal> <right-terminal>
+#                   herdr-split <left-terminal> --listen <socket>
+#
+# The second form is for a pane opened through herdr-app, which does not say which terminal it made:
+# the right-hand terminal is then the live one running `nvim --listen <socket>`, as `nv` starts it.
+#
+# Sets two side-by-side panes to a 66/33 split by writing their weights into herdr's layout
+# document, which each herdr-core keeps as the "herdr-app" document (`hc schema`: doc.get/doc.set).
+# herdr-app has no command for a split ratio, but the core is where the layout lives, so this needs
+# only the core. (Tried so far only with the window on the same machine as the core.)
+#
+# The window adds a new pane to the document a moment after the terminal is started, so this waits
+# for the two terminals to appear as the only two children of one row, then writes the weights.
+# doc.set is version-checked: a write that raced the window is rejected and retried from a fresh read.
+#
+# The window picks the new weights up and keeps them (checked with herdr-core 0.1.22). The one risk is that
+# the document's format is herdr's own and unversioned: if an update changes it, this finds no pair,
+# gives up quietly (see the log) and the split stays at herdr's own 50/50.
+#
+# Env: HERDR_SPLIT_RATIO (left share, default 0.66), HERDR_SPLIT_TRIES (default 20, 0.5s apart),
+#      HERDR_SPLIT_DOC (default herdr-app), HERDR_SPLIT_LOG (default $XDG_RUNTIME_DIR/herdr-split.log).
+
+usage="usage: herdr-split <left-terminal> (<right-terminal> | --listen <socket>)"
+left=${1:?$usage}
+if [ "${2:-}" = --listen ]; then socket=${3:?$usage}; right=; else right=${2:?$usage}; fi
+doc=${HERDR_SPLIT_DOC:-herdr-app}
+ratio=${HERDR_SPLIT_RATIO:-0.66}
+tries=${HERDR_SPLIT_TRIES:-20}
+logfile=${HERDR_SPLIT_LOG:-${XDG_RUNTIME_DIR:-/tmp}/herdr-split.log}
+
+log() { echo "$(date +%T) $*" >> "$logfile"; }
+
+# The live terminal of this core started with `--listen <socket>`; waits for it to exist.
+find_listener() {
+    local j t
+    for ((j = 0; j < tries; j++)); do
+        for t in $(hc ls --json 2> /dev/null | jq -r '.terminals[]? | .address | select(contains("/") | not)'); do
+            if hc get "$t" --json 2> /dev/null | jq -e --arg s "$1" \
+                '.state == "live" and ((.argv | join(" ")) | contains("--listen " + $s + " ") or endswith("--listen " + $s))' > /dev/null; then
+                echo "$t"
+                return 0
+            fi
+        done
+        sleep 0.5
+    done
+    return 1
+}
+
+# One request to the core over `hc connect`, which answers each line and exits at end of input.
+rpc() { # method, params (JSON) -> the method's reply
+    jq -cn --arg m "$1" --argjson p "$2" '
+        {jsonrpc: "2.0", id: 1, method: "hello", params: {}},
+        {jsonrpc: "2.0", id: 2, method: $m, params: $p}' |
+        timeout 5 hc connect 2> /dev/null | jq -c 'select(.id == 2)'
+}
+
+# Reads the document reply; says whether the pair was found, whether it needs changing, and the new document.
+PLAN='
+def pair: .type == "row" and (.children | length) == 2
+    and ((.children | map(.content.terminal? // empty) | sort) == ([$l, $r] | sort));
+def weight: if .content.terminal == $l then $ratio else ((1 - $ratio) * 1000 | round) / 1000 end;
+.result as $got
+| ($got.value // {}) as $old
+| ($old | walk(if type == "object" and pair then .children |= map(.size = {weight: weight}) else . end)) as $new
+| {version: $got.version, found: ([$old | .. | objects | select(pair)] | length > 0), changed: ($new != $old), value: $new}'
+
+if [ -z "$right" ]; then
+    right=$(find_listener "$socket") || { log "no live terminal is listening on $socket"; exit 1; }
+fi
+
+for ((i = 0; i < tries; i++)); do
+    reply=$(rpc doc.get "$(jq -cn --arg n "$doc" '{name: $n}')")
+    plan=$(jq -c --arg l "$left" --arg r "$right" --argjson ratio "$ratio" "$PLAN" <<< "$reply" 2> /dev/null)
+    if [ -z "$plan" ]; then log "doc.get failed: $reply"; sleep 0.5; continue; fi
+    if [ "$(jq -r .found <<< "$plan")" != true ]; then sleep 0.5; continue; fi
+    if [ "$(jq -r .changed <<< "$plan")" != true ]; then log "$left $right already $ratio"; exit 0; fi
+
+    set_reply=$(rpc doc.set "$(jq -c --arg n "$doc" '{name: $n, value: .value, version: .version}' <<< "$plan")")
+    if jq -e '.result.version' > /dev/null 2>&1 <<< "$set_reply"; then
+        log "$left $right set to $ratio (document version $(jq -r .result.version <<< "$set_reply"))"
+        exit 0
+    fi
+    log "doc.set refused, retrying: $(jq -r '.error.data.kind // .error.message // "no reply"' <<< "$set_reply")"
+done
+log "gave up on $left $right after $tries tries: no row holding exactly those two panes"
+exit 1
