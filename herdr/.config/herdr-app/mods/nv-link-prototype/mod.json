@@ -1,0 +1,5 @@
+{
+  "place": "none",
+  "title": "nv-link (PROTOTYPE, wipe me)",
+  "link_handlers": [{ "kind": "file", "pattern": "." }]
+}
