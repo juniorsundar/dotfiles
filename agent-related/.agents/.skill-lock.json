@@ -36,10 +36,11 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/mattpocock/skills.git",
       "skillPath": "skills/engineering/domain-modeling/SKILL.md",
-      "skillFolderHash": "ea30ee454ba264543dbe40737973b1a5afb9f0e6",
+      "skillFolderHash": "db8ef024fb9a7b2022d57289359ae96cff0d8483",
       "pluginName": "mattpocock-skills",
       "installedAt": "2026-07-23T07:26:45.757Z",
-      "updatedAt": "2026-10-05T18:21:19.503Z"
+      "updatedAt": "2026-11-26T19:18:42.371Z",
+      "commit": "6f7f7831a625f040a8e06a0e7954826b87ce775a"
     },
     "grill-me": {
       "source": "mattpocock/skills",
@@ -221,11 +222,11 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/blader/humanizer.git",
       "skillPath": "SKILL.md",
-      "skillFolderHash": "b48c832f0f809c1b5658edbb838c2521b72f2413",
+      "skillFolderHash": "a32f24407364c74c812b43c15926d638bee1e072",
       "pluginName": "humanizer",
       "installedAt": "2026-08-06T06:16:08.682Z",
-      "updatedAt": "2026-11-17T05:57:59.137Z",
-      "commit": "b48c832f0f809c1b5658edbb838c2521b72f2413"
+      "updatedAt": "2026-11-26T19:18:42.403Z",
+      "commit": "a32f24407364c74c812b43c15926d638bee1e072"
     },
     "implement-spec": {
       "source": "mattpocock/skills",
