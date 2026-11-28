@@ -11,6 +11,12 @@
     "./runtime": {
       "import": "./index.js"
     },
+    "./tui": {
+      "import": "./tui.js"
+    },
+    "./rpc": {
+      "import": "./rpc.js"
+    },
     "./v1": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"

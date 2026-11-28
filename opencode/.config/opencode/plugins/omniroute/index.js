@@ -36,6 +36,29 @@
  *     an injected `readAuthJson`, purely for its side effects: it writes the
  *     last-known-good disk snapshot and builds the MCP entry.
  *
+ * ─── Catalog size (this fork's addition) ────────────────────────────────────
+ *
+ * Out of the box the gateway advertises ~400 entries, most of them noise for a
+ * single OpenCode install: one entry per reasoning-effort tier, plus image,
+ * audio and embedding models that cannot hold a chat turn. Three layers keep
+ * the picker usable:
+ *
+ *   1. Automatic filters. `hideTierModels` (default on) drops `<id>-<tier>`
+ *      siblings, which are still reachable as variants of `<id>`.
+ *      `hideModeWrappers` (default on) drops `<mode>/<id>` when `<id>` is also
+ *      advertised, e.g. `no-think/cc/claude-opus-5`. `chatOnly` (default on)
+ *      drops non-chat modalities. All three can be turned off in plugin
+ *      options.
+ *   2. Config patterns. `models.include` / `models.exclude` take id globs
+ *      (`cc/*`, `!`-free, case-insensitive) and are applied after the filters.
+ *   3. Interactive selection. `/omniroute-models` (TUI part, `tui.js`) lists
+ *      everything that survived the filters and saves the checked subset to
+ *      `ctx.storage`. Only that subset is registered with the provider. With no
+ *      saved selection the whole filtered catalog is exposed, so a fresh
+ *      install still has models to work with. `/omniroute-models reset` clears
+ *      it; the RPC in `rpc.js` is what lets the TUI read the full catalog and
+ *      write the selection without duplicating any discovery logic.
+ *
  * ─── Operator override ──────────────────────────────────────────────────────
  *
  * Like V1, a hand-curated model list wins. The provider transform skips
@@ -123,6 +146,7 @@ import {
   sanitizeGeminiToolSchemas,
   shouldSanitizeForGemini,
 } from "./dist/index.js";
+import { OmniRouteRpc } from "./rpc.js";
 
 /** Stable plugin id: identifies the plugin in status, diagnostics and storage. */
 const ID = "@omniroute/opencode-plugin";
@@ -222,6 +246,96 @@ function buildTierIndex(rawModels) {
     if (available.length > 0) index.set(model.id, available);
   }
   return index;
+}
+
+/** Raw `/v1/models` types that are not chat models. */
+const NON_CHAT_TYPES = new Set([
+  "embedding",
+  "image",
+  "audio",
+  "rerank",
+  "video",
+  "music",
+  "moderation",
+]);
+
+/**
+ * Ids of raw entries that are not chat models (image / audio / embedding ...).
+ * Same rule as the Pi provider: an explicit non-chat `type`, or a non-text
+ * output modality.
+ */
+function nonChatIds(rawModels) {
+  const out = new Set();
+  for (const model of rawModels) {
+    if (!model || typeof model.id !== "string") continue;
+    const outputs = Array.isArray(model.output_modalities) ? model.output_modalities : [];
+    if (
+      (typeof model.type === "string" && NON_CHAT_TYPES.has(model.type)) ||
+      outputs.some((mod) => mod === "image" || mod === "audio" || mod === "video")
+    ) {
+      out.add(model.id);
+    }
+  }
+  return out;
+}
+
+/** Ids of tier siblings (`<base>-<tier>`) already exposed as variants of `<base>`. */
+function tierSiblingIds(tierIndex) {
+  const out = new Set();
+  for (const [base, tiers] of tierIndex) {
+    for (const tier of tiers) out.add(`${base}-${tier}`);
+  }
+  return out;
+}
+
+/**
+ * Ids that only wrap another catalog id: `no-think/cc/claude-opus-5` next to
+ * `cc/claude-opus-5`, for example. They are the same model behind a mode flag,
+ * and the mode is reachable through `model/variants` already, so they only pad
+ * the picker. The rule is generic — `<prefix>/<id>` is dropped when `<id>` is
+ * itself a catalog id — rather than a hard-coded prefix list.
+ */
+function modeWrapperIds(ids) {
+  const out = new Set();
+  for (const id of ids) {
+    const slash = id.indexOf("/");
+    if (slash <= 0) continue;
+    if (ids.has(id.slice(slash + 1))) out.add(id);
+  }
+  return out;
+}
+
+/** Group label for the picker: the upstream prefix (`cc/...` -> `cc`). */
+function modelGroup(id) {
+  const slash = id.indexOf("/");
+  return slash > 0 ? id.slice(0, slash) : "other";
+}
+
+/** Storage key for the persisted model selection of one provider instance. */
+function selectionKey(providerId) {
+  return `selection/${providerId}`;
+}
+
+/**
+ * Compile id globs (`*`, `?`, `**`) into one case-insensitive matcher.
+ * Returns `undefined` when the pattern list is empty, so callers can skip.
+ */
+function compileGlobs(patterns) {
+  const list = Array.isArray(patterns)
+    ? patterns.filter((pattern) => typeof pattern === "string" && pattern.length > 0)
+    : [];
+  if (list.length === 0) return undefined;
+  const sources = list.map((pattern) => {
+    let source = "";
+    for (const char of pattern) {
+      if (char === "*") source += ".*";
+      else if (char === "?") source += ".";
+      else source += char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+    return source;
+  });
+  const regex = new RegExp(`^(?:${sources.join("|")})$`, "i");
+  return (value) => regex.test(value);
 }
 
 /**
@@ -370,7 +484,26 @@ async function resolveAuth(ctx, providerId, optionBaseURL, providerSettings = {}
  * Build the V2 plugin. Exported for tests; `setup` is the entrypoint V2 calls.
  */
 export async function setup(ctx) {
-  const options = parseOmniRoutePluginOptions(ctx.options ?? {});
+  // Options owned by this V2 wrapper. The bundled schema is `.strict()`, so
+  // they are stripped before the rest is handed to the V1 parser.
+  const {
+    hideTierModels: hideTierOption,
+    hideModeWrappers: hideWrappersOption,
+    chatOnly: chatOnlyOption,
+    models: modelsOption,
+    ...bundleOptions
+  } = ctx.options ?? {};
+  // Tier siblings (`<id>-high` ...) are already reachable as variants of `<id>`.
+  const hideTierModels = hideTierOption !== false;
+  // `no-think/<id>` style wrappers duplicate `<id>` behind a mode flag.
+  const hideModeWrappers = hideWrappersOption !== false;
+  // Image / audio / embedding models are useless in a chat session.
+  const chatOnly = chatOnlyOption !== false;
+  // Non-interactive narrowing, for operators who never open the picker.
+  const includeGlob = compileGlobs(modelsOption?.include);
+  const excludeGlob = compileGlobs(modelsOption?.exclude);
+
+  const options = parseOmniRoutePluginOptions(bundleOptions);
   const resolved = resolveOmniRoutePluginOptions(options);
   const { providerId, displayName, modelCacheTtl } = resolved;
   const features = options.features ?? {};
@@ -396,7 +529,14 @@ export async function setup(ctx) {
   // called after each refresh to replay them against the new values.
   const state = {
     provider: undefined,
+    // Every discovered model (after the chat / tier filters). The picker lists
+    // these.
+    catalog: [],
+    // What is actually registered: `catalog` narrowed by `selection`.
     models: [],
+    // Model ids the user chose to expose, or null when nothing has been chosen
+    // yet (then the whole catalog is exposed).
+    selection: null,
     connection: undefined,
     mcp: undefined,
     signature: "",
@@ -620,6 +760,60 @@ export async function setup(ctx) {
     { providerID: providerId },
   );
 
+  // ── Model selection ───────────────────────────────────────────────────────
+  /**
+   * Narrow the discovered catalog to the ids the user picked in
+   * `/omniroute-models`. A model that is no longer advertised upstream is
+   * dropped, but it stays in the saved selection, so it comes back when the
+   * gateway exposes it again.
+   */
+  const applySelection = (catalog) => {
+    if (!state.selection) return catalog;
+    return catalog.filter((model) => state.selection.has(model.id));
+  };
+
+  // Restore the saved selection before the first refresh registers models.
+  // Re-read on every refresh too: the selection is shared by every location
+  // that loads this plugin, and a save in another window should show up here
+  // without a restart.
+  const loadSelection = async () => {
+    try {
+      const saved = await ctx.storage.get(selectionKey(providerId));
+      const next =
+        saved && Array.isArray(saved.ids)
+          ? new Set(saved.ids.filter((id) => typeof id === "string"))
+          : null;
+      state.selection = next;
+      return next;
+    } catch (error) {
+      warn(`could not read the saved model selection: ${error?.message ?? error}`);
+      return state.selection;
+    }
+  };
+
+  const restored = await loadSelection();
+  if (restored) log(`restored a saved selection of ${restored.size} model(s)`);
+
+  /**
+   * Persist a selection (`null` clears it) and re-register the provider with
+   * the narrowed catalog immediately.
+   */
+  const setSelection = async (ids) => {
+    state.selection = ids ? new Set(ids) : null;
+    if (state.selection) {
+      await ctx.storage.set(selectionKey(providerId), {
+        ids: [...state.selection],
+        updatedAt: new Date().toISOString(),
+      });
+    } else {
+      await ctx.storage.remove(selectionKey(providerId));
+    }
+    state.models = applySelection(state.catalog);
+    state.signature = "";
+    await ctx.provider.reload();
+    return { visible: state.models.length, total: state.catalog.length };
+  };
+
   // ── Refresh ───────────────────────────────────────────────────────────────
   let refreshing = null;
 
@@ -642,11 +836,15 @@ export async function setup(ctx) {
   const refresh = async () => {
     const { apiKey, baseURL, connection } = await refreshAuth();
 
+    // Pick up a selection saved elsewhere (another project, another window).
+    await loadSelection();
+
     if (!apiKey) {
       // No credential yet — leave the provider unregistered so `/connect`
       // stays the obvious next step instead of an empty model list.
       if (state.provider) {
         state.provider = undefined;
+        state.catalog = [];
         state.models = [];
         state.connection = undefined;
         state.registered = false;
@@ -741,7 +939,16 @@ export async function setup(ctx) {
     // catalog has already dropped `capabilities.effort_tiers`.
     const rawModels = cache.get(seedCacheKey(baseURL, apiKey))?.rawModels ?? [];
     const tierIndex = buildTierIndex(rawModels);
-    const models = catalogModels.map((model) => toModelInfo(model, providerId, tierIndex));
+    const catalogIds = new Set(catalogModels.map((model) => model.id));
+    const hidden = new Set();
+    if (hideTierModels) for (const id of tierSiblingIds(tierIndex)) hidden.add(id);
+    if (chatOnly) for (const id of nonChatIds(rawModels)) hidden.add(id);
+    if (hideModeWrappers) for (const id of modeWrapperIds(catalogIds)) hidden.add(id);
+    const models = catalogModels
+      .filter((model) => !hidden.has(model.id))
+      .filter((model) => (includeGlob ? includeGlob(model.id) : true))
+      .filter((model) => (excludeGlob ? !excludeGlob(model.id) : true))
+      .map((model) => toModelInfo(model, providerId, tierIndex));
 
     // Log only when the model id set actually changes, not on every TTL tick.
     const signature = models
@@ -752,14 +959,20 @@ export async function setup(ctx) {
     state.signature = signature;
 
     state.provider = buildProviderInfo(providerId, displayName, baseURL);
-    state.models = models;
+    state.catalog = models;
+    state.models = applySelection(models);
     state.connection = connection;
     state.registered = true;
     bootAttempt = 0;
     clearTimeout(bootTimer);
     bootTimer = null;
 
-    if (changed) log(`discovered ${models.length} model(s) for ${providerId}`);
+    if (changed) {
+      log(
+        `discovered ${models.length} model(s) for ${providerId} ` +
+          `(${hidden.size} hidden by filters, ${state.models.length} exposed)`,
+      );
+    }
     await ctx.provider.reload();
   };
 
@@ -810,9 +1023,17 @@ export async function setup(ctx) {
         try {
           await forceRefresh();
           const summary =
-            `OmniRoute cache refreshed: ${state.models.length} model(s)` +
-            `${state.mcp ? ", MCP endpoint active" : ""}.`;
+            `OmniRoute cache refreshed: ${state.catalog.length} model(s) discovered, ` +
+            `${state.models.length} exposed (\`/omniroute-models\` to choose).` +
+            `${state.mcp ? " MCP endpoint active." : ""}`;
           log(summary);
+          // Let the TUI offer the picker: this is the "refresh, then choose"
+          // flow. Best effort — a failure here must not fail the refresh.
+          try {
+            await rpc?.events.emit("refreshed", { providerId });
+          } catch (error) {
+            warn(`could not announce the refresh: ${error?.message ?? error}`);
+          }
           try {
             await ctx.session.synthetic({ sessionID, id: { text: summary } });
           } catch (error) {
@@ -823,6 +1044,42 @@ export async function setup(ctx) {
         }
       },
     });
+  });
+
+  // ── RPC: model picker support for the TUI part ────────────────────────────
+  // The server owns discovery and storage; the TUI (`tui.js`) owns the dialog.
+  // This bridge is what lets `/omniroute-models` list the whole catalog (not
+  // just what is currently exposed) and save a new selection.
+  const rpc = await ctx.rpc.register(OmniRouteRpc, {
+    catalog: async (input) => {
+      if (input?.refresh === true) await forceRefresh();
+      const selected = state.selection;
+      return {
+        providerId,
+        displayName,
+        hasSelection: selected !== null,
+        models: state.catalog.map((model) => ({
+          id: model.id,
+          name: model.name,
+          group: modelGroup(model.id),
+          variants: model.variants.length,
+          selected: selected === null || selected.has(model.id),
+        })),
+      };
+    },
+    select: async (input) => {
+      const result =
+        input?.clear === true
+          ? await setSelection(null)
+          : await setSelection(Array.isArray(input?.ids) ? input.ids : []);
+      log(
+        input?.clear === true
+          ? `selection cleared: exposing all ${result.total} model(s)`
+          : `selection saved: ${result.visible}/${result.total} model(s) exposed`,
+      );
+      await rpc.events.emit("selectionChanged", { providerId });
+      return result;
+    },
   });
 
   const label = resolved.baseURL ?? auth.baseURL ?? "(from /connect)";

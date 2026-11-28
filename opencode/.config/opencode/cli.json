@@ -10,7 +10,8 @@
     "scrollbar": true,
     "thinking": "hide",
     "grouping": "auto",
-    "image_preview": true
+    "image_preview": true,
+    "permissions": "autoaccept"
   },
   "animations": true
 }
